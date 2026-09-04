@@ -129,6 +129,10 @@
   }
   .row.done .row-name { color:#9B937C; text-decoration:line-through; }
   .row-amount { font-family:'Inter',sans-serif; font-size:13.5px; font-weight:600; flex-shrink:0; }
+  .sync-badge { flex-shrink:0; display:flex; align-items:center; justify-content:center; width:14px; height:14px; }
+  .sync-badge.synced { color:#2F5C4B; }
+  .sync-badge.pending { color:#C7BEA4; }
+  .sync-badge.error { color:#B5482A; }
   .row.done .row-amount { color:#9B937C; text-decoration:line-through; }
   .del {
     border:none; background:transparent; cursor:pointer; padding:2px;
@@ -293,10 +297,17 @@
     </button>
   </div>
 
-  <div id="driveSyncBar" style="display:flex; align-items:center; gap:8px; margin-bottom:14px;">
-    <button id="googleSignInBtn" style="flex:1; display:flex; align-items:center; justify-content:center; gap:8px; padding:11px; border-radius:10px; border:1px solid #E4DCC8; background:#FFFDF8; color:#4A4636; font-family:'Inter',sans-serif; font-size:13.5px; cursor:pointer;">
+  <div id="driveSyncBar" style="margin-bottom:14px;">
+    <button id="googleSignInBtn" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; padding:11px; border-radius:10px; border:1px solid #E4DCC8; background:#FFFDF8; color:#4A4636; font-family:'Inter',sans-serif; font-size:13.5px; cursor:pointer;">
       <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34.1 5.5 29.3 3.5 24 3.5 12.7 3.5 3.5 12.7 3.5 24S12.7 44.5 24 44.5 44.5 35.3 44.5 24c0-1.2-.1-2.4-.3-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 16 19 13.5 24 13.5c3.1 0 5.8 1.1 8 3l6-6C34.1 5.5 29.3 3.5 24 3.5c-7.4 0-13.7 4.2-16.9 10.3z"/><path fill="#4CAF50" d="M24 44.5c5.2 0 9.9-1.7 13.5-4.7l-6.2-5.2c-2.1 1.4-4.8 2.3-7.3 2.3-5.2 0-9.6-3.3-11.2-7.9l-6.5 5C9.7 40.1 16.3 44.5 24 44.5z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4 5.6l6.2 5.2C40.6 36 44.5 30.5 44.5 24c0-1.2-.1-2.4-.3-3.5z"/></svg>
       <span id="googleSignInLabel">Sign in with Google</span>
+    </button>
+    <button id="accountChipBtn" style="display:none; width:100%; align-items:center; gap:10px; padding:9px 12px; border-radius:10px; border:1px solid #E4DCC8; background:#FFFDF8; cursor:pointer; text-align:left;">
+      <img id="accountChipAvatar" src="" style="width:30px; height:30px; border-radius:50%; flex-shrink:0; display:none;" />
+      <div style="flex:1; min-width:0;">
+        <div id="accountChipName" style="font-family:'Inter',sans-serif; font-size:13px; font-weight:600; color:#26241E; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></div>
+        <div id="accountChipStatus" style="font-family:'Inter',sans-serif; font-size:11px; color:#9B937C; margin-top:1px;"></div>
+      </div>
     </button>
   </div>
   <div id="syncStatusNote" style="display:none; font-family:'Inter',sans-serif; font-size:11.5px; color:#9B937C; text-align:center; margin:-6px 0 12px;"></div>
@@ -306,6 +317,39 @@
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     New list
   </button>
+</div>
+
+<div class="manage-overlay" id="accountOverlay">
+  <div class="manage-header">
+    <div class="manage-title">Google Account</div>
+    <button class="manage-close" id="accountCloseBtn" aria-label="Close">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="manage-body">
+    <div id="accountSignedOutView">
+      <div class="manage-hint">Sign in with Google to back up all your lists to your own Google Drive, and sync across devices.</div>
+      <button id="accountSignInBtn2" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; padding:12px; border-radius:10px; border:1px solid #E4DCC8; background:#FFFDF8; color:#4A4636; font-family:'Inter',sans-serif; font-size:14px; cursor:pointer;">
+        <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34.1 5.5 29.3 3.5 24 3.5 12.7 3.5 3.5 12.7 3.5 24S12.7 44.5 24 44.5 44.5 35.3 44.5 24c0-1.2-.1-2.4-.3-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 16 19 13.5 24 13.5c3.1 0 5.8 1.1 8 3l6-6C34.1 5.5 29.3 3.5 24 3.5c-7.4 0-13.7 4.2-16.9 10.3z"/><path fill="#4CAF50" d="M24 44.5c5.2 0 9.9-1.7 13.5-4.7l-6.2-5.2c-2.1 1.4-4.8 2.3-7.3 2.3-5.2 0-9.6-3.3-11.2-7.9l-6.5 5C9.7 40.1 16.3 44.5 24 44.5z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4 5.6l6.2 5.2C40.6 36 44.5 30.5 44.5 24c0-1.2-.1-2.4-.3-3.5z"/></svg>
+        Sign in with Google
+      </button>
+    </div>
+    <div id="accountSignedInView" style="display:none;">
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px;">
+        <img id="accountAvatar" src="" style="width:48px; height:48px; border-radius:50%;" />
+        <div style="min-width:0;">
+          <div id="accountName" style="font-family:'Inter',sans-serif; font-size:15px; font-weight:600; color:#26241E; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></div>
+          <div id="accountEmail" style="font-family:'Inter',sans-serif; font-size:12.5px; color:#9B937C; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></div>
+        </div>
+      </div>
+      <div id="accountSyncStatus" style="font-family:'Inter',sans-serif; font-size:13px; color:#4A4636; background:#EEF4EF; border-radius:10px; padding:10px 12px; margin-bottom:14px;"></div>
+      <button id="manualSyncBtn" class="backup-btn" style="width:100%; margin-bottom:10px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;"><path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 9 8 9"/></svg>
+        Sync now
+      </button>
+      <button id="accountSignOutBtn" class="backup-btn" style="width:100%; color:#B5482A;">Sign out</button>
+    </div>
+  </div>
 </div>
 
 <div class="manage-overlay" id="trashOverlay">
@@ -427,6 +471,10 @@
       <button class="sheet-item" id="categoriesBtn">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h7v7H4z"/><path d="M13 4h7v7h-7z"/><path d="M4 13h7v7H4z"/><path d="M13 13h7v7h-7z"/></svg>
         Categories
+      </button>
+      <button class="sheet-item" id="settingsAccountBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Google Account &amp; sync
       </button>
       <button class="sheet-item" id="aiSetupBtn">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
@@ -969,6 +1017,7 @@
           ${showDate ? `<div style="font-size:11px; color:#9B937C; font-weight:400; margin-top:1px;">Done on ${formatDoneDate(item.doneDate)}</div>` : ""}
         </div>
         ${checklist ? "" : `<div class="row-amount">${rupee(item.amount)}</div>`}
+        ${syncBadgeHtml()}
         <button class="edit-btn" data-edit-item="${item.id}" aria-label="Edit item">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
         </button>
@@ -1090,6 +1139,7 @@
             ${categoryBadgeHtml(item.category)}
           </div>`}
         </div>
+        ${syncBadgeHtml()}
         <button class="edit-btn" data-edit-item="${item.id}" aria-label="Edit item">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
         </button>
@@ -2558,9 +2608,10 @@
 
   // ---------- Google Sign-In + Drive sync ----------
   const GOOGLE_CLIENT_ID = "14157388621-e68ubolbhas9aqlgqmeqoe0rscmdk5je.apps.googleusercontent.com";
-  const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
+  const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email";
   const DRIVE_FILE_NAME = "muhasib-app-data.csv";
   const SIGNED_IN_FLAG = "expense_ledger_google_ever_signed_in";
+  const PROFILE_CACHE_KEY = "expense_ledger_google_profile";
 
   let gTokenClient = null;
   let gAccessToken = null;
@@ -2569,10 +2620,42 @@
   let gSyncTimer = null;
   let gSyncInFlight = false;
   let gSyncQueued = false;
+  let gProfile = null; // { name, email, picture }
+  let gSyncIconState = null; // null | 'pending' | 'synced' | 'error'
 
   const googleSignInBtn = document.getElementById("googleSignInBtn");
   const googleSignInLabel = document.getElementById("googleSignInLabel");
   const syncStatusNote = document.getElementById("syncStatusNote");
+  const accountChipBtn = document.getElementById("accountChipBtn");
+  const accountChipAvatar = document.getElementById("accountChipAvatar");
+  const accountChipName = document.getElementById("accountChipName");
+  const accountChipStatus = document.getElementById("accountChipStatus");
+  const accountOverlay = document.getElementById("accountOverlay");
+  const accountSignedOutView = document.getElementById("accountSignedOutView");
+  const accountSignedInView = document.getElementById("accountSignedInView");
+  const accountAvatar = document.getElementById("accountAvatar");
+  const accountName = document.getElementById("accountName");
+  const accountEmail = document.getElementById("accountEmail");
+  const accountSyncStatus = document.getElementById("accountSyncStatus");
+
+  function syncBadgeHtml() {
+    if (!gIsSignedIn && !gSyncIconState) return "";
+    if (gSyncIconState === "pending") {
+      return '<span class="sync-badge pending" title="Waiting to sync"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></svg></span>';
+    }
+    if (gSyncIconState === "error") {
+      return '<span class="sync-badge error" title="Sync failed"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="13"/><circle cx="12" cy="16.5" r="0.5" fill="currentColor"/></svg></span>';
+    }
+    if (gSyncIconState === "synced") {
+      return '<span class="sync-badge synced" title="Synced to Google Drive"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>';
+    }
+    return "";
+  }
+
+  function refreshSyncBadges() {
+    if (currentListId) renderMain();
+    if (typeof manageOverlay !== "undefined" && manageOverlay.classList.contains("open")) renderManageList();
+  }
 
   function setSyncNote(text) {
     if (!text) { syncStatusNote.style.display = "none"; return; }
@@ -2582,10 +2665,42 @@
 
   function updateSignInUI() {
     if (gIsSignedIn) {
-      googleSignInLabel.textContent = "Signed in · tap to sign out";
+      googleSignInBtn.style.display = "none";
+      accountChipBtn.style.display = "flex";
+      accountChipName.textContent = (gProfile && gProfile.name) || "Signed in";
+      accountChipStatus.textContent = "Tap for account & sync options";
+      if (gProfile && gProfile.picture) {
+        accountChipAvatar.src = gProfile.picture;
+        accountChipAvatar.style.display = "block";
+      } else {
+        accountChipAvatar.style.display = "none";
+      }
+      accountSignedOutView.style.display = "none";
+      accountSignedInView.style.display = "block";
+      if (gProfile) {
+        accountAvatar.src = gProfile.picture || "";
+        accountName.textContent = gProfile.name || "";
+        accountEmail.textContent = gProfile.email || "";
+      }
     } else {
-      googleSignInLabel.textContent = "Sign in with Google";
+      googleSignInBtn.style.display = "flex";
+      accountChipBtn.style.display = "none";
+      accountSignedOutView.style.display = "block";
+      accountSignedInView.style.display = "none";
     }
+  }
+
+  async function fetchGoogleProfile() {
+    try {
+      const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+        headers: { Authorization: "Bearer " + gAccessToken }
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      gProfile = { name: data.name || data.email, email: data.email || "", picture: data.picture || "" };
+      try { localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(gProfile)); } catch (e) {}
+      updateSignInUI();
+    } catch (e) {}
   }
 
   window.onGsiLoaded = function () {
@@ -2598,6 +2713,10 @@
     let everSignedIn = false;
     try { everSignedIn = localStorage.getItem(SIGNED_IN_FLAG) === "1"; } catch (e) {}
     if (everSignedIn) {
+      try {
+        const cached = localStorage.getItem(PROFILE_CACHE_KEY);
+        if (cached) gProfile = JSON.parse(cached);
+      } catch (e) {}
       try { gTokenClient.requestAccessToken({ prompt: "" }); } catch (e) {}
     }
   };
@@ -2614,27 +2733,65 @@
     try { localStorage.setItem(SIGNED_IN_FLAG, "1"); } catch (e) {}
     updateSignInUI();
     setSyncNote("Connecting to Google Drive…");
+    fetchGoogleProfile();
     syncFromDriveOnSignIn();
   }
 
-  googleSignInBtn.addEventListener("click", () => {
-    if (gIsSignedIn) {
-      if (!confirm("Sign out from Google Drive sync? Your data stays on this phone, but won't sync anymore.")) return;
-      gIsSignedIn = false;
-      gAccessToken = null;
-      try { localStorage.setItem(SIGNED_IN_FLAG, "0"); } catch (e) {}
-      if (window.google && google.accounts && google.accounts.oauth2 && gAccessToken) {
-        google.accounts.oauth2.revoke(gAccessToken, () => {});
-      }
-      updateSignInUI();
-      setSyncNote("Signed out. Data is local-only now.");
-      return;
-    }
+  function doGoogleSignIn() {
     if (!gTokenClient) {
       alert("Google sign-in is still loading — please try again in a moment.");
       return;
     }
     gTokenClient.requestAccessToken({ prompt: "consent" });
+  }
+
+  function doGoogleSignOut() {
+    if (!confirm("Sign out from Google Drive sync? Your data stays on this phone, but won't sync anymore.")) return;
+    if (window.google && google.accounts && google.accounts.oauth2 && gAccessToken) {
+      google.accounts.oauth2.revoke(gAccessToken, () => {});
+    }
+    gIsSignedIn = false;
+    gAccessToken = null;
+    gProfile = null;
+    gSyncIconState = null;
+    try {
+      localStorage.setItem(SIGNED_IN_FLAG, "0");
+      localStorage.removeItem(PROFILE_CACHE_KEY);
+    } catch (e) {}
+    updateSignInUI();
+    setSyncNote("Signed out. Data is local-only now.");
+    accountOverlay.classList.remove("open");
+    refreshSyncBadges();
+  }
+
+  googleSignInBtn.addEventListener("click", doGoogleSignIn);
+  document.getElementById("accountSignInBtn2").addEventListener("click", doGoogleSignIn);
+  document.getElementById("accountSignOutBtn").addEventListener("click", doGoogleSignOut);
+
+  function openAccountOverlay() {
+    if (gIsSignedIn) {
+      accountSyncStatus.textContent = gSyncIconState === "error" ? "Last sync failed — tap Sync now to retry." :
+        gSyncIconState === "pending" ? "Sync pending…" : "✓ Synced with Google Drive.";
+    }
+    accountOverlay.classList.add("open");
+  }
+  accountChipBtn.addEventListener("click", openAccountOverlay);
+  document.getElementById("settingsAccountBtn").addEventListener("click", () => {
+    settingsOverlay.classList.remove("open");
+    openAccountOverlay();
+  });
+  document.getElementById("accountCloseBtn").addEventListener("click", () => accountOverlay.classList.remove("open"));
+  accountOverlay.addEventListener("click", (e) => { if (e.target === accountOverlay) accountOverlay.classList.remove("open"); });
+
+  document.getElementById("manualSyncBtn").addEventListener("click", async () => {
+    const btn = document.getElementById("manualSyncBtn");
+    const original = btn.innerHTML;
+    btn.textContent = "Syncing…";
+    btn.disabled = true;
+    await pushToDrive();
+    btn.innerHTML = original;
+    btn.disabled = false;
+    accountSyncStatus.textContent = gSyncIconState === "error" ? "Sync failed — check your connection and try again." : "✓ Synced with Google Drive.";
   });
 
   async function driveFetch(url, options) {
@@ -2830,14 +2987,20 @@
         gDriveFileId = await createDriveFile(csv);
         setSyncNote("✓ Backup created in Google Drive.");
       }
+      gSyncIconState = "synced";
+      refreshSyncBadges();
       renderListsScreen();
     } catch (err) {
       setSyncNote("Couldn't sync with Drive: " + (err.message || "unknown error"));
+      gSyncIconState = "error";
+      refreshSyncBadges();
     }
   }
 
   function scheduleSync() {
     if (!gIsSignedIn) return;
+    gSyncIconState = "pending";
+    refreshSyncBadges();
     clearTimeout(gSyncTimer);
     gSyncTimer = setTimeout(pushToDrive, 1500);
   }
@@ -2857,8 +3020,12 @@
         gDriveFileId = await createDriveFile(csv);
       }
       setSyncNote("✓ Synced with Google Drive.");
+      gSyncIconState = "synced";
+      refreshSyncBadges();
     } catch (err) {
       setSyncNote("Sync paused: " + (err.message || "unknown error"));
+      gSyncIconState = "error";
+      refreshSyncBadges();
     } finally {
       gSyncInFlight = false;
       if (gSyncQueued) { gSyncQueued = false; pushToDrive(); }
