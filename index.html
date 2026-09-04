@@ -422,6 +422,9 @@
     <button class="settings-btn" id="manageListQuickBtn" aria-label="Manage list">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
     </button>
+    <button class="settings-btn" id="micQuickBtn" aria-label="Add items by voice">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+    </button>
     <button class="settings-btn" id="appAvatarBtn" style="display:none; padding:0; overflow:hidden;" aria-label="Account">
       <img id="appAvatarImg" src="" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" />
     </button>
@@ -660,11 +663,6 @@
     <input id="amountInput" type="number" inputmode="decimal" placeholder="Amount" enterkeyhint="done" />
     <button id="addBtn">+</button>
   </div>
-
-  <button id="voiceAddBtn" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; padding:10px; border-radius:10px; border:1px solid #E4DCC8; background:#FFFDF8; color:#4A4636; font-family:'Inter',sans-serif; font-size:13.5px; cursor:pointer; margin-bottom:12px;">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-    Add multiple items by voice
-  </button>
 
   <div class="list" id="pendingList"></div>
   <div id="doneSection"></div>
@@ -1963,7 +1961,7 @@
     voiceOverlay.classList.remove("open");
   }
 
-  document.getElementById("voiceAddBtn").addEventListener("click", openVoiceOverlay);
+  document.getElementById("micQuickBtn").addEventListener("click", openVoiceOverlay);
   document.getElementById("voiceCancelBtn").addEventListener("click", closeVoiceOverlay);
   voiceOverlay.addEventListener("click", (e) => {
     if (e.target === voiceOverlay) closeVoiceOverlay();
@@ -2627,8 +2625,11 @@
       el.addEventListener("click", () => {
         if (!confirm("Delete this item forever? This can't be undone.")) return;
         const [listId, itemId] = el.getAttribute("data-purge-item").split("|");
-        const trash = loadTrash(listId).filter(t => t.id !== itemId);
-        saveTrash(listId, trash);
+        const trash = loadTrash(listId);
+        const item = trash.find(t => t.id === itemId);
+        const remaining = trash.filter(t => t.id !== itemId);
+        saveTrash(listId, remaining);
+        if (gIsSignedIn && item) pushItemNow(listId, item, true, true); // mark Purged=yes so it never resurrects
         renderTrash();
       })
     );
@@ -2651,8 +2652,8 @@
           (async () => {
             try {
               await ensureSpreadsheet();
-              await upsertRow("Lists", "A", entry.list.id, [entry.list.id, entry.list.name, entry.list.type, entry.list.createdAt || "", "no", ""], colLetter(LIST_COLS.length));
-              for (const it of (entry.items || [])) await upsertRow("Items", "B", it.id, itemRow(entry.list.id, it, false), colLetter(ITEM_COLS.length));
+              await upsertRow("Lists", "A", entry.list.id, [entry.list.id, entry.list.name, entry.list.type, entry.list.createdAt || "", "no", "", "no"], colLetter(LIST_COLS.length));
+              for (const it of (entry.items || [])) await upsertRow("Items", "B", it.id, itemRow(entry.list.id, it, false, false), colLetter(ITEM_COLS.length));
               for (const c of (entry.categories || [])) await upsertRow("Categories", "B", c.id, [entry.list.id, c.id, c.name, c.color], colLetter(CATEGORY_COLS.length));
               gSyncIconState = "synced";
             } catch (e) { gSyncIconState = "error"; }
@@ -2668,8 +2669,21 @@
         if (!confirm("Delete this entire list forever? This can't be undone.")) return;
         const idx = parseInt(el.getAttribute("data-purge-list"), 10);
         const deletedLists = loadDeletedLists();
+        const entry = deletedLists[idx];
         deletedLists.splice(idx, 1);
         saveDeletedLists(deletedLists);
+        if (gIsSignedIn && entry && entry.list) {
+          (async () => {
+            try {
+              await ensureSpreadsheet();
+              const rowNum = await findRowNumber("Lists", "A", entry.list.id);
+              if (rowNum) await sheetsUpdateRange("Lists!G" + rowNum + ":G" + rowNum, [["yes"]]); // Purged column
+              for (const it of (entry.items || [])) await pushOneItem(entry.list.id, it, true, true);
+              gSyncIconState = "synced";
+            } catch (e) { gSyncIconState = "error"; }
+            refreshSyncBadges();
+          })();
+        }
         renderTrash();
       })
     );
@@ -2690,8 +2704,8 @@
   const PROFILE_CACHE_KEY = "expense_ledger_google_profile";
   const SPREADSHEET_ID_KEY = "expense_ledger_spreadsheet_id";
 
-  const ITEM_COLS = ["ListId","ItemId","Name","Amount","Done","Active","CategoryId","DoneDate","Trashed","DeletedAt","UpdatedAt"];
-  const LIST_COLS = ["ListId","Name","Type","CreatedAt","Trashed","DeletedAt"];
+  const ITEM_COLS = ["ListId","ItemId","Name","Amount","Done","Active","CategoryId","DoneDate","Trashed","DeletedAt","UpdatedAt","Purged"];
+  const LIST_COLS = ["ListId","Name","Type","CreatedAt","Trashed","DeletedAt","Purged"];
   const CATEGORY_COLS = ["ListId","CategoryId","Name","Color"];
   const HISTORY_COLS = ["ListId","HistoryId","Label","Total","Spent","Remaining","ArchivedAt","ItemsJson"];
 
@@ -2967,6 +2981,7 @@
   async function gFetch(url, options) {
     options = options || {};
     options.headers = Object.assign({}, options.headers, { Authorization: "Bearer " + gAccessToken });
+    if (options.method && options.method !== "GET") options.keepalive = true;
     const res = await fetch(url, options);
     if (!res.ok) {
       const t = await res.text();
@@ -3073,32 +3088,54 @@
   }
 
   // ---- per-record push (only the ONE changed row goes over the wire) ----
-  function itemRow(listId, item, trashed) {
+  function itemRow(listId, item, trashed, purged) {
     return [
       listId, item.id, item.name, item.amount,
       item.done ? "yes" : "no", item.active !== false ? "yes" : "no",
       item.category || "", item.doneDate || "",
       trashed ? "yes" : "no", item.deletedAt || "",
-      new Date().toISOString()
+      new Date().toISOString(),
+      purged ? "yes" : "no"
     ];
   }
 
-  async function pushOneItem(listId, item, trashed) {
+  async function pushOneItem(listId, item, trashed, purged) {
     await ensureSpreadsheet();
-    await upsertRow("Items", "B", item.id, itemRow(listId, item, trashed), colLetter(ITEM_COLS.length));
+    await upsertRow("Items", "B", item.id, itemRow(listId, item, trashed, purged), colLetter(ITEM_COLS.length));
+  }
+
+  // Deletions/restores fire immediately (no debounce) — these are deliberate,
+  // one-off actions, and waiting risks the change being lost if the person
+  // refreshes or closes the tab before the debounce timer would have fired.
+  function pushItemNow(listId, item, trashed, purged) {
+    if (!gIsSignedIn) return;
+    gSyncIconState = "pending";
+    refreshSyncBadges();
+    pushOneItem(listId, item, trashed, purged).then(() => {
+      gSyncIconState = "synced"; refreshSyncBadges();
+    }).catch((err) => {
+      gSyncIconState = "error"; setSyncNote("Sync failed: " + (err.message || "unknown")); refreshSyncBadges();
+    });
   }
 
   function scheduleItemPush(listId, item, trashed) {
     if (!gIsSignedIn) return;
+    if (trashed) {
+      // Don't debounce deletions — push right away so a quick refresh can't race past it.
+      const key = listId + "|" + item.id;
+      if (gPendingItemPush[key]) { clearTimeout(gPendingItemPush[key].timer); delete gPendingItemPush[key]; }
+      pushItemNow(listId, item, true, false);
+      return;
+    }
     const key = listId + "|" + item.id;
     gSyncIconState = "pending";
     refreshSyncBadges();
     if (gPendingItemPush[key]) clearTimeout(gPendingItemPush[key].timer);
     gPendingItemPush[key] = {
-      run: () => pushOneItem(listId, item, trashed),
+      run: () => pushOneItem(listId, item, trashed, false),
       timer: setTimeout(() => {
         delete gPendingItemPush[key];
-        pushOneItem(listId, item, trashed).then(() => {
+        pushOneItem(listId, item, trashed, false).then(() => {
           gSyncIconState = "synced"; refreshSyncBadges();
         }).catch((err) => {
           gSyncIconState = "error"; setSyncNote("Sync failed: " + (err.message || "unknown")); refreshSyncBadges();
@@ -3185,7 +3222,7 @@
           delete gPendingListPush[key];
           try {
             await ensureSpreadsheet();
-            await upsertRow("Lists", "A", l.id, [l.id, l.name, l.type, l.createdAt || "", "no", ""], colLetter(LIST_COLS.length));
+            await upsertRow("Lists", "A", l.id, [l.id, l.name, l.type, l.createdAt || "", "no", "", "no"], colLetter(LIST_COLS.length));
             gSyncIconState = "synced";
           } catch (err) {
             gSyncIconState = "error"; setSyncNote("Sync failed: " + (err.message || "unknown"));
@@ -3271,16 +3308,17 @@
     const itemsByList = {}, categoriesByList = {}, historyByList = {}, trashByList = {};
 
     listRows.forEach(r => {
-      const [id, name, type, createdAt, trashed] = r;
-      if (!id) return;
+      const [id, name, type, createdAt, trashed, deletedAt, purged] = r;
+      if (!id || purged === "yes") return;
       itemsByList[id] = []; categoriesByList[id] = []; historyByList[id] = []; trashByList[id] = [];
       if (trashed === "yes") deletedLists.push({ id, name, type, createdAt });
       else activeLists.push({ id, name, type, createdAt: createdAt || new Date().toISOString() });
     });
 
     itemRows.forEach(r => {
-      const [listId, itemId, name, amount, done, active, categoryId, doneDate, trashed, deletedAt] = r;
-      if (!listId || !itemId) return;
+      const [listId, itemId, name, amount, done, active, categoryId, doneDate, trashed, deletedAt, updatedAt, purged] = r;
+      if (!listId || !itemId || purged === "yes") return;
+      if (!(listId in itemsByList)) return; // list itself was purged — skip its items too
       const obj = { id: itemId, name: name || "", amount: parseFloat(amount) || 0, done: done === "yes", active: active !== "no", category: categoryId || null, doneDate: doneDate || null };
       if (trashed === "yes") {
         obj.deletedAt = deletedAt || "";
@@ -3342,7 +3380,7 @@
       if (listRows.length === 0 && lists.length > 0) {
         // fresh spreadsheet, this device has local data -> push everything once
         for (const l of lists) {
-          await upsertRow("Lists", "A", l.id, [l.id, l.name, l.type, l.createdAt || "", "no", ""], colLetter(LIST_COLS.length));
+          await upsertRow("Lists", "A", l.id, [l.id, l.name, l.type, l.createdAt || "", "no", "", "no"], colLetter(LIST_COLS.length));
           let itemsArr = []; try { itemsArr = JSON.parse(localStorage.getItem(itemsKeyFor(l.id)) || "[]"); } catch (e) {}
           for (const it of itemsArr) await upsertRow("Items", "B", it.id, itemRow(l.id, it, false), colLetter(ITEM_COLS.length));
           let trashArr = []; try { trashArr = JSON.parse(localStorage.getItem(trashKeyFor(l.id)) || "[]"); } catch (e) {}
