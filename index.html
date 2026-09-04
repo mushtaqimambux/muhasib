@@ -1852,14 +1852,32 @@
         // Rebuild the transcript fresh from the full results collection every time,
         // rather than incrementally appending — some mobile browsers re-fire onresult
         // with overlapping resultIndex values, which caused text to repeat.
-        let final = "";
+        // Some devices also mark a phrase "final" multiple times AS IT GROWS
+        // (e.g. "Usama" -> "Usama ke" -> "Usama ke 500 rupees" all as separate
+        // final results). Merge those into just the longest version instead of
+        // concatenating every step.
+        const finalSegs = [];
         let interim = "";
         for (let i = 0; i < e.results.length; i++) {
-          const t = e.results[i][0].transcript;
-          if (e.results[i].isFinal) final += t + " ";
-          else interim += t;
+          const t = e.results[i][0].transcript.trim();
+          if (e.results[i].isFinal) {
+            if (!t) continue;
+            const tLower = t.toLowerCase();
+            const prev = finalSegs[finalSegs.length - 1];
+            if (prev) {
+              const prevLower = prev.toLowerCase();
+              if (tLower === prevLower) continue; // exact repeat
+              if (tLower.startsWith(prevLower) || prevLower.startsWith(tLower)) {
+                finalSegs[finalSegs.length - 1] = t.length > prev.length ? t : prev;
+                continue;
+              }
+            }
+            finalSegs.push(t);
+          } else {
+            interim += t;
+          }
         }
-        voiceTranscript.value = (final + interim).trim();
+        voiceTranscript.value = (finalSegs.join(" ") + " " + interim).trim();
       };
       recognition.onerror = (e) => {
         isRecording = false;
