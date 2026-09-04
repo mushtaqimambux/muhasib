@@ -1,0 +1,2358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Spending Ledger</title>
+
+<!-- Home screen behavior -->
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Ledger" />
+<meta name="theme-color" content="#2F5C4B" />
+
+<!-- Icon (used for home screen icon on iOS/Android) -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%232F5C4B'/%3E%3Cpath d='M30 25h40v50l-6-4-6 4-6-4-6 4-6-4-6 4-4-4z' fill='none' stroke='%23F6F1E7' stroke-width='4' stroke-linejoin='round'/%3E%3Cline x1='38' y1='40' x2='62' y2='40' stroke='%23F6F1E7' stroke-width='4' stroke-linecap='round'/%3E%3Cline x1='38' y1='50' x2='62' y2='50' stroke='%23F6F1E7' stroke-width='4' stroke-linecap='round'/%3E%3Cline x1='38' y1='60' x2='54' y2='60' stroke='%23F6F1E7' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%232F5C4B'/%3E%3Cpath d='M30 25h40v50l-6-4-6 4-6-4-6 4-6-4-6 4-4-4z' fill='none' stroke='%23F6F1E7' stroke-width='4' stroke-linejoin='round'/%3E%3Cline x1='38' y1='40' x2='62' y2='40' stroke='%23F6F1E7' stroke-width='4' stroke-linecap='round'/%3E%3Cline x1='38' y1='50' x2='62' y2='50' stroke='%23F6F1E7' stroke-width='4' stroke-linecap='round'/%3E%3Cline x1='38' y1='60' x2='54' y2='60' stroke='%23F6F1E7' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E" />
+
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    background: #F6F1E7;
+    font-family: 'Source Serif 4', Georgia, serif;
+    color: #26241E;
+    padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom) 0;
+  }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 16px 16px 40px; }
+  .header { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+  .header-text { flex:1; min-width:0; }
+  .settings-btn {
+    width:32px; height:32px; border-radius:9px; border:1px solid #E4DCC8;
+    background:#FFFDF8; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; flex-shrink:0; color:#4A4636;
+  }
+
+  .overlay {
+    display:none; position:fixed; inset:0; background:rgba(38,36,30,0.4);
+    align-items:flex-end; justify-content:center; z-index:50;
+  }
+  .overlay.open { display:flex; }
+  .sheet {
+    background:#F6F1E7; width:100%; max-width:480px; border-radius:18px 18px 0 0;
+    padding:20px 16px calc(20px + env(safe-area-inset-bottom));
+    font-family:'Inter',sans-serif;
+  }
+  .sheet-title { font-size:15px; font-weight:600; margin-bottom:14px; font-family:'Source Serif 4',Georgia,serif; }
+  .sheet-item {
+    display:flex; align-items:center; gap:10px; width:100%; text-align:left;
+    padding:12px 6px; border:none; background:transparent; cursor:pointer;
+    font-size:14.5px; color:#26241E; border-bottom:1px solid #E9E2D2; font-family:'Inter',sans-serif;
+  }
+  .sheet-item:last-child { border-bottom:none; }
+  .sheet-item svg { flex-shrink:0; color:#7A7460; }
+  .sheet-note { font-size:12px; color:#9B937C; margin:10px 6px 4px; }
+  .sheet-close {
+    width:100%; margin-top:14px; padding:11px; border-radius:10px; border:none;
+    background:#26241E; color:#F6F1E7; font-size:14px; cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  .logo {
+    width:32px; height:32px; border-radius:9px; background:#2F5C4B;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .title { font-size:17px; font-weight:600; letter-spacing:-0.01em; line-height:1.1; }
+  .subtitle { font-size:11.5px; color:#7A7460; font-family:'Inter',sans-serif; margin-top:1px; }
+
+  .summary {
+    background:#FFFDF8; border:1px solid #E4DCC8; border-radius:12px;
+    padding:12px 14px; margin-bottom:12px;
+  }
+  .summary-top { display:flex; justify-content:space-between; align-items:baseline; font-family:'Inter',sans-serif; }
+  .summary-top span:first-child { font-size:12px; color:#7A7460; }
+  .summary-top span:last-child { font-size:14px; font-weight:600; }
+  .bar { height:6px; background:#EFE8D8; border-radius:999px; margin:8px 0; overflow:hidden; }
+  .bar-fill { height:100%; background:#2F5C4B; border-radius:999px; transition:width .35s ease; }
+  .stats { display:flex; gap:8px; }
+  .stat { flex:1; border-radius:9px; padding:7px 10px; font-family:'Inter',sans-serif; display:flex; align-items:baseline; justify-content:space-between; gap:6px; }
+  .stat.spent { background:#EEF4EF; }
+  .stat.remaining { background:#FBEDE7; }
+  .stat-label { font-size:10.5px; }
+  .stat.spent .stat-label { color:#3E6B57; }
+  .stat.remaining .stat-label { color:#A0512F; }
+  .stat-value { font-size:14px; font-weight:700; }
+  .stat.spent .stat-value { color:#2F5C4B; }
+  .stat.remaining .stat-value { color:#B5482A; }
+
+  .backup-row { display:flex; gap:8px; margin-bottom:14px; font-family:'Inter',sans-serif; }
+  .backup-btn {
+    flex:1; padding:9px 10px; border-radius:10px; border:1px solid #E4DCC8;
+    background:#FFFDF8; color:#4A4636; font-size:13px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:6px;
+  }
+  .backup-note { font-size:12px; color:#9B937C; font-family:'Inter',sans-serif; text-align:center; margin:-6px 0 18px; }
+
+  .add-row { display:flex; gap:8px; margin-bottom:12px; font-family:'Inter',sans-serif; }
+  .add-row input {
+    padding:10px 12px; border-radius:10px; border:1px solid #E4DCC8;
+    background:#FFFDF8; font-size:14px; outline:none; font-family:'Inter',sans-serif;
+  }
+  #nameInput { flex:1; min-width:0; }
+  #amountInput { width:90px; }
+  #addBtn {
+    width:40px; border-radius:10px; border:none; background:#26241E; color:#F6F1E7;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; font-size:20px;
+  }
+
+  .list { display:flex; flex-direction:column; gap:6px; touch-action:pan-y; }
+  .empty { font-family:'Inter',sans-serif; font-size:13px; color:#9B937C; text-align:center; padding:18px 0; }
+
+  .done-heading { font-size:12px; color:#9B937C; font-family:'Inter',sans-serif; margin:16px 0 6px 2px; }
+
+  .row {
+    display:flex; align-items:center; gap:8px; background:#FFFDF8;
+    border:1px solid #E4DCC8; border-radius:10px; padding:6px 10px; transition:background .2s ease;
+  }
+  .row.done { background:#F1EDE1; }
+  .row-drag-spacer {
+    background:rgba(199,190,164,0.25); border:1.5px dashed #C7BEA4; border-radius:10px;
+  }
+  .check {
+    width:18px; height:18px; border-radius:50%; border:1.5px solid #C7BEA4;
+    background:transparent; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; flex-shrink:0; padding:0;
+  }
+  .row.done .check { background:#2F5C4B; border:none; }
+  .row-name {
+    flex:1; min-width:0; font-family:'Inter',sans-serif; font-size:13.5px;
+    white-space:normal; word-break:break-word; line-height:1.3;
+  }
+  .row.done .row-name { color:#9B937C; text-decoration:line-through; }
+  .row-amount { font-family:'Inter',sans-serif; font-size:13.5px; font-weight:600; flex-shrink:0; }
+  .row.done .row-amount { color:#9B937C; text-decoration:line-through; }
+  .del {
+    border:none; background:transparent; cursor:pointer; padding:2px;
+    display:flex; color:#C7BEA4; flex-shrink:0; font-size:15px;
+  }
+
+  .manage-overlay {
+    display:none; position:fixed; inset:0; background:#F6F1E7; z-index:60;
+    flex-direction:column;
+  }
+  .manage-overlay.open { display:flex; }
+  .manage-header {
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:calc(16px + env(safe-area-inset-top)) 16px 14px; border-bottom:1px solid #E4DCC8;
+    flex-shrink:0;
+  }
+  .manage-title { font-size:17px; font-weight:600; font-family:'Source Serif 4',Georgia,serif; }
+  .manage-close {
+    width:34px; height:34px; border-radius:9px; border:1px solid #E4DCC8;
+    background:#FFFDF8; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; color:#4A4636; flex-shrink:0;
+  }
+  .manage-body { flex:1; overflow-y:auto; padding:14px 16px calc(20px + env(safe-area-inset-bottom)); }
+  .manage-hint { font-size:12.5px; color:#9B937C; font-family:'Inter',sans-serif; margin:0 2px 14px; line-height:1.5; }
+  .manage-list { display:flex; flex-direction:column; gap:8px; touch-action:pan-y; }
+  .manage-row {
+    display:flex; align-items:center; gap:10px; background:#FFFDF8;
+    border:1px solid #E4DCC8; border-radius:12px; padding:10px 12px;
+  }
+  .manage-row.excluded { background:#F1EDE1; opacity:0.7; }
+  .manage-row.dragging-placeholder { opacity:0.35; }
+  .drag-handle {
+    width:22px; height:26px; display:flex; align-items:center; justify-content:center;
+    color:#C7BEA4; cursor:grab; touch-action:none; flex-shrink:0;
+    -webkit-user-select:none; user-select:none; -webkit-touch-callout:none;
+  }
+  .drag-clone {
+    position:fixed; z-index:200; pointer-events:none;
+    box-shadow:0 10px 24px rgba(38,36,30,0.28); border-radius:12px; margin:0;
+  }
+  .drag-spacer {
+    background:rgba(199,190,164,0.25); border:1.5px dashed #C7BEA4; border-radius:12px;
+  }
+  .manage-info { flex:1; min-width:0; font-family:'Inter',sans-serif; }
+  .manage-name {
+    font-size:14px; color:#26241E; white-space:normal; word-break:break-word; line-height:1.3;
+  }
+  .manage-row.excluded .manage-name { color:#9B937C; }
+  .manage-amount { font-size:12.5px; color:#7A7460; margin-top:1px; }
+  .edit-btn {
+    border:1px solid #E4DCC8; background:#FFFDF8; border-radius:7px; width:26px; height:26px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; color:#7A7460; flex-shrink:0; padding:0;
+  }
+
+  .edit-overlay {
+    display:none; position:fixed; inset:0; background:rgba(38,36,30,0.45); z-index:70;
+    align-items:flex-start; justify-content:center; padding-top:14vh;
+  }
+  .edit-overlay.open { display:flex; }
+  .edit-card {
+    background:#FFFDF8; width:calc(100% - 32px); max-width:400px; border-radius:16px;
+    padding:20px; font-family:'Inter',sans-serif; box-shadow:0 8px 30px rgba(38,36,30,0.25);
+  }
+  .edit-card-title { font-size:15px; font-weight:600; margin-bottom:14px; font-family:'Source Serif 4',Georgia,serif; color:#26241E; }
+  .edit-field { margin-bottom:12px; }
+  .edit-label { font-size:12px; color:#9B937C; margin-bottom:5px; display:block; }
+  .edit-input {
+    width:100%; padding:10px 12px; border-radius:10px; border:1px solid #E4DCC8;
+    background:#FFFFFF; font-size:14.5px; outline:none; font-family:'Inter',sans-serif; color:#26241E;
+  }
+  .edit-actions { display:flex; gap:8px; margin-top:16px; }
+  .edit-save, .edit-cancel {
+    flex:1; padding:11px; border-radius:10px; border:none; font-size:14px; cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  .edit-save { background:#26241E; color:#F6F1E7; }
+  .edit-cancel { background:#EFE8D8; color:#4A4636; }
+  .toggle-chip {
+    flex-shrink:0; border:none; border-radius:8px; padding:7px 10px; font-size:12.5px;
+    font-weight:600; cursor:pointer; font-family:'Inter',sans-serif;
+    display:flex; align-items:center; gap:4px;
+  }
+  .toggle-chip.in { background:#EEF4EF; color:#2F5C4B; }
+  .toggle-chip.out { background:#F1EDE1; color:#9B937C; }
+
+  .cat-swatch { width:12px; height:12px; border-radius:50%; flex-shrink:0; }
+  .cat-add-row { display:flex; gap:8px; margin-bottom:16px; }
+  .cat-add-row input {
+    flex:1; padding:10px 12px; border-radius:10px; border:1px solid #E4DCC8;
+    background:#FFFDF8; font-size:14px; outline:none; font-family:'Inter',sans-serif;
+  }
+  .cat-add-row button {
+    width:40px; border-radius:10px; border:none; background:#26241E; color:#F6F1E7;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:20px; flex-shrink:0;
+  }
+  .cat-row {
+    display:flex; align-items:center; gap:10px; background:#FFFDF8; border:1px solid #E4DCC8;
+    border-radius:12px; padding:10px 12px; margin-bottom:8px; font-family:'Inter',sans-serif;
+  }
+  .cat-row-name { flex:1; font-size:14px; color:#26241E; }
+  .cat-del { border:none; background:transparent; cursor:pointer; color:#C7BEA4; display:flex; padding:2px; }
+
+  .chart-section { margin-bottom:20px; }
+  .chart-title { font-size:12px; color:#9B937C; font-family:'Inter',sans-serif; margin-bottom:10px; }
+  .chart-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; font-family:'Inter',sans-serif; }
+  .chart-label { width:88px; flex-shrink:0; font-size:12.5px; color:#4A4636; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .chart-track { flex:1; height:14px; background:#EFE8D8; border-radius:7px; overflow:hidden; }
+  .chart-fill { height:100%; border-radius:7px; }
+  .chart-value { width:64px; flex-shrink:0; text-align:right; font-size:12.5px; font-weight:600; color:#26241E; }
+  .preview-badge {
+    display:inline-block; font-size:11px; color:#3E6B57; background:#EEF4EF; border-radius:6px;
+    padding:2px 8px; margin-bottom:6px; font-family:'Inter',sans-serif;
+  }
+
+  .lists-wrap { max-width: 480px; margin: 0 auto; padding: 16px 16px 40px; }
+  .lists-header { display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+  .list-card {
+    display:flex; align-items:center; gap:12px; background:#FFFDF8; border:1px solid #E4DCC8;
+    border-radius:14px; padding:14px; margin-bottom:10px; cursor:pointer; position:relative;
+  }
+  .list-card-icon {
+    width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+    flex-shrink:0; color:#F6F1E7;
+  }
+  .list-card-icon.expense { background:#2F5C4B; }
+  .list-card-icon.checklist { background:#8A6D3B; }
+  .list-card-info { flex:1; min-width:0; font-family:'Inter',sans-serif; }
+  .list-card-name { font-size:15px; font-weight:600; color:#26241E; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .list-card-meta { font-size:12px; color:#9B937C; margin-top:2px; }
+  .list-card-edit {
+    border:none; background:transparent; cursor:pointer; color:#C7BEA4; flex-shrink:0;
+    display:flex; padding:6px;
+  }
+  .type-toggle { display:flex; gap:8px; margin-bottom:12px; }
+  .type-toggle-btn {
+    flex:1; padding:14px 10px; border-radius:12px; border:1.5px solid #E4DCC8; background:#FFFDF8;
+    cursor:pointer; font-family:'Inter',sans-serif; text-align:center;
+  }
+  .type-toggle-btn.selected { border-color:#2F5C4B; background:#EEF4EF; }
+  .type-toggle-btn .tt-title { font-size:13.5px; font-weight:600; color:#26241E; margin-top:6px; }
+  .type-toggle-btn .tt-sub { font-size:11px; color:#9B937C; margin-top:2px; }
+</style>
+</head>
+<body>
+
+<div id="listsScreen" class="lists-wrap">
+  <div class="lists-header">
+    <div class="logo">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F6F1E7" stroke-width="1.8">
+        <path d="M6 4h12v16l-2-1.3-2 1.3-2-1.3-2 1.3-2-1.3-2 1.3-1.5-1.5z"/>
+        <line x1="8.5" y1="9" x2="15.5" y2="9"/>
+        <line x1="8.5" y1="12.5" x2="15.5" y2="12.5"/>
+        <line x1="8.5" y1="16" x2="13" y2="16"/>
+      </svg>
+    </div>
+    <div class="header-text">
+      <div class="title">My Lists</div>
+      <div class="subtitle">Pick a list, or create a new one</div>
+    </div>
+  </div>
+  <div id="listsCards"></div>
+  <button id="newListBtn" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; padding:14px; border-radius:12px; border:1.5px dashed #C7BEA4; background:transparent; color:#4A4636; font-family:'Inter',sans-serif; font-size:14px; cursor:pointer; margin-top:6px;">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    New list
+  </button>
+</div>
+
+<div class="edit-overlay" id="newListOverlay">
+  <div class="edit-card">
+    <div class="edit-card-title">Create a new list</div>
+    <div class="edit-field">
+      <label class="edit-label">List name</label>
+      <input class="edit-input" id="newListNameInput" type="text" placeholder="e.g. Home Expenses" />
+    </div>
+    <div class="edit-field">
+      <label class="edit-label">List type</label>
+      <div class="type-toggle">
+        <button class="type-toggle-btn selected" id="typeExpenseBtn" data-list-type="expense">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2F5C4B" stroke-width="1.8"><path d="M6 4h12v16l-2-1.3-2 1.3-2-1.3-2 1.3-2-1.3-2 1.3-1.5-1.5z"/><line x1="8.5" y1="9" x2="15.5" y2="9"/><line x1="8.5" y1="12.5" x2="15.5" y2="12.5"/></svg>
+          <div class="tt-title">Expense list</div>
+          <div class="tt-sub">Items with amounts</div>
+        </button>
+        <button class="type-toggle-btn" id="typeChecklistBtn" data-list-type="checklist">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8A6D3B" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="3"/><polyline points="8 12 11 15 16 9"/></svg>
+          <div class="tt-title">Simple checklist</div>
+          <div class="tt-sub">Just items, no amounts</div>
+        </button>
+      </div>
+    </div>
+    <div class="edit-actions">
+      <button class="edit-cancel" id="newListCancelBtn">Cancel</button>
+      <button class="edit-save" id="newListCreateBtn">Create</button>
+    </div>
+  </div>
+</div>
+
+<div class="edit-overlay" id="listSettingsOverlay">
+  <div class="edit-card">
+    <div class="edit-card-title">List settings</div>
+    <div class="edit-field">
+      <label class="edit-label">List name</label>
+      <input class="edit-input" id="listRenameInput" type="text" />
+    </div>
+    <div class="edit-actions">
+      <button class="edit-cancel" id="listDeleteBtn" style="color:#B5482A;">Delete list</button>
+      <button class="edit-save" id="listRenameSaveBtn">Save</button>
+    </div>
+  </div>
+</div>
+
+<div id="appScreen" style="display:none;">
+<div class="wrap">
+  <div class="header">
+    <button class="settings-btn" id="backToListsBtn" aria-label="Back to lists">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="header-text">
+      <div class="title" id="appTitle">Spending ledger</div>
+      <div class="subtitle" id="appSubtitle">Check an item off once you've paid it</div>
+    </div>
+    <button class="settings-btn" id="manageListQuickBtn" aria-label="Manage list">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+    </button>
+    <button class="settings-btn" id="settingsBtn" aria-label="Backup settings">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </div>
+
+  <div class="summary" id="summaryCard">
+    <div class="summary-top"><span>Total</span><span id="totalVal">₹0</span></div>
+    <div class="bar"><div class="bar-fill" id="barFill" style="width:0%"></div></div>
+    <div class="stats">
+      <div class="stat spent">
+        <div class="stat-label">Spent</div>
+        <div class="stat-value" id="spentVal">₹0</div>
+      </div>
+      <div class="stat remaining">
+        <div class="stat-label">Remaining</div>
+        <div class="stat-value" id="remainingVal">₹0</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="summary" id="checklistProgressCard" style="display:none;">
+    <div class="summary-top"><span>Total items</span><span id="checklistTotalVal">0</span></div>
+    <div class="bar"><div class="bar-fill" id="checklistBarFill" style="width:0%"></div></div>
+    <div class="stats">
+      <div class="stat spent">
+        <div class="stat-label">Done</div>
+        <div class="stat-value" id="checklistDoneVal">0</div>
+      </div>
+      <div class="stat remaining">
+        <div class="stat-label">Remaining</div>
+        <div class="stat-value" id="checklistRemainingVal">0</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="settingsOverlay">
+    <div class="sheet">
+      <div class="sheet-title">Backup &amp; restore</div>
+      <button class="sheet-item" id="manageListBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        Manage list (monthly items &amp; order)
+      </button>
+      <button class="sheet-item" id="historyBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></svg>
+        Month history
+      </button>
+      <button class="sheet-item" id="categoriesBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h7v7H4z"/><path d="M13 4h7v7h-7z"/><path d="M4 13h7v7H4z"/><path d="M13 13h7v7h-7z"/></svg>
+        Categories
+      </button>
+      <button class="sheet-item" id="aiSetupBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
+        Voice input setup (Gemini)
+      </button>
+      <button class="sheet-item" id="restartBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 9 8 9"/></svg>
+        Start new month
+      </button>
+      <button class="sheet-item" id="exportBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Save backup
+      </button>
+      <button class="sheet-item" id="importBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Restore backup
+      </button>
+      <button class="sheet-item" id="exportCsvBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="10" x2="9" y2="20"/></svg>
+        Export as CSV (for editing)
+      </button>
+      <button class="sheet-item" id="importCsvBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="10" x2="9" y2="20"/></svg>
+        Import edited CSV
+      </button>
+      <button class="sheet-item" id="pasteImportBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+        Paste CSV or backup text instead
+      </button>
+      <input type="file" id="importFile" accept=".json,application/json,text/plain,*/*" style="display:none" />
+      <input type="file" id="importCsvFile" accept=".csv,text/csv,text/plain,*/*" style="display:none" />
+      <div class="sheet-note">If "Restore/Import" doesn't show your file (common on some Android phones), use "Paste" instead — no file picker needed.</div>
+      <button class="sheet-close" id="sheetCloseBtn">Close</button>
+    </div>
+  </div>
+
+  <div class="edit-overlay" id="pasteOverlay">
+    <div class="edit-card">
+      <div class="edit-card-title" id="pasteTitle">Paste your backup</div>
+      <div class="edit-field">
+        <label class="edit-label">Open your CSV or backup file in any app, select all, copy — then paste it below</label>
+        <textarea class="edit-input" id="pasteTextarea" rows="8" style="resize:vertical; font-family:'Inter',sans-serif; font-size:13px;"></textarea>
+      </div>
+      <div class="edit-actions">
+        <button class="edit-cancel" id="pasteCancelBtn">Cancel</button>
+        <button class="edit-save" id="pasteImportConfirmBtn">Import</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="manage-overlay" id="manageOverlay">
+    <div class="manage-header">
+      <div class="manage-title">Manage list</div>
+      <button class="manage-close" id="manageCloseBtn" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="manage-body" id="manageBodyEl">
+      <div class="manage-hint">Tap "In this month" to exclude an item without deleting it — bring it back next time with one tap. Tap the pencil to edit name or amount. Press and drag the grip icon to reorder.</div>
+      <div style="display:flex; gap:8px; margin-bottom:14px;">
+        <button class="backup-btn" id="includeAllBtn" style="flex:1;">Include all</button>
+        <button class="backup-btn" id="excludeAllBtn" style="flex:1;">Exclude all</button>
+      </div>
+      <div class="manage-list" id="manageList"></div>
+    </div>
+  </div>
+
+  <div class="manage-overlay" id="categoriesOverlay">
+    <div class="manage-header">
+      <div class="manage-title">Categories</div>
+      <button class="manage-close" id="categoriesCloseBtn" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="manage-body">
+      <div class="manage-hint">Create categories here, then assign one to each item from its edit screen (tap the pencil in Manage list).</div>
+      <div class="cat-add-row">
+        <input id="categoryNameInput" type="text" placeholder="New category name" />
+        <button id="categoryAddBtn">+</button>
+      </div>
+      <div id="categoriesList"></div>
+    </div>
+  </div>
+
+  <div class="manage-overlay" id="aiSetupOverlay">
+    <div class="manage-header">
+      <div class="manage-title">Voice input setup</div>
+      <button class="manage-close" id="aiSetupCloseBtn" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="manage-body">
+      <div class="manage-hint">
+        To add items by voice, this app needs a free Gemini API key from Google.<br><br>
+        1. Open <b>aistudio.google.com/apikey</b> in your browser<br>
+        2. Sign in with your Google account and tap "Create API key"<br>
+        3. Paste it below — you can add more than one, one per line. If a key runs out of quota, the app automatically tries the next one.<br><br>
+        Your keys are stored only on this phone — never sent anywhere except directly to Google when you use voice input.
+      </div>
+      <div class="edit-field">
+        <label class="edit-label">Gemini API key(s) — one per line</label>
+        <textarea class="edit-input" id="geminiKeyInput" rows="4" style="resize:vertical; font-family:'Inter',sans-serif; font-size:13px;" placeholder="AIzaSy...&#10;AIzaSy... (optional second key)" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
+      </div>
+      <button class="backup-btn" id="geminiKeySaveBtn" style="width:100%; margin-bottom:12px;">Save &amp; find best model</button>
+      <div id="geminiModelStatus" style="font-family:'Inter',sans-serif; font-size:13px; color:#4A4636; background:#EEF4EF; border-radius:10px; padding:10px 12px; display:none;"></div>
+      <div class="edit-field" style="margin-top:12px;">
+        <label class="edit-label">Manual override (only if auto-detect picks the wrong one)</label>
+        <input class="edit-input" id="geminiModelInput" type="text" placeholder="e.g. gemini-2.5-flash" autocomplete="off" autocapitalize="off" spellcheck="false" />
+      </div>
+      <button class="backup-btn" id="geminiModelSaveBtn" style="width:100%;">Use this model instead</button>
+    </div>
+  </div>
+
+  <div class="manage-overlay" id="historyOverlay">
+    <div class="manage-header">
+      <div class="manage-title">Month history</div>
+      <button class="manage-close" id="historyCloseBtn" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="manage-body">
+      <div class="manage-hint">Every time you tap "Start new month", the current month is saved here. Tap a month to view or edit it.</div>
+      <button class="backup-btn" id="exportHistoryCsvBtn" style="margin-bottom:14px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="10" x2="9" y2="20"/></svg>
+        Export month-wise summary (CSV)
+      </button>
+      <div class="manage-list" id="historyList"></div>
+    </div>
+  </div>
+
+  <div class="manage-overlay" id="historyDetailOverlay">
+    <div class="manage-header">
+      <button class="manage-close" id="historyDetailBackBtn" aria-label="Back">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <div class="manage-title" id="historyDetailTitle">Month</div>
+      <div style="width:34px;"></div>
+    </div>
+    <div class="manage-body">
+      <div class="summary" id="historyDetailSummary" style="margin-bottom:16px;"></div>
+      <div class="manage-list" id="historyDetailList"></div>
+    </div>
+  </div>
+
+  <div class="edit-overlay" id="editOverlay">
+    <div class="edit-card">
+      <div class="edit-card-title">Edit item</div>
+      <div class="edit-field">
+        <label class="edit-label">Name</label>
+        <input class="edit-input" id="editNameInput" type="text" />
+      </div>
+      <div class="edit-field" id="editAmountField">
+        <label class="edit-label">Amount</label>
+        <input class="edit-input" id="editAmountInput" type="number" inputmode="decimal" />
+      </div>
+      <div class="edit-field" id="editCategoryField">
+        <label class="edit-label">Category</label>
+        <select class="edit-input" id="editCategorySelect"></select>
+      </div>
+      <div class="edit-field" id="editDoneDateField" style="display:none;">
+        <label class="edit-label">Done date</label>
+        <input class="edit-input" id="editDoneDateInput" type="date" />
+      </div>
+      <div class="edit-field" id="editActiveField">
+        <label style="display:flex; align-items:center; justify-content:space-between; cursor:pointer; font-family:'Inter',sans-serif; font-size:14px; color:#26241E;">
+          <span>Include in this month</span>
+          <input type="checkbox" id="editActiveCheckbox" style="width:18px; height:18px; accent-color:#2F5C4B;" />
+        </label>
+      </div>
+      <div class="edit-actions">
+        <button class="edit-cancel" id="editCancelBtn">Cancel</button>
+        <button class="edit-save" id="editSaveBtn">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="add-row">
+    <input id="nameInput" type="text" placeholder="Item name" enterkeyhint="next" />
+    <input id="amountInput" type="number" inputmode="decimal" placeholder="₹" enterkeyhint="done" />
+    <button id="addBtn">+</button>
+  </div>
+
+  <button id="voiceAddBtn" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; padding:10px; border-radius:10px; border:1px solid #E4DCC8; background:#FFFDF8; color:#4A4636; font-family:'Inter',sans-serif; font-size:13.5px; cursor:pointer; margin-bottom:12px;">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+    Add multiple items by voice
+  </button>
+
+  <div class="list" id="pendingList"></div>
+  <div id="doneSection"></div>
+</div>
+
+<div class="edit-overlay" id="voiceOverlay">
+  <div class="edit-card" style="max-width:420px;">
+    <div class="edit-card-title" id="voiceStepTitle">Listening...</div>
+
+    <div id="voiceStep1">
+      <div style="text-align:center; margin:10px 0 16px;">
+        <button id="voiceMicBtn" style="width:64px; height:64px; border-radius:50%; border:none; background:#2F5C4B; color:#F6F1E7; display:inline-flex; align-items:center; justify-content:center; cursor:pointer;">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </button>
+        <div id="voiceStatusText" style="font-family:'Inter',sans-serif; font-size:12.5px; color:#9B937C; margin-top:8px;">Tap the mic and speak your items</div>
+      </div>
+      <div class="edit-field">
+        <label class="edit-label">Transcript (you can edit before parsing)</label>
+        <textarea class="edit-input" id="voiceTranscript" rows="4" style="resize:vertical; font-family:'Inter',sans-serif; font-size:13px;" placeholder="e.g. Aata 500 rupees, kiraya 1000, bijli ka bill 500"></textarea>
+      </div>
+      <div class="edit-actions">
+        <button class="edit-cancel" id="voiceCancelBtn">Cancel</button>
+        <button class="edit-save" id="voiceParseBtn">Parse items</button>
+      </div>
+    </div>
+
+    <div id="voiceStep2" style="display:none;">
+      <div class="manage-hint" style="margin-bottom:10px;">Review before adding — uncheck anything that isn't right, or edit the amount.</div>
+      <div id="voicePreviewList" style="max-height:300px; overflow-y:auto; margin-bottom:14px;"></div>
+      <div class="edit-actions">
+        <button class="edit-cancel" id="voiceBackBtn">Back</button>
+        <button class="edit-save" id="voiceConfirmAddBtn">Add to list</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+  const uid = () => Math.random().toString(36).slice(2, 10);
+  const rupee = (n) => "₹" + Math.round(n).toLocaleString("en-IN");
+
+  const LISTS_KEY = "expense_ledger_lists_v1";
+  const CURRENT_LIST_KEY = "expense_ledger_current_list_v1";
+  const itemsKeyFor = (id) => "expense_ledger_items_" + id;
+  const historyKeyFor = (id) => "expense_ledger_history_" + id;
+  const categoryKeyFor = (id) => "expense_ledger_categories_" + id;
+
+  function migrateOldSingleList() {
+    try {
+      if (localStorage.getItem(LISTS_KEY)) return; // already migrated
+      const oldItems = localStorage.getItem("expense_ledger_items");
+      let lists = [];
+      if (oldItems) {
+        const defaultId = uid();
+        lists = [{ id: defaultId, name: "My Expenses", type: "expense", createdAt: new Date().toISOString() }];
+        localStorage.setItem(itemsKeyFor(defaultId), oldItems);
+        const oldCats = localStorage.getItem("expense_ledger_categories");
+        if (oldCats) localStorage.setItem(categoryKeyFor(defaultId), oldCats);
+        const oldHist = localStorage.getItem("expense_ledger_history");
+        if (oldHist) localStorage.setItem(historyKeyFor(defaultId), oldHist);
+        localStorage.setItem(CURRENT_LIST_KEY, defaultId);
+      }
+      localStorage.setItem(LISTS_KEY, JSON.stringify(lists));
+    } catch (e) {}
+  }
+  migrateOldSingleList();
+
+  function loadLists() {
+    try {
+      const raw = localStorage.getItem(LISTS_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return [];
+  }
+  function saveLists() {
+    try { localStorage.setItem(LISTS_KEY, JSON.stringify(lists)); } catch (e) {}
+  }
+
+  let lists = loadLists();
+  let currentListId = null;
+  try { currentListId = localStorage.getItem(CURRENT_LIST_KEY); } catch (e) {}
+
+  function currentList() {
+    return lists.find(l => l.id === currentListId) || null;
+  }
+  function isChecklistType() {
+    const l = currentList();
+    return l && l.type === "checklist";
+  }
+
+  function loadItems() {
+    try {
+      const raw = localStorage.getItem(itemsKeyFor(currentListId));
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        return parsed.map(i => ({ ...i, active: i.active !== false, category: i.category || null, amount: i.amount || 0, doneDate: i.doneDate || null }));
+      }
+    } catch (e) {}
+    return [];
+  }
+
+  function saveItems() {
+    try { localStorage.setItem(itemsKeyFor(currentListId), JSON.stringify(items)); } catch (e) {}
+  }
+
+  function loadHistory() {
+    try {
+      const raw = localStorage.getItem(historyKeyFor(currentListId));
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return [];
+  }
+
+  function saveHistory() {
+    try { localStorage.setItem(historyKeyFor(currentListId), JSON.stringify(history)); } catch (e) {}
+  }
+
+  let items = [];
+  let history = [];
+
+  const CATEGORY_COLORS = ["#2F5C4B", "#B5482A", "#8A6D3B", "#3E5C76", "#7A4B6B", "#4B7A6B", "#9B6B3B", "#6B5B95"];
+
+  function loadCategories() {
+    try {
+      const raw = localStorage.getItem(categoryKeyFor(currentListId));
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return [
+      { id: uid(), name: "Groceries", color: CATEGORY_COLORS[0] },
+      { id: uid(), name: "Bills", color: CATEGORY_COLORS[1] },
+      { id: uid(), name: "Transport", color: CATEGORY_COLORS[2] }
+    ];
+  }
+
+  function saveCategories() {
+    try { localStorage.setItem(categoryKeyFor(currentListId), JSON.stringify(categories)); } catch (e) {}
+  }
+
+  let categories = [];
+
+  const pendingList = document.getElementById("pendingList");
+  const doneSection = document.getElementById("doneSection");
+  const totalVal = document.getElementById("totalVal");
+  const spentVal = document.getElementById("spentVal");
+  const remainingVal = document.getElementById("remainingVal");
+  const barFill = document.getElementById("barFill");
+  const nameInput = document.getElementById("nameInput");
+  const amountInput = document.getElementById("amountInput");
+
+  function renderMain() {
+    const checklist = isChecklistType();
+    const activeItems = items.filter(i => i.active !== false);
+    const total = activeItems.reduce((s, i) => s + i.amount, 0);
+    const spent = activeItems.filter(i => i.done).reduce((s, i) => s + i.amount, 0);
+    const remaining = total - spent;
+    const pct = total > 0 ? Math.round((spent / total) * 100) : 0;
+
+    totalVal.textContent = rupee(total);
+    spentVal.textContent = rupee(spent);
+    remainingVal.textContent = rupee(remaining);
+    barFill.style.width = pct + "%";
+
+    const doneCount = activeItems.filter(i => i.done).length;
+    const totalCount = activeItems.length;
+    const remainingCount = totalCount - doneCount;
+    const checklistPct = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
+    document.getElementById("checklistTotalVal").textContent = totalCount;
+    document.getElementById("checklistDoneVal").textContent = doneCount;
+    document.getElementById("checklistRemainingVal").textContent = remainingCount;
+    document.getElementById("checklistBarFill").style.width = checklistPct + "%";
+
+    const pending = activeItems.filter(i => !i.done);
+    const done = activeItems.filter(i => i.done);
+
+    pendingList.innerHTML = pending.length
+      ? pending.map(rowHtml).join("")
+      : `<div class="empty">${checklist ? "All done! Add an item above." : "Nothing left to pay. Add an item above."}</div>`;
+
+    doneSection.innerHTML = done.length
+      ? `<div class="done-heading">${checklist ? "Done" : "Paid"} (${done.length})</div><div class="list">${done.map(rowHtml).join("")}</div>`
+      : "";
+
+    document.querySelectorAll("[data-toggle]").forEach(el =>
+      el.addEventListener("click", () => toggle(el.getAttribute("data-toggle")))
+    );
+    document.querySelectorAll("[data-del]").forEach(el =>
+      el.addEventListener("click", () => remove(el.getAttribute("data-del")))
+    );
+    document.querySelectorAll("#pendingList [data-edit-item], #doneSection [data-edit-item]").forEach(el =>
+      el.addEventListener("click", () => openEditModal(el.getAttribute("data-edit-item")))
+    );
+    document.querySelectorAll("#pendingList [data-row-drag], #doneSection [data-row-drag]").forEach(el =>
+      el.addEventListener("pointerdown", onRowDragPointerDown)
+    );
+  }
+
+  function render() {
+    renderMain();
+    if (manageOverlay.classList.contains("open")) renderManageList();
+  }
+
+  let rowDragState = null;
+
+  function reorderSubset(newOrderIds) {
+    const idSet = new Set(newOrderIds);
+    const itemMap = new Map(items.map(i => [i.id, i]));
+    let ptr = 0;
+    items = items.map(item => idSet.has(item.id) ? itemMap.get(newOrderIds[ptr++]) : item);
+  }
+
+  function onRowDragPointerDown(e) {
+    const handle = e.currentTarget;
+    const startX = e.clientX;
+    const startY = e.clientY;
+
+    function cleanupPending() {
+      document.removeEventListener("pointermove", pendingMove);
+      document.removeEventListener("pointerup", pendingUp);
+      document.removeEventListener("pointercancel", pendingUp);
+      clearTimeout(timer);
+    }
+    function pendingMove(ev) {
+      if (Math.abs(ev.clientX - startX) > MOVE_CANCEL_THRESHOLD || Math.abs(ev.clientY - startY) > MOVE_CANCEL_THRESHOLD) {
+        cleanupPending();
+      }
+    }
+    function pendingUp() {
+      cleanupPending();
+    }
+
+    const timer = setTimeout(() => {
+      cleanupPending();
+      beginRowDrag(e, handle);
+    }, HOLD_DELAY);
+
+    document.addEventListener("pointermove", pendingMove);
+    document.addEventListener("pointerup", pendingUp);
+    document.addEventListener("pointercancel", pendingUp);
+  }
+
+  function beginRowDrag(e, handle) {
+    const rowEl = handle.closest(".row");
+    if (!rowEl) return;
+    const container = rowEl.parentElement;
+    const rect = rowEl.getBoundingClientRect();
+
+    const spacer = document.createElement("div");
+    spacer.className = "row-drag-spacer";
+    spacer.style.height = rect.height + "px";
+    container.insertBefore(spacer, rowEl);
+
+    rowEl.style.position = "fixed";
+    rowEl.style.top = rect.top + "px";
+    rowEl.style.left = rect.left + "px";
+    rowEl.style.width = rect.width + "px";
+    rowEl.style.zIndex = "200";
+    rowEl.style.boxShadow = "0 10px 24px rgba(38,36,30,0.28)";
+    rowEl.style.pointerEvents = "none";
+    document.body.appendChild(rowEl);
+
+    rowDragState = { rowEl, spacer, container, offsetY: e.clientY - rect.top };
+    document.addEventListener("pointermove", onRowDragMove, { passive: false });
+    document.addEventListener("pointerup", onRowDragEnd);
+    document.addEventListener("pointercancel", onRowDragEnd);
+  }
+
+  function onRowDragMove(e) {
+    if (!rowDragState) return;
+    e.preventDefault();
+    rowDragState.rowEl.style.top = (e.clientY - rowDragState.offsetY) + "px";
+
+    const edge = 56;
+    if (e.clientY < edge) window.scrollBy(0, -14);
+    else if (e.clientY > window.innerHeight - edge) window.scrollBy(0, 14);
+
+    const elem = document.elementFromPoint(e.clientX, e.clientY);
+    const hoveredRow = elem ? elem.closest(".row") : null;
+    if (!hoveredRow || hoveredRow === rowDragState.rowEl) return;
+    if (hoveredRow.parentElement !== rowDragState.container) return; // keep pending/done groups separate
+    const rect = hoveredRow.getBoundingClientRect();
+    const isBefore = e.clientY < rect.top + rect.height / 2;
+    if (isBefore) {
+      hoveredRow.parentElement.insertBefore(rowDragState.spacer, hoveredRow);
+    } else {
+      hoveredRow.parentElement.insertBefore(rowDragState.spacer, hoveredRow.nextSibling);
+    }
+  }
+
+  function onRowDragEnd() {
+    if (!rowDragState) return;
+    document.removeEventListener("pointermove", onRowDragMove);
+    document.removeEventListener("pointerup", onRowDragEnd);
+    document.removeEventListener("pointercancel", onRowDragEnd);
+
+    const { rowEl, spacer, container } = rowDragState;
+    spacer.parentNode.insertBefore(rowEl, spacer);
+    spacer.remove();
+    rowEl.style.position = "";
+    rowEl.style.top = "";
+    rowEl.style.left = "";
+    rowEl.style.width = "";
+    rowEl.style.zIndex = "";
+    rowEl.style.boxShadow = "";
+    rowEl.style.pointerEvents = "";
+
+    const newOrderIds = Array.from(container.querySelectorAll(".row")).map(r => r.getAttribute("data-id"));
+    reorderSubset(newOrderIds);
+
+    rowDragState = null;
+    saveItems();
+    render();
+  }
+
+  function rowHtml(item) {
+    const checklist = isChecklistType();
+    const showDate = checklist && item.done && item.doneDate;
+    return `
+      <div class="row ${item.done ? "done" : ""}" data-id="${item.id}">
+        <button class="check" data-toggle="${item.id}">
+          ${item.done ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#F6F1E7" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>' : ""}
+        </button>
+        <div class="row-name">
+          ${escapeHtml(item.name)}
+          ${showDate ? `<div style="font-size:11px; color:#9B937C; font-weight:400; margin-top:1px;">Done on ${formatDoneDate(item.doneDate)}</div>` : ""}
+        </div>
+        ${checklist ? "" : `<div class="row-amount">${rupee(item.amount)}</div>`}
+        <button class="edit-btn" data-edit-item="${item.id}" aria-label="Edit item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
+        </button>
+        <button class="del" data-del="${item.id}">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </button>
+        <button class="drag-handle" data-row-drag="${item.id}" aria-label="Drag to reorder">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>
+        </button>
+      </div>`;
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function escapeAttr(str) {
+    return String(str).replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+  }
+
+  function todayStr() {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return yyyy + "-" + mm + "-" + dd;
+  }
+
+  function formatDoneDate(dateStr) {
+    if (!dateStr) return "";
+    const d = new Date(dateStr + "T00:00:00");
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+  }
+
+  function toggle(id) {
+    items = items.map(i => {
+      if (i.id !== id) return i;
+      const nowDone = !i.done;
+      return { ...i, done: nowDone, doneDate: nowDone ? (i.doneDate || todayStr()) : null };
+    });
+    saveItems();
+    render();
+  }
+
+  function remove(id) {
+    items = items.filter(i => i.id !== id);
+    saveItems();
+    render();
+  }
+
+  function addItem() {
+    const name = nameInput.value.trim();
+    if (!name) return;
+    let amount = 0;
+    if (!isChecklistType()) {
+      amount = parseFloat(amountInput.value);
+      if (isNaN(amount) || amount <= 0) return;
+    }
+    items.unshift({ id: uid(), name, amount, done: false, active: true, category: null });
+    saveItems();
+    nameInput.value = "";
+    amountInput.value = "";
+    render();
+    nameInput.focus();
+  }
+
+  const manageOverlay = document.getElementById("manageOverlay");
+  const manageList = document.getElementById("manageList");
+
+  function renderManageList() {
+    manageList.innerHTML = items.length
+      ? items.map((item) => manageRowHtml(item)).join("")
+      : '<div class="empty">No items yet. Add one from the main screen.</div>';
+
+    manageList.querySelectorAll("[data-toggle-active]").forEach(el =>
+      el.addEventListener("click", () => toggleActive(el.getAttribute("data-toggle-active")))
+    );
+    manageList.querySelectorAll("[data-edit-item]").forEach(el =>
+      el.addEventListener("click", () => openEditModal(el.getAttribute("data-edit-item")))
+    );
+    manageList.querySelectorAll("[data-manage-del]").forEach(el =>
+      el.addEventListener("click", () => {
+        const id = el.getAttribute("data-manage-del");
+        if (!confirm("Delete this item completely? This can't be undone.")) return;
+        remove(id);
+      })
+    );
+    manageList.querySelectorAll("[data-drag]").forEach(el =>
+      el.addEventListener("pointerdown", onDragPointerDown)
+    );
+  }
+
+  function categoryBadgeHtml(categoryId) {
+    if (!categoryId) return '<span style="color:#B8AF98;">No category</span>';
+    const cat = categories.find(c => c.id === categoryId);
+    if (!cat) return '<span style="color:#B8AF98;">No category</span>';
+    return `<span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:7px; height:7px; border-radius:50%; background:${cat.color}; display:inline-block;"></span>${escapeHtml(cat.name)}</span>`;
+  }
+
+  function manageRowHtml(item) {
+    const isActive = item.active !== false;
+    const checklist = isChecklistType();
+    return `
+      <div class="manage-row ${isActive ? "" : "excluded"}" data-id="${item.id}">
+        <div class="manage-info">
+          <div class="manage-name">${escapeHtml(item.name)}</div>
+          ${checklist ? "" : `<div class="manage-amount" style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+            <span>${rupee(item.amount)}</span>
+            <span style="color:#C7BEA4;">·</span>
+            ${categoryBadgeHtml(item.category)}
+          </div>`}
+        </div>
+        <button class="edit-btn" data-edit-item="${item.id}" aria-label="Edit item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
+        </button>
+        <button class="edit-btn" data-manage-del="${item.id}" aria-label="Delete item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </button>
+        <button class="toggle-chip ${isActive ? "in" : "out"}" data-toggle-active="${item.id}">
+          ${isActive ? "− Exclude" : "+ Include"}
+        </button>
+        <button class="drag-handle" data-drag="${item.id}" aria-label="Drag to reorder">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>
+        </button>
+      </div>`;
+  }
+
+  let dragState = null;
+  const manageBodyEl = document.getElementById("manageBodyEl");
+
+  const HOLD_DELAY = 320;
+  const MOVE_CANCEL_THRESHOLD = 8;
+
+  function onDragPointerDown(e) {
+    const handle = e.currentTarget;
+    const startX = e.clientX;
+    const startY = e.clientY;
+
+    function cleanupPending() {
+      document.removeEventListener("pointermove", pendingMove);
+      document.removeEventListener("pointerup", pendingUp);
+      document.removeEventListener("pointercancel", pendingUp);
+      clearTimeout(timer);
+    }
+    function pendingMove(ev) {
+      if (Math.abs(ev.clientX - startX) > MOVE_CANCEL_THRESHOLD || Math.abs(ev.clientY - startY) > MOVE_CANCEL_THRESHOLD) {
+        cleanupPending();
+      }
+    }
+    function pendingUp() {
+      cleanupPending();
+    }
+
+    const timer = setTimeout(() => {
+      cleanupPending();
+      beginManageDrag(e, handle);
+    }, HOLD_DELAY);
+
+    document.addEventListener("pointermove", pendingMove);
+    document.addEventListener("pointerup", pendingUp);
+    document.addEventListener("pointercancel", pendingUp);
+  }
+
+  function beginManageDrag(e, handle) {
+    const rowEl = handle.closest(".manage-row");
+    if (!rowEl) return;
+    const rect = rowEl.getBoundingClientRect();
+
+    const spacer = document.createElement("div");
+    spacer.className = "drag-spacer";
+    spacer.style.height = rect.height + "px";
+    rowEl.parentNode.insertBefore(spacer, rowEl);
+
+    rowEl.style.position = "fixed";
+    rowEl.style.top = rect.top + "px";
+    rowEl.style.left = rect.left + "px";
+    rowEl.style.width = rect.width + "px";
+    rowEl.style.zIndex = "200";
+    rowEl.style.boxShadow = "0 10px 24px rgba(38,36,30,0.28)";
+    rowEl.style.pointerEvents = "none";
+    document.body.appendChild(rowEl);
+
+    dragState = { rowEl, spacer, offsetY: e.clientY - rect.top };
+    document.addEventListener("pointermove", onDragMove, { passive: false });
+    document.addEventListener("pointerup", onDragEnd);
+    document.addEventListener("pointercancel", onDragEnd);
+  }
+
+  function onDragMove(e) {
+    if (!dragState) return;
+    e.preventDefault();
+    dragState.rowEl.style.top = (e.clientY - dragState.offsetY) + "px";
+
+    if (manageBodyEl) {
+      const bodyRect = manageBodyEl.getBoundingClientRect();
+      const edge = 44;
+      if (e.clientY < bodyRect.top + edge) manageBodyEl.scrollTop -= 14;
+      else if (e.clientY > bodyRect.bottom - edge) manageBodyEl.scrollTop += 14;
+    }
+
+    const elem = document.elementFromPoint(e.clientX, e.clientY);
+    const hoveredRow = elem ? elem.closest(".manage-row") : null;
+    if (!hoveredRow || hoveredRow === dragState.rowEl) return;
+    const rect = hoveredRow.getBoundingClientRect();
+    const isBefore = e.clientY < rect.top + rect.height / 2;
+    if (isBefore) {
+      hoveredRow.parentNode.insertBefore(dragState.spacer, hoveredRow);
+    } else {
+      hoveredRow.parentNode.insertBefore(dragState.spacer, hoveredRow.nextSibling);
+    }
+  }
+
+  function onDragEnd() {
+    if (!dragState) return;
+    document.removeEventListener("pointermove", onDragMove);
+    document.removeEventListener("pointerup", onDragEnd);
+    document.removeEventListener("pointercancel", onDragEnd);
+
+    const { rowEl, spacer } = dragState;
+    spacer.parentNode.insertBefore(rowEl, spacer);
+    spacer.remove();
+    rowEl.style.position = "";
+    rowEl.style.top = "";
+    rowEl.style.left = "";
+    rowEl.style.width = "";
+    rowEl.style.zIndex = "";
+    rowEl.style.boxShadow = "";
+    rowEl.style.pointerEvents = "";
+
+    const newOrderIds = Array.from(manageList.querySelectorAll(".manage-row")).map(r => r.getAttribute("data-id"));
+    items.sort((a, b) => newOrderIds.indexOf(a.id) - newOrderIds.indexOf(b.id));
+
+    dragState = null;
+    saveItems();
+    render();
+  }
+
+  const editOverlay = document.getElementById("editOverlay");
+  const editNameInput = document.getElementById("editNameInput");
+  const editAmountInput = document.getElementById("editAmountInput");
+  const editCategorySelect = document.getElementById("editCategorySelect");
+  const editActiveField = document.getElementById("editActiveField");
+  const editActiveCheckbox = document.getElementById("editActiveCheckbox");
+  const editDoneDateField = document.getElementById("editDoneDateField");
+  const editDoneDateInput = document.getElementById("editDoneDateInput");
+  let editContext = null; // { type: 'current', id } or { type: 'history', entryId, itemId }
+
+  function populateCategorySelect(selectedId) {
+    const options = ['<option value="">No category</option>']
+      .concat(categories.map(c => `<option value="${c.id}" ${c.id === selectedId ? "selected" : ""}>${escapeHtml(c.name)}</option>`));
+    editCategorySelect.innerHTML = options.join("");
+  }
+
+  function openEditModal(id) {
+    const item = items.find(i => i.id === id);
+    if (!item) return;
+    editContext = { type: "current", id };
+    const checklist = isChecklistType();
+    editNameInput.value = item.name;
+    editAmountInput.value = item.amount;
+    populateCategorySelect(item.category || "");
+    document.getElementById("editAmountField").style.display = checklist ? "none" : "block";
+    document.getElementById("editCategoryField").style.display = checklist ? "none" : "block";
+    editActiveField.style.display = "block";
+    editActiveCheckbox.checked = item.active !== false;
+    if (checklist) {
+      editDoneDateField.style.display = "block";
+      editDoneDateInput.value = item.doneDate || "";
+    } else {
+      editDoneDateField.style.display = "none";
+    }
+    editOverlay.classList.add("open");
+    setTimeout(() => editNameInput.focus(), 50);
+  }
+
+  function openHistoryEditModal(entryId, itemId) {
+    const entry = history.find(h => h.id === entryId);
+    const item = entry && entry.items.find(i => i.id === itemId);
+    if (!item) return;
+    editContext = { type: "history", entryId, itemId };
+    editNameInput.value = item.name;
+    editAmountInput.value = item.amount;
+    populateCategorySelect(item.category || "");
+    document.getElementById("editAmountField").style.display = "block";
+    document.getElementById("editCategoryField").style.display = "block";
+    editActiveField.style.display = "none";
+    editDoneDateField.style.display = "none";
+    editOverlay.classList.add("open");
+    setTimeout(() => editNameInput.focus(), 50);
+  }
+
+  function closeEditModal() {
+    editOverlay.classList.remove("open");
+    editContext = null;
+  }
+
+  document.getElementById("editSaveBtn").addEventListener("click", () => {
+    if (!editContext) return;
+    const checklist = isChecklistType();
+    const name = editNameInput.value.trim();
+    let amount = 0;
+    let category = null;
+    if (!checklist || editContext.type === "history") {
+      amount = parseFloat(editAmountInput.value);
+      category = editCategorySelect.value || null;
+      if (!name || isNaN(amount) || amount < 0) {
+        alert("Please enter a valid name and amount.");
+        return;
+      }
+    } else if (!name) {
+      alert("Please enter a name.");
+      return;
+    }
+    if (editContext.type === "current") {
+      const active = editActiveCheckbox.checked;
+      const doneDate = checklist ? (editDoneDateInput.value || null) : undefined;
+      items = items.map(i => {
+        if (i.id !== editContext.id) return i;
+        const updated = { ...i, name, amount, category, active };
+        if (checklist) updated.doneDate = doneDate;
+        return updated;
+      });
+      saveItems();
+      closeEditModal();
+      render();
+    } else {
+      const entry = history.find(h => h.id === editContext.entryId);
+      if (entry) {
+        entry.items = entry.items.map(i => i.id === editContext.itemId ? { ...i, name, amount, category } : i);
+        recomputeHistoryTotals(entry);
+        saveHistory();
+      }
+      closeEditModal();
+      renderHistoryDetail(editContext.entryId);
+      renderHistoryList();
+    }
+  });
+
+  document.getElementById("editCancelBtn").addEventListener("click", closeEditModal);
+  editOverlay.addEventListener("click", (e) => {
+    if (e.target === editOverlay) closeEditModal();
+  });
+
+  function toggleActive(id) {
+    items = items.map(i => i.id === id ? { ...i, active: !(i.active !== false) } : i);
+    saveItems();
+    render();
+    renderManageList();
+  }
+
+  // ---------- Categories ----------
+  const categoriesOverlay = document.getElementById("categoriesOverlay");
+  const categoriesList = document.getElementById("categoriesList");
+  const categoryNameInput = document.getElementById("categoryNameInput");
+
+  function renderCategoriesList() {
+    categoriesList.innerHTML = categories.length
+      ? categories.map(c => `
+        <div class="cat-row">
+          <div class="cat-swatch" style="background:${c.color}"></div>
+          <div class="cat-row-name">${escapeHtml(c.name)}</div>
+          <button class="cat-del" data-cat-del="${c.id}" aria-label="Delete category">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+          </button>
+        </div>`).join("")
+      : '<div class="empty">No categories yet. Add one above.</div>';
+
+    categoriesList.querySelectorAll("[data-cat-del]").forEach(el =>
+      el.addEventListener("click", () => {
+        const id = el.getAttribute("data-cat-del");
+        if (!confirm("Delete this category? Items using it will become uncategorized.")) return;
+        categories = categories.filter(c => c.id !== id);
+        items = items.map(i => i.category === id ? { ...i, category: null } : i);
+        saveCategories();
+        saveItems();
+        renderCategoriesList();
+        render();
+      })
+    );
+  }
+
+  function addCategory() {
+    const name = categoryNameInput.value.trim();
+    if (!name) return;
+    categories.push({ id: uid(), name, color: CATEGORY_COLORS[categories.length % CATEGORY_COLORS.length] });
+    saveCategories();
+    categoryNameInput.value = "";
+    renderCategoriesList();
+  }
+
+  document.getElementById("categoriesBtn").addEventListener("click", () => {
+    settingsOverlay.classList.remove("open");
+    categoriesOverlay.classList.add("open");
+    renderCategoriesList();
+  });
+  document.getElementById("categoriesCloseBtn").addEventListener("click", () => categoriesOverlay.classList.remove("open"));
+  document.getElementById("categoryAddBtn").addEventListener("click", addCategory);
+  categoryNameInput.addEventListener("keydown", e => { if (e.key === "Enter") addCategory(); });
+
+  function categoryChartHtml(list) {
+    const relevant = list.filter(i => i.active !== false);
+    if (relevant.length === 0) return "";
+    const totals = {};
+    relevant.forEach(i => {
+      const key = i.category || "__none__";
+      totals[key] = (totals[key] || 0) + i.amount;
+    });
+    const entries = Object.keys(totals).map(key => {
+      const cat = key === "__none__" ? { name: "Uncategorized", color: "#B8AF98" } : categories.find(c => c.id === key);
+      return { name: cat ? cat.name : "Uncategorized", color: cat ? cat.color : "#B8AF98", amount: totals[key] };
+    }).sort((a, b) => b.amount - a.amount);
+    if (entries.length === 0) return "";
+    const maxAmt = Math.max(...entries.map(e => e.amount));
+    const rows = entries.map(e => `
+      <div class="chart-row">
+        <div class="chart-label">${escapeHtml(e.name)}</div>
+        <div class="chart-track"><div class="chart-fill" style="width:${Math.round((e.amount / maxAmt) * 100)}%; background:${e.color};"></div></div>
+        <div class="chart-value">${rupee(e.amount)}</div>
+      </div>`).join("");
+    return `<div class="chart-section"><div class="chart-title">By category</div>${rows}</div>`;
+  }
+  // ---------- end categories ----------
+
+  document.getElementById("manageListBtn").addEventListener("click", () => {
+    settingsOverlay.classList.remove("open");
+    manageOverlay.classList.add("open");
+    renderManageList();
+  });
+  document.getElementById("manageListQuickBtn").addEventListener("click", () => {
+    manageOverlay.classList.add("open");
+    renderManageList();
+  });
+  document.getElementById("manageCloseBtn").addEventListener("click", () => manageOverlay.classList.remove("open"));
+
+  document.getElementById("includeAllBtn").addEventListener("click", () => {
+    items = items.map(i => ({ ...i, active: true }));
+    saveItems();
+    render();
+    renderManageList();
+  });
+  document.getElementById("excludeAllBtn").addEventListener("click", () => {
+    if (!confirm("Exclude every item from this month? You can bring any of them back later with one tap.")) return;
+    items = items.map(i => ({ ...i, active: false }));
+    saveItems();
+    render();
+    renderManageList();
+  });
+
+  // ---------- Month history ----------
+  const historyOverlay = document.getElementById("historyOverlay");
+  const historyList = document.getElementById("historyList");
+  const historyDetailOverlay = document.getElementById("historyDetailOverlay");
+  const historyDetailList = document.getElementById("historyDetailList");
+  const historyDetailTitle = document.getElementById("historyDetailTitle");
+  const historyDetailSummary = document.getElementById("historyDetailSummary");
+  let currentHistoryEntryId = null;
+
+  function monthLabel(date) {
+    return date.toLocaleString("en-IN", { month: "long", year: "numeric" });
+  }
+
+  function computeTotals(list) {
+    const activeList = list.filter(i => i.active !== false);
+    const total = activeList.reduce((s, i) => s + i.amount, 0);
+    const spent = activeList.filter(i => i.done).reduce((s, i) => s + i.amount, 0);
+    return { total, spent, remaining: total - spent };
+  }
+
+  function recomputeHistoryTotals(entry) {
+    const t = computeTotals(entry.items);
+    entry.total = t.total;
+    entry.spent = t.spent;
+    entry.remaining = t.remaining;
+  }
+
+  function archiveMonth() {
+    if (items.length === 0) {
+      alert("Add some items first before starting a new month.");
+      return;
+    }
+    const ok = confirm("Save this month to history and start fresh? Paid checkmarks will be cleared, but your item list stays the same.");
+    if (!ok) return;
+    const t = computeTotals(items);
+    const entry = {
+      id: uid(),
+      label: monthLabel(new Date()),
+      archivedAt: new Date().toISOString(),
+      items: JSON.parse(JSON.stringify(items)),
+      total: t.total,
+      spent: t.spent,
+      remaining: t.remaining
+    };
+    history.unshift(entry);
+    saveHistory();
+    items = items.map(i => ({ ...i, done: false }));
+    saveItems();
+    render();
+    alert(`${entry.label} saved to history. Ready for a fresh month!`);
+  }
+
+  function renderHistoryList() {
+    const t = computeTotals(items);
+    const currentPreview = `
+      <div class="cat-row" style="display:block; padding:14px;">
+        <span class="preview-badge">This month · in progress</span>
+        <div style="font-family:'Inter',sans-serif; font-weight:600; font-size:14.5px; margin-bottom:8px;">${monthLabel(new Date())}</div>
+        <div class="stats" style="margin-bottom:${categoryChartHtml(items) ? "12px" : "0"};">
+          <div class="stat spent"><div class="stat-label">Spent</div><div class="stat-value">${rupee(t.spent)}</div></div>
+          <div class="stat remaining"><div class="stat-label">Remaining</div><div class="stat-value">${rupee(t.remaining)}</div></div>
+        </div>
+        ${categoryChartHtml(items)}
+      </div>`;
+
+    historyList.innerHTML = currentPreview + (history.length
+      ? history.map(entry => `
+        <div class="row" data-open-history="${entry.id}" style="cursor:pointer;">
+          <div style="flex:1; min-width:0;">
+            <div class="row-name" style="text-decoration:none; color:#26241E; font-weight:600;">${escapeHtml(entry.label)}</div>
+            <div style="font-family:'Inter',sans-serif; font-size:12px; color:#7A7460; margin-top:2px;">
+              Spent ${rupee(entry.spent)} of ${rupee(entry.total)}
+            </div>
+          </div>
+          <div class="row-amount" style="color:#B5482A;">${rupee(entry.remaining)} left</div>
+        </div>`).join("")
+      : '<div class="empty">No months saved yet. Use "Start new month" in Settings to archive this one once you\'re done.</div>');
+
+    historyList.querySelectorAll("[data-open-history]").forEach(el =>
+      el.addEventListener("click", () => openHistoryDetail(el.getAttribute("data-open-history")))
+    );
+  }
+
+  function openHistoryDetail(entryId) {
+    currentHistoryEntryId = entryId;
+    historyOverlay.classList.remove("open");
+    historyDetailOverlay.classList.add("open");
+    renderHistoryDetail(entryId);
+  }
+
+  function renderHistoryDetail(entryId) {
+    const entry = history.find(h => h.id === entryId);
+    if (!entry) return;
+    historyDetailTitle.textContent = entry.label;
+    historyDetailSummary.innerHTML = `
+      <div class="summary-top"><span>Total</span><span>${rupee(entry.total)}</span></div>
+      <div class="stats" style="margin-top:12px;">
+        <div class="stat spent"><div class="stat-label">Spent</div><div class="stat-value">${rupee(entry.spent)}</div></div>
+        <div class="stat remaining"><div class="stat-label">Remaining</div><div class="stat-value">${rupee(entry.remaining)}</div></div>
+      </div>
+      ${categoryChartHtml(entry.items) ? `<div style="margin-top:16px;">${categoryChartHtml(entry.items)}</div>` : ""}`;
+
+    historyDetailList.innerHTML = entry.items.length
+      ? entry.items.map(item => `
+        <div class="manage-row ${item.active === false ? "excluded" : ""}">
+          <button class="check" data-h-toggle="${item.id}" style="${item.done ? "background:#2F5C4B;border:none;" : ""}">
+            ${item.done ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F6F1E7" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : ""}
+          </button>
+          <div class="manage-info">
+            <div class="manage-name" style="${item.done ? "text-decoration:line-through;color:#9B937C;" : ""}">${escapeHtml(item.name)}</div>
+            <div class="manage-amount">${rupee(item.amount)}</div>
+          </div>
+          <button class="edit-btn" data-h-edit="${item.id}" aria-label="Edit item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
+          </button>
+        </div>`).join("")
+      : '<div class="empty">No items in this month.</div>';
+
+    historyDetailList.querySelectorAll("[data-h-toggle]").forEach(el =>
+      el.addEventListener("click", () => toggleHistoryItemDone(entry.id, el.getAttribute("data-h-toggle")))
+    );
+    historyDetailList.querySelectorAll("[data-h-edit]").forEach(el =>
+      el.addEventListener("click", () => openHistoryEditModal(entry.id, el.getAttribute("data-h-edit")))
+    );
+  }
+
+  function toggleHistoryItemDone(entryId, itemId) {
+    const entry = history.find(h => h.id === entryId);
+    if (!entry) return;
+    entry.items = entry.items.map(i => i.id === itemId ? { ...i, done: !i.done } : i);
+    recomputeHistoryTotals(entry);
+    saveHistory();
+    renderHistoryDetail(entryId);
+  }
+
+  document.getElementById("historyBtn").addEventListener("click", () => {
+    settingsOverlay.classList.remove("open");
+    historyOverlay.classList.add("open");
+    renderHistoryList();
+  });
+  document.getElementById("historyCloseBtn").addEventListener("click", () => historyOverlay.classList.remove("open"));
+  document.getElementById("historyDetailBackBtn").addEventListener("click", () => {
+    historyDetailOverlay.classList.remove("open");
+    historyOverlay.classList.add("open");
+    renderHistoryList();
+  });
+  document.getElementById("restartBtn").addEventListener("click", () => {
+    settingsOverlay.classList.remove("open");
+    archiveMonth();
+  });
+
+  document.getElementById("exportHistoryCsvBtn").addEventListener("click", () => {
+    if (history.length === 0) { alert("No months saved yet."); return; }
+    const dateStr = new Date().toISOString().slice(0, 10);
+    const header = "month,archived_on,total,spent,remaining\n";
+    const rows = history.map(h =>
+      [csvEscape(h.label), h.archivedAt.slice(0, 10), h.total, h.spent, h.remaining].join(",")
+    ).join("\n");
+    const blob = new Blob([header + rows], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `ledger-monthly-summary-${dateStr}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+  // ---------- end month history ----------
+
+  document.getElementById("exportBtn").addEventListener("click", () => {
+    const dateStr = new Date().toISOString().slice(0, 10);
+    const blob = new Blob([JSON.stringify(items, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `ledger-backup-${dateStr}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  const importFile = document.getElementById("importFile");
+  document.getElementById("importBtn").addEventListener("click", () => importFile.click());
+
+  function processJsonImport(text) {
+    let parsed;
+    try {
+      parsed = JSON.parse(text);
+    } catch (parseErr) {
+      throw new Error("This isn't valid JSON — it may be damaged or the wrong content.");
+    }
+    if (!Array.isArray(parsed)) {
+      throw new Error("This JSON doesn't contain a list of items.");
+    }
+    if (parsed.length === 0) {
+      throw new Error("This backup is empty.");
+    }
+    const badIdx = parsed.findIndex(i => typeof i.name !== "string" || typeof i.amount !== "number");
+    if (badIdx !== -1) {
+      throw new Error(`Item ${badIdx + 1} is missing a valid name or amount.`);
+    }
+    items = parsed.map(i => ({
+      id: i.id || uid(),
+      name: i.name,
+      amount: i.amount,
+      done: !!i.done,
+      active: i.active !== false,
+      category: i.category || null
+    }));
+    saveItems();
+    render();
+  }
+
+  importFile.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        processJsonImport(evt.target.result);
+        alert("Backup restored successfully.");
+      } catch (err) {
+        alert(err.message || "That file doesn't look like a valid ledger backup.");
+      }
+    };
+    reader.readAsText(file);
+    importFile.value = "";
+  });
+
+  const settingsOverlay = document.getElementById("settingsOverlay");
+  document.getElementById("settingsBtn").addEventListener("click", () => settingsOverlay.classList.add("open"));
+  document.getElementById("sheetCloseBtn").addEventListener("click", () => settingsOverlay.classList.remove("open"));
+  settingsOverlay.addEventListener("click", (e) => {
+    if (e.target === settingsOverlay) settingsOverlay.classList.remove("open");
+  });
+
+  document.getElementById("addBtn").addEventListener("click", addItem);
+
+  // ---------- Gemini voice-to-items ----------
+  const GEMINI_KEYS_STORAGE = "expense_ledger_gemini_keys";
+  const GEMINI_MODEL_STORAGE = "expense_ledger_gemini_model";
+  const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash";
+
+  function loadGeminiKeys() {
+    try {
+      const raw = localStorage.getItem(GEMINI_KEYS_STORAGE);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return [];
+  }
+  function saveGeminiKeys(keysArr) {
+    try { localStorage.setItem(GEMINI_KEYS_STORAGE, JSON.stringify(keysArr)); } catch (e) {}
+  }
+  function loadGeminiModel() {
+    try { return localStorage.getItem(GEMINI_MODEL_STORAGE) || ""; } catch (e) { return ""; }
+  }
+  function saveGeminiModel(model) {
+    try { localStorage.setItem(GEMINI_MODEL_STORAGE, model || ""); } catch (e) {}
+  }
+
+  function scoreModelName(name) {
+    let s = 0;
+    if (/flash/i.test(name)) s += 10;
+    if (/pro/i.test(name)) s += 4;
+    if (/exp|preview|thinking|tts|image|embedding|aqa|vision/i.test(name)) s -= 15;
+    if (/latest/i.test(name)) s += 2;
+    return s;
+  }
+
+  async function detectBestModel(apiKey) {
+    const res = await fetch("https://generativelanguage.googleapis.com/v1beta/models", {
+      headers: { "x-goog-api-key": apiKey }
+    });
+    if (!res.ok) {
+      const t = await res.text();
+      throw new Error("Couldn't check your key (" + res.status + "): " + t.slice(0, 150));
+    }
+    const data = await res.json();
+    const usable = (data.models || [])
+      .filter(m => Array.isArray(m.supportedGenerationMethods) && m.supportedGenerationMethods.includes("generateContent"))
+      .map(m => (m.name || "").replace(/^models\//, ""))
+      .filter(Boolean);
+    if (usable.length === 0) throw new Error("This key doesn't have access to any usable models yet.");
+    usable.sort((a, b) => scoreModelName(b) - scoreModelName(a) || b.localeCompare(a));
+    return usable[0];
+  }
+
+  const aiSetupOverlay = document.getElementById("aiSetupOverlay");
+  const geminiKeyInput = document.getElementById("geminiKeyInput");
+  const geminiModelInput = document.getElementById("geminiModelInput");
+  const geminiModelStatus = document.getElementById("geminiModelStatus");
+
+  function showModelStatus(text) {
+    geminiModelStatus.textContent = text;
+    geminiModelStatus.style.display = "block";
+  }
+
+  document.getElementById("aiSetupBtn").addEventListener("click", () => {
+    settingsOverlay.classList.remove("open");
+    geminiKeyInput.value = loadGeminiKeys().join("\n");
+    geminiModelInput.value = "";
+    const currentModel = loadGeminiModel();
+    const keyCount = loadGeminiKeys().length;
+    if (currentModel) showModelStatus("Currently using: " + currentModel + (keyCount > 1 ? " · " + keyCount + " keys saved (auto-rotates if one runs out)" : ""));
+    else geminiModelStatus.style.display = "none";
+    aiSetupOverlay.classList.add("open");
+  });
+  document.getElementById("aiSetupCloseBtn").addEventListener("click", () => aiSetupOverlay.classList.remove("open"));
+
+  document.getElementById("geminiKeySaveBtn").addEventListener("click", async () => {
+    const keysArr = geminiKeyInput.value.split("\n").map(k => k.trim()).filter(Boolean);
+    if (keysArr.length === 0) {
+      alert("Please paste at least one API key first.");
+      return;
+    }
+    saveGeminiKeys(keysArr);
+    const btn = document.getElementById("geminiKeySaveBtn");
+    const original = btn.textContent;
+    btn.textContent = "Checking your key(s)…";
+    btn.disabled = true;
+    showModelStatus("Checking which models your key(s) can use…");
+    try {
+      const best = await detectBestModel(keysArr[0]);
+      saveGeminiModel(best);
+      showModelStatus("✓ Using: " + best + (keysArr.length > 1 ? " · " + keysArr.length + " keys saved (auto-rotates if one runs out)" : ""));
+    } catch (err) {
+      saveGeminiModel(DEFAULT_GEMINI_MODEL);
+      showModelStatus("Couldn't auto-detect (" + (err.message || "unknown error") + "). Falling back to: " + DEFAULT_GEMINI_MODEL);
+    } finally {
+      btn.textContent = original;
+      btn.disabled = false;
+    }
+  });
+
+  document.getElementById("geminiModelSaveBtn").addEventListener("click", () => {
+    const model = geminiModelInput.value.trim();
+    if (!model) {
+      alert("Type a model name first, or use \"Save & find best model\" above to auto-detect.");
+      return;
+    }
+    saveGeminiModel(model);
+    showModelStatus("✓ Using: " + model + " (manual)");
+    geminiModelInput.value = "";
+  });
+
+  const voiceOverlay = document.getElementById("voiceOverlay");
+  const voiceStep1 = document.getElementById("voiceStep1");
+  const voiceStep2 = document.getElementById("voiceStep2");
+  const voiceStepTitle = document.getElementById("voiceStepTitle");
+  const voiceTranscript = document.getElementById("voiceTranscript");
+  const voiceMicBtn = document.getElementById("voiceMicBtn");
+  const voiceStatusText = document.getElementById("voiceStatusText");
+  const voicePreviewList = document.getElementById("voicePreviewList");
+
+  let recognition = null;
+  let isRecording = false;
+  let voicePendingItems = [];
+
+  function getRecognition() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) return null;
+    if (!recognition) {
+      recognition = new SR();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = "hi-IN";
+      let finalTranscript = "";
+      recognition.onresult = (e) => {
+        let interim = "";
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          const t = e.results[i][0].transcript;
+          if (e.results[i].isFinal) finalTranscript += t + " ";
+          else interim += t;
+        }
+        voiceTranscript.value = (finalTranscript + interim).trim();
+      };
+      recognition.onerror = (e) => {
+        isRecording = false;
+        updateMicUI();
+        if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+          alert("Microphone access was blocked. Please allow microphone permission for this site and try again.");
+        } else if (e.error !== "no-speech" && e.error !== "aborted") {
+          alert("Voice recognition error: " + e.error);
+        }
+      };
+      recognition.onend = () => {
+        isRecording = false;
+        updateMicUI();
+      };
+      recognition._reset = () => { finalTranscript = ""; };
+    }
+    return recognition;
+  }
+
+  function updateMicUI() {
+    if (isRecording) {
+      voiceMicBtn.style.background = "#B5482A";
+      voiceStatusText.textContent = "Listening… tap again to stop";
+    } else {
+      voiceMicBtn.style.background = "#2F5C4B";
+      voiceStatusText.textContent = "Tap the mic and speak your items";
+    }
+  }
+
+  voiceMicBtn.addEventListener("click", () => {
+    const rec = getRecognition();
+    if (!rec) {
+      alert("Voice input isn't supported in this browser. You can still type your items in the box below.");
+      return;
+    }
+    if (isRecording) {
+      rec.stop();
+      isRecording = false;
+    } else {
+      rec._reset();
+      voiceTranscript.value = "";
+      try {
+        rec.start();
+        isRecording = true;
+      } catch (e) {
+        isRecording = false;
+      }
+    }
+    updateMicUI();
+  });
+
+  function openVoiceOverlay() {
+    voiceStep1.style.display = "block";
+    voiceStep2.style.display = "none";
+    voiceStepTitle.textContent = "Add items by voice";
+    voiceTranscript.value = "";
+    isRecording = false;
+    updateMicUI();
+    voiceOverlay.classList.add("open");
+  }
+
+  function closeVoiceOverlay() {
+    if (recognition && isRecording) {
+      try { recognition.stop(); } catch (e) {}
+    }
+    isRecording = false;
+    voiceOverlay.classList.remove("open");
+  }
+
+  document.getElementById("voiceAddBtn").addEventListener("click", openVoiceOverlay);
+  document.getElementById("voiceCancelBtn").addEventListener("click", closeVoiceOverlay);
+  voiceOverlay.addEventListener("click", (e) => {
+    if (e.target === voiceOverlay) closeVoiceOverlay();
+  });
+
+  async function callGeminiOnce(apiKey, model, prompt) {
+    const response = await fetch(
+      "https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+      }
+    );
+    if (!response.ok) {
+      const errText = await response.text();
+      const err = new Error("Gemini API error (" + response.status + "): " + errText.slice(0, 200));
+      err.status = response.status;
+      throw err;
+    }
+    return response.json();
+  }
+
+  const GEMINI_LAST_INDEX_STORAGE = "expense_ledger_gemini_last_index";
+  function loadLastKeyIndex() {
+    try { return parseInt(localStorage.getItem(GEMINI_LAST_INDEX_STORAGE), 10) || 0; } catch (e) { return 0; }
+  }
+  function saveLastKeyIndex(idx) {
+    try { localStorage.setItem(GEMINI_LAST_INDEX_STORAGE, String(idx)); } catch (e) {}
+  }
+
+  async function parseWithGemini(transcript) {
+    const keysArr = loadGeminiKeys();
+    if (keysArr.length === 0) {
+      throw new Error("Please add your Gemini API key first: Settings → Voice input setup.");
+    }
+    const checklist = isChecklistType();
+    const prompt = checklist
+      ? 'Extract each individual to-do or checklist item from the following spoken text. ' +
+        'The text may mix Hindi, Urdu, and English words. Return ONLY a valid JSON array with no markdown formatting, ' +
+        'no code fences, and no extra commentary — just the array. Each element must look like {"name": "short item name", "amount": 0}. ' +
+        'Text: """' + transcript + '"""'
+      : 'Extract each individual expense item and its amount in Indian Rupees from the following spoken text. ' +
+        'The text may mix Hindi, Urdu, and English words. Return ONLY a valid JSON array with no markdown formatting, ' +
+        'no code fences, and no extra commentary — just the array. Each element must look like {"name": "short item name", "amount": number}. ' +
+        'Skip anything without a clear numeric amount. Text: """' + transcript + '"""';
+
+    let model = loadGeminiModel();
+    const startIdx = Math.min(loadLastKeyIndex(), keysArr.length - 1);
+    let data = null;
+    let lastErr = null;
+
+    for (let attempt = 0; attempt < keysArr.length; attempt++) {
+      const idx = (startIdx + attempt) % keysArr.length;
+      const apiKey = keysArr[idx];
+      if (!model) {
+        try {
+          model = await detectBestModel(apiKey);
+          saveGeminiModel(model);
+        } catch (e) {
+          lastErr = e;
+          continue; // this key can't even list models — try next
+        }
+      }
+      try {
+        data = await callGeminiOnce(apiKey, model, prompt);
+        saveLastKeyIndex(idx);
+        lastErr = null;
+        break;
+      } catch (err) {
+        if (err.status === 404) {
+          // Model may have been deprecated — re-detect once and retry with the same key
+          try {
+            const fresh = await detectBestModel(apiKey);
+            saveGeminiModel(fresh);
+            model = fresh;
+            data = await callGeminiOnce(apiKey, fresh, prompt);
+            saveLastKeyIndex(idx);
+            lastErr = null;
+            break;
+          } catch (retryErr) {
+            lastErr = retryErr;
+            continue;
+          }
+        }
+        if (err.status === 429 || err.status === 403 || err.status === 401) {
+          // Quota exhausted or key invalid — try the next key
+          lastErr = err;
+          continue;
+        }
+        // Other errors (bad request, server error) — no point rotating keys
+        throw err;
+      }
+    }
+
+    if (!data) {
+      throw lastErr || new Error("All saved API keys failed. Check Settings → Voice input setup.");
+    }
+
+    const text = data.candidates && data.candidates[0] && data.candidates[0].content &&
+      data.candidates[0].content.parts && data.candidates[0].content.parts[0] && data.candidates[0].content.parts[0].text;
+    if (!text) throw new Error("Gemini didn't return any content.");
+
+    const cleaned = text.trim().replace(/^```json\s*/i, "").replace(/^```\s*/, "").replace(/```\s*$/, "");
+    let parsed;
+    try {
+      parsed = JSON.parse(cleaned);
+    } catch (e) {
+      throw new Error("Couldn't understand the AI's response. Try rephrasing what you said.");
+    }
+    if (!Array.isArray(parsed)) throw new Error("Unexpected response format from Gemini.");
+    if (checklist) {
+      return parsed
+        .filter(i => i && typeof i.name === "string" && i.name.trim())
+        .map(i => ({ name: i.name, amount: 0 }));
+    }
+    return parsed
+      .filter(i => i && typeof i.name === "string" && typeof i.amount === "number" && i.amount > 0)
+      .map(i => ({ name: i.name, amount: i.amount }));
+  }
+
+  document.getElementById("voiceParseBtn").addEventListener("click", async () => {
+    const transcript = voiceTranscript.value.trim();
+    if (!transcript) {
+      alert("Please speak or type something first.");
+      return;
+    }
+    if (recognition && isRecording) {
+      try { recognition.stop(); } catch (e) {}
+    }
+    const btn = document.getElementById("voiceParseBtn");
+    const originalText = btn.textContent;
+    btn.textContent = "Parsing…";
+    btn.disabled = true;
+    try {
+      const parsedItems = await parseWithGemini(transcript);
+      if (!parsedItems.length) {
+        alert("Couldn't find any items with clear amounts. Try being specific, e.g. \"Aata 500 rupees, kiraya 1000 rupees\".");
+        return;
+      }
+      showVoicePreview(parsedItems);
+    } catch (err) {
+      alert(err.message || "Something went wrong while parsing.");
+    } finally {
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }
+  });
+
+  function showVoicePreview(parsedItems) {
+    voicePendingItems = parsedItems.map((it, idx) => ({ tempId: "v" + idx, name: it.name, amount: it.amount, checked: true }));
+    renderVoicePreview();
+    voiceStep1.style.display = "none";
+    voiceStep2.style.display = "block";
+    voiceStepTitle.textContent = "Review items";
+  }
+
+  function renderVoicePreview() {
+    const checklist = isChecklistType();
+    voicePreviewList.innerHTML = voicePendingItems.map(it => `
+      <div class="row" style="margin-bottom:8px;">
+        <input type="checkbox" data-voice-check="${it.tempId}" ${it.checked ? "checked" : ""} style="width:18px;height:18px;accent-color:#2F5C4B;flex-shrink:0;" />
+        <input data-voice-name="${it.tempId}" value="${escapeAttr(it.name)}" style="flex:1; border:none; background:transparent; font-family:'Inter',sans-serif; font-size:14px; outline:none; min-width:0; color:#26241E;" />
+        ${checklist ? "" : `<input data-voice-amount="${it.tempId}" type="number" value="${it.amount}" style="width:70px; border:none; background:transparent; font-family:'Inter',sans-serif; font-size:14px; outline:none; text-align:right; color:#26241E;" />`}
+      </div>`).join("");
+
+    voicePreviewList.querySelectorAll("[data-voice-check]").forEach(el => el.addEventListener("change", () => {
+      const it = voicePendingItems.find(v => v.tempId === el.getAttribute("data-voice-check"));
+      if (it) it.checked = el.checked;
+    }));
+    voicePreviewList.querySelectorAll("[data-voice-name]").forEach(el => el.addEventListener("input", () => {
+      const it = voicePendingItems.find(v => v.tempId === el.getAttribute("data-voice-name"));
+      if (it) it.name = el.value;
+    }));
+    voicePreviewList.querySelectorAll("[data-voice-amount]").forEach(el => el.addEventListener("input", () => {
+      const it = voicePendingItems.find(v => v.tempId === el.getAttribute("data-voice-amount"));
+      if (it) it.amount = parseFloat(el.value) || 0;
+    }));
+  }
+
+  document.getElementById("voiceBackBtn").addEventListener("click", () => {
+    voiceStep2.style.display = "none";
+    voiceStep1.style.display = "block";
+    voiceStepTitle.textContent = "Add items by voice";
+  });
+
+  document.getElementById("voiceConfirmAddBtn").addEventListener("click", () => {
+    const checklist = isChecklistType();
+    const toAdd = voicePendingItems.filter(it => it.checked && it.name.trim() && (checklist || it.amount > 0));
+    if (toAdd.length === 0) {
+      alert("No items selected to add.");
+      return;
+    }
+    toAdd.forEach(it => {
+      items.unshift({ id: uid(), name: it.name.trim(), amount: checklist ? 0 : it.amount, done: false, active: true, category: null });
+    });
+    saveItems();
+    render();
+    closeVoiceOverlay();
+    alert("Added " + toAdd.length + " item" + (toAdd.length > 1 ? "s" : "") + ".");
+  });
+  // ---------- end Gemini voice-to-items ----------
+
+  // ---------- Paste-to-import fallback ----------
+  const pasteOverlay = document.getElementById("pasteOverlay");
+  const pasteTextarea = document.getElementById("pasteTextarea");
+
+  document.getElementById("pasteImportBtn").addEventListener("click", () => {
+    settingsOverlay.classList.remove("open");
+    pasteTextarea.value = "";
+    pasteOverlay.classList.add("open");
+    setTimeout(() => pasteTextarea.focus(), 50);
+  });
+  document.getElementById("pasteCancelBtn").addEventListener("click", () => pasteOverlay.classList.remove("open"));
+  pasteOverlay.addEventListener("click", (e) => {
+    if (e.target === pasteOverlay) pasteOverlay.classList.remove("open");
+  });
+
+  document.getElementById("pasteImportConfirmBtn").addEventListener("click", () => {
+    const text = pasteTextarea.value.trim();
+    if (!text) {
+      alert("Please paste some content first.");
+      return;
+    }
+    const looksLikeJson = text.startsWith("[") || text.startsWith("{");
+    try {
+      if (looksLikeJson) {
+        processJsonImport(text);
+        alert("Backup restored successfully.");
+      } else {
+        processCsvImport(text);
+        alert("CSV imported successfully.");
+      }
+      pasteOverlay.classList.remove("open");
+    } catch (err) {
+      alert(err.message || "Couldn't read that content. Make sure you copied the whole file.");
+    }
+  });
+  // ---------- end paste-to-import ----------
+
+  function csvEscape(val) {
+    const s = String(val);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+
+  document.getElementById("exportCsvBtn").addEventListener("click", () => {
+    const dateStr = new Date().toISOString().slice(0, 10);
+    const header = "name,amount,done,active,category\n";
+    const rows = items.map(i => {
+      const catName = i.category ? (categories.find(c => c.id === i.category)?.name || "") : "";
+      return [csvEscape(i.name), i.amount, i.done ? "yes" : "no", i.active !== false ? "yes" : "no", csvEscape(catName)].join(",");
+    }).join("\n");
+    const csv = header + rows;
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `ledger-${dateStr}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  function parseCsvLine(line) {
+    const out = [];
+    let cur = "", inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (inQuotes) {
+        if (c === '"' && line[i + 1] === '"') { cur += '"'; i++; }
+        else if (c === '"') { inQuotes = false; }
+        else cur += c;
+      } else {
+        if (c === '"') inQuotes = true;
+        else if (c === ',') { out.push(cur); cur = ""; }
+        else cur += c;
+      }
+    }
+    out.push(cur);
+    return out;
+  }
+
+  function processCsvImport(text) {
+    const lines = text.split(/\r?\n/).filter(l => l.trim() !== "");
+    if (lines.length < 1) throw new Error("This CSV is empty.");
+    const header = parseCsvLine(lines[0]).map(h => h.trim().toLowerCase());
+    const nameIdx = header.indexOf("name");
+    const amountIdx = header.indexOf("amount");
+    const doneIdx = header.indexOf("done");
+    const activeIdx = header.indexOf("active");
+    const categoryIdx = header.indexOf("category");
+    if (nameIdx === -1 || amountIdx === -1) {
+      throw new Error("This CSV needs 'name' and 'amount' column headers in the first row.");
+    }
+    const parsed = [];
+    for (let i = 1; i < lines.length; i++) {
+      const cols = parseCsvLine(lines[i]);
+      const name = (cols[nameIdx] || "").trim();
+      const amount = parseFloat(cols[amountIdx]);
+      if (!name || isNaN(amount)) continue;
+      const doneVal = doneIdx !== -1 ? (cols[doneIdx] || "").trim().toLowerCase() : "no";
+      const activeVal = activeIdx !== -1 ? (cols[activeIdx] || "").trim().toLowerCase() : "yes";
+      const catName = categoryIdx !== -1 ? (cols[categoryIdx] || "").trim() : "";
+      let categoryId = null;
+      if (catName) {
+        let cat = categories.find(c => c.name.toLowerCase() === catName.toLowerCase());
+        if (!cat) {
+          cat = { id: uid(), name: catName, color: CATEGORY_COLORS[categories.length % CATEGORY_COLORS.length] };
+          categories.push(cat);
+        }
+        categoryId = cat.id;
+      }
+      parsed.push({
+        id: uid(),
+        name,
+        amount,
+        done: doneVal === "yes" || doneVal === "true" || doneVal === "1",
+        active: !(activeVal === "no" || activeVal === "false" || activeVal === "0"),
+        category: categoryId
+      });
+    }
+    if (parsed.length === 0) throw new Error("No valid rows found — each row needs a name and a numeric amount.");
+    items = parsed;
+    saveItems();
+    saveCategories();
+    render();
+  }
+
+  const importCsvFile = document.getElementById("importCsvFile");
+  document.getElementById("importCsvBtn").addEventListener("click", () => importCsvFile.click());
+  importCsvFile.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        processCsvImport(evt.target.result);
+        alert("CSV imported successfully.");
+      } catch (err) {
+        alert(err.message || "Couldn't read that CSV file.");
+      }
+    };
+    reader.readAsText(file);
+    importCsvFile.value = "";
+  });
+  nameInput.addEventListener("keydown", e => {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    if (isChecklistType()) {
+      addItem();
+    } else {
+      amountInput.focus();
+    }
+  });
+  amountInput.addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addItem();
+    }
+  });
+
+  // ---------- Multi-list management ----------
+  const listsScreen = document.getElementById("listsScreen");
+  const appScreen = document.getElementById("appScreen");
+  const listsCards = document.getElementById("listsCards");
+  const summaryCard = document.getElementById("summaryCard");
+  const amountInputWrap = amountInput; // reuse existing reference
+
+  function typeIconSvg(type) {
+    if (type === "checklist") {
+      return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="3"/><polyline points="8 12 11 15 16 9"/></svg>';
+    }
+    return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 4h12v16l-2-1.3-2 1.3-2-1.3-2 1.3-2-1.3-2 1.3-1.5-1.5z"/><line x1="8.5" y1="9" x2="15.5" y2="9"/><line x1="8.5" y1="12.5" x2="15.5" y2="12.5"/></svg>';
+  }
+
+  function renderListsScreen() {
+    listsCards.innerHTML = lists.length
+      ? lists.map(l => {
+          let itemCount = 0;
+          try {
+            const raw = localStorage.getItem(itemsKeyFor(l.id));
+            if (raw) itemCount = JSON.parse(raw).length;
+          } catch (e) {}
+          return `
+            <div class="list-card" data-open-list="${l.id}">
+              <div class="list-card-icon ${l.type}">${typeIconSvg(l.type)}</div>
+              <div class="list-card-info">
+                <div class="list-card-name">${escapeHtml(l.name)}</div>
+                <div class="list-card-meta">${l.type === "checklist" ? "Checklist" : "Expense list"} · ${itemCount} item${itemCount === 1 ? "" : "s"}</div>
+              </div>
+              <button class="list-card-edit" data-list-settings="${l.id}" aria-label="List settings">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
+              </button>
+            </div>`;
+        }).join("")
+      : '<div class="empty">No lists yet. Create your first one below.</div>';
+
+    listsCards.querySelectorAll("[data-open-list]").forEach(el =>
+      el.addEventListener("click", () => openList(el.getAttribute("data-open-list")))
+    );
+    listsCards.querySelectorAll("[data-list-settings]").forEach(el =>
+      el.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openListSettings(el.getAttribute("data-list-settings"));
+      })
+    );
+  }
+
+  function showListsScreen() {
+    appScreen.style.display = "none";
+    listsScreen.style.display = "block";
+    renderListsScreen();
+  }
+
+  function applyListTypeUI() {
+    const checklist = isChecklistType();
+    amountInputWrap.style.display = checklist ? "none" : "";
+    summaryCard.style.display = checklist ? "none" : "block";
+    document.getElementById("checklistProgressCard").style.display = checklist ? "block" : "none";
+    document.getElementById("categoriesBtn").style.display = checklist ? "none" : "flex";
+    document.getElementById("historyBtn").style.display = checklist ? "none" : "flex";
+    document.getElementById("restartBtn").style.display = checklist ? "none" : "flex";
+    nameInput.setAttribute("enterkeyhint", checklist ? "done" : "next");
+  }
+
+  function openList(id) {
+    currentListId = id;
+    try { localStorage.setItem(CURRENT_LIST_KEY, id); } catch (e) {}
+    items = loadItems();
+    categories = loadCategories();
+    history = loadHistory();
+    const l = currentList();
+    if (!l) { showListsScreen(); return; }
+    document.getElementById("appTitle").textContent = l.name;
+    document.getElementById("appSubtitle").textContent = l.type === "checklist"
+      ? "Check items off as you go"
+      : "Check an item off once you've paid it";
+    applyListTypeUI();
+    listsScreen.style.display = "none";
+    appScreen.style.display = "block";
+    render();
+  }
+
+  document.getElementById("backToListsBtn").addEventListener("click", showListsScreen);
+
+  const newListOverlay = document.getElementById("newListOverlay");
+  const newListNameInput = document.getElementById("newListNameInput");
+  let selectedNewListType = "expense";
+
+  document.getElementById("newListBtn").addEventListener("click", () => {
+    newListNameInput.value = "";
+    selectedNewListType = "expense";
+    document.getElementById("typeExpenseBtn").classList.add("selected");
+    document.getElementById("typeChecklistBtn").classList.remove("selected");
+    newListOverlay.classList.add("open");
+    setTimeout(() => newListNameInput.focus(), 50);
+  });
+  document.getElementById("newListCancelBtn").addEventListener("click", () => newListOverlay.classList.remove("open"));
+  newListOverlay.addEventListener("click", (e) => {
+    if (e.target === newListOverlay) newListOverlay.classList.remove("open");
+  });
+  document.getElementById("typeExpenseBtn").addEventListener("click", () => {
+    selectedNewListType = "expense";
+    document.getElementById("typeExpenseBtn").classList.add("selected");
+    document.getElementById("typeChecklistBtn").classList.remove("selected");
+  });
+  document.getElementById("typeChecklistBtn").addEventListener("click", () => {
+    selectedNewListType = "checklist";
+    document.getElementById("typeChecklistBtn").classList.add("selected");
+    document.getElementById("typeExpenseBtn").classList.remove("selected");
+  });
+
+  document.getElementById("newListCreateBtn").addEventListener("click", () => {
+    const name = newListNameInput.value.trim();
+    if (!name) {
+      alert("Please give your list a name.");
+      return;
+    }
+    const newId = uid();
+    lists.push({ id: newId, name, type: selectedNewListType, createdAt: new Date().toISOString() });
+    saveLists();
+    try {
+      localStorage.setItem(itemsKeyFor(newId), JSON.stringify([]));
+    } catch (e) {}
+    newListOverlay.classList.remove("open");
+    openList(newId);
+  });
+
+  const listSettingsOverlay = document.getElementById("listSettingsOverlay");
+  const listRenameInput = document.getElementById("listRenameInput");
+  let listSettingsId = null;
+
+  function openListSettings(id) {
+    const l = lists.find(x => x.id === id);
+    if (!l) return;
+    listSettingsId = id;
+    listRenameInput.value = l.name;
+    listSettingsOverlay.classList.add("open");
+  }
+  document.getElementById("listRenameSaveBtn").addEventListener("click", () => {
+    const name = listRenameInput.value.trim();
+    if (!name || !listSettingsId) return;
+    lists = lists.map(l => l.id === listSettingsId ? { ...l, name } : l);
+    saveLists();
+    listSettingsOverlay.classList.remove("open");
+    if (currentListId === listSettingsId) {
+      document.getElementById("appTitle").textContent = name;
+    }
+    renderListsScreen();
+  });
+  document.getElementById("listDeleteBtn").addEventListener("click", () => {
+    if (!listSettingsId) return;
+    if (!confirm("Delete this entire list, including all its items and history? This can't be undone.")) return;
+    const idToDelete = listSettingsId;
+    lists = lists.filter(l => l.id !== idToDelete);
+    saveLists();
+    try {
+      localStorage.removeItem(itemsKeyFor(idToDelete));
+      localStorage.removeItem(categoryKeyFor(idToDelete));
+      localStorage.removeItem(historyKeyFor(idToDelete));
+    } catch (e) {}
+    listSettingsOverlay.classList.remove("open");
+    if (currentListId === idToDelete) {
+      currentListId = null;
+      try { localStorage.removeItem(CURRENT_LIST_KEY); } catch (e) {}
+      showListsScreen();
+    } else {
+      renderListsScreen();
+    }
+  });
+  listSettingsOverlay.addEventListener("click", (e) => {
+    if (e.target === listSettingsOverlay) listSettingsOverlay.classList.remove("open");
+  });
+  // ---------- end multi-list management ----------
+
+  if (currentListId && lists.find(l => l.id === currentListId)) {
+    openList(currentListId);
+  } else {
+    showListsScreen();
+  }
+</script>
+</body>
+</html>
