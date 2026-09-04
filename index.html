@@ -13,8 +13,8 @@
 <meta name="theme-color" content="#2F5C4B" />
 
 <!-- Icon (used for home screen icon on iOS/Android) -->
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%232F5C4B'/%3E%3Cpath d='M30 25h40v50l-6-4-6 4-6-4-6 4-6-4-6 4-4-4z' fill='none' stroke='%23F6F1E7' stroke-width='4' stroke-linejoin='round'/%3E%3Cline x1='38' y1='40' x2='62' y2='40' stroke='%23F6F1E7' stroke-width='4' stroke-linecap='round'/%3E%3Cline x1='38' y1='50' x2='62' y2='50' stroke='%23F6F1E7' stroke-width='4' stroke-linecap='round'/%3E%3Cline x1='38' y1='60' x2='54' y2='60' stroke='%23F6F1E7' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E" />
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%232F5C4B'/%3E%3Cpath d='M30 25h40v50l-6-4-6 4-6-4-6 4-6-4-6 4-4-4z' fill='none' stroke='%23F6F1E7' stroke-width='4' stroke-linejoin='round'/%3E%3Cline x1='38' y1='40' x2='62' y2='40' stroke='%23F6F1E7' stroke-width='4' stroke-linecap='round'/%3E%3Cline x1='38' y1='50' x2='62' y2='50' stroke='%23F6F1E7' stroke-width='4' stroke-linecap='round'/%3E%3Cline x1='38' y1='60' x2='54' y2='60' stroke='%23F6F1E7' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E" />
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%232F5C4B'/%3E%3Crect x='27' y='17' width='44' height='64' rx='5' fill='%23F6F1E7'/%3E%3Cline x1='35' y1='31' x2='63' y2='31' stroke='%232F5C4B' stroke-width='3.6' stroke-linecap='round'/%3E%3Cline x1='35' y1='41.5' x2='63' y2='41.5' stroke='%232F5C4B' stroke-width='3.6' stroke-linecap='round'/%3E%3Cline x1='35' y1='52' x2='52' y2='52' stroke='%232F5C4B' stroke-width='3.6' stroke-linecap='round'/%3E%3Ccircle cx='70' cy='67' r='18' fill='%23B5482A' stroke='%232F5C4B' stroke-width='2.5'/%3E%3Cpath d='M61.5 67l6 6.5 13-14' fill='none' stroke='%23F6F1E7' stroke-width='4.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%232F5C4B'/%3E%3Crect x='27' y='17' width='44' height='64' rx='5' fill='%23F6F1E7'/%3E%3Cline x1='35' y1='31' x2='63' y2='31' stroke='%232F5C4B' stroke-width='3.6' stroke-linecap='round'/%3E%3Cline x1='35' y1='41.5' x2='63' y2='41.5' stroke='%232F5C4B' stroke-width='3.6' stroke-linecap='round'/%3E%3Cline x1='35' y1='52' x2='52' y2='52' stroke='%232F5C4B' stroke-width='3.6' stroke-linecap='round'/%3E%3Ccircle cx='70' cy='67' r='18' fill='%23B5482A' stroke='%232F5C4B' stroke-width='2.5'/%3E%3Cpath d='M61.5 67l6 6.5 13-14' fill='none' stroke='%23F6F1E7' stroke-width='4.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
 
 <style>
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -280,13 +280,18 @@
 
 <div id="listsScreen" class="lists-wrap">
   <div class="lists-header">
-    <div class="logo">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F6F1E7" stroke-width="1.8">
-        <path d="M6 4h12v16l-2-1.3-2 1.3-2-1.3-2 1.3-2-1.3-2 1.3-1.5-1.5z"/>
-        <line x1="8.5" y1="9" x2="15.5" y2="9"/>
-        <line x1="8.5" y1="12.5" x2="15.5" y2="12.5"/>
-        <line x1="8.5" y1="16" x2="13" y2="16"/>
+    <div class="logo" style="position:relative;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="#F6F1E7">
+        <rect x="6.5" y="3.5" width="11" height="16" rx="1.5"/>
       </svg>
+      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#2F5C4B" stroke-width="1.5" style="position:absolute; left:6px; top:6px;">
+        <line x1="4" y1="7" x2="20" y2="7"/>
+        <line x1="4" y1="12" x2="20" y2="12"/>
+        <line x1="4" y1="17" x2="14" y2="17"/>
+      </svg>
+      <div style="position:absolute; right:-4px; bottom:-4px; width:14px; height:14px; border-radius:50%; background:#B5482A; display:flex; align-items:center; justify-content:center; border:1.5px solid #2F5C4B;">
+        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#F6F1E7" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
     </div>
     <div class="header-text">
       <div class="title">Muhasib محاسب</div>
@@ -739,7 +744,7 @@
   }
   function saveLists() {
     try { localStorage.setItem(LISTS_KEY, JSON.stringify(lists)); } catch (e) {}
-    scheduleSync();
+    diffAndSyncLists(lists);
   }
 
   let lists = loadLists();
@@ -767,7 +772,7 @@
 
   function saveItems() {
     try { localStorage.setItem(itemsKeyFor(currentListId), JSON.stringify(items)); } catch (e) {}
-    scheduleSync();
+    diffAndSyncItems(currentListId, items);
   }
 
   function loadHistory() {
@@ -780,7 +785,6 @@
 
   function saveHistory() {
     try { localStorage.setItem(historyKeyFor(currentListId), JSON.stringify(history)); } catch (e) {}
-    scheduleSync();
   }
 
   let items = [];
@@ -802,7 +806,7 @@
 
   function saveCategories() {
     try { localStorage.setItem(categoryKeyFor(currentListId), JSON.stringify(categories)); } catch (e) {}
-    scheduleSync();
+    diffAndSyncCategories(currentListId, categories);
   }
 
   function loadTrash(listId) {
@@ -814,7 +818,6 @@
   }
   function saveTrash(listId, arr) {
     try { localStorage.setItem(trashKeyFor(listId), JSON.stringify(arr)); } catch (e) {}
-    scheduleSync();
   }
   function loadDeletedLists() {
     try {
@@ -825,7 +828,6 @@
   }
   function saveDeletedLists(arr) {
     try { localStorage.setItem(DELETED_LISTS_KEY, JSON.stringify(arr)); } catch (e) {}
-    scheduleSync();
   }
 
   let categories = [];
@@ -1358,6 +1360,7 @@
         entry.items = entry.items.map(i => i.id === editContext.itemId ? { ...i, name, amount, category } : i);
         recomputeHistoryTotals(entry);
         saveHistory();
+        if (gIsSignedIn) pushHistoryEntry(currentListId, entry);
       }
       closeEditModal();
       renderHistoryDetail(editContext.entryId);
@@ -1521,6 +1524,7 @@
     };
     history.unshift(entry);
     saveHistory();
+    if (gIsSignedIn) pushHistoryEntry(currentListId, entry);
     items = items.map(i => ({ ...i, done: false }));
     saveItems();
     render();
@@ -1607,6 +1611,7 @@
     entry.items = entry.items.map(i => i.id === itemId ? { ...i, done: !i.done } : i);
     recomputeHistoryTotals(entry);
     saveHistory();
+    if (gIsSignedIn) pushHistoryEntry(currentListId, entry);
     renderHistoryDetail(entryId);
   }
 
@@ -1843,30 +1848,35 @@
       recognition.continuous = true;
       recognition.interimResults = true;
       recognition.lang = "ur-PK";
-      let finalTranscript = "";
       recognition.onresult = (e) => {
+        // Rebuild the transcript fresh from the full results collection every time,
+        // rather than incrementally appending — some mobile browsers re-fire onresult
+        // with overlapping resultIndex values, which caused text to repeat.
+        let final = "";
         let interim = "";
-        for (let i = e.resultIndex; i < e.results.length; i++) {
+        for (let i = 0; i < e.results.length; i++) {
           const t = e.results[i][0].transcript;
-          if (e.results[i].isFinal) finalTranscript += t + " ";
+          if (e.results[i].isFinal) final += t + " ";
           else interim += t;
         }
-        voiceTranscript.value = (finalTranscript + interim).trim();
+        voiceTranscript.value = (final + interim).trim();
       };
       recognition.onerror = (e) => {
         isRecording = false;
         updateMicUI();
         if (e.error === "not-allowed" || e.error === "service-not-allowed") {
           alert("Microphone access was blocked. Please allow microphone permission for this site and try again.");
+        } else if (e.error === "network") {
+          alert("Voice recognition needs a working internet connection. Please check your connection and try again — what you already said is still in the box below.");
         } else if (e.error !== "no-speech" && e.error !== "aborted") {
-          alert("Voice recognition error: " + e.error);
+          alert("Voice recognition error (" + e.error + "). You can keep typing in the box below instead.");
         }
       };
       recognition.onend = () => {
         isRecording = false;
         updateMicUI();
       };
-      recognition._reset = () => { finalTranscript = ""; };
+      recognition._reset = () => {};
     }
     return recognition;
   }
@@ -1888,19 +1898,33 @@
       return;
     }
     if (isRecording) {
-      rec.stop();
+      try { rec.stop(); } catch (e) {}
       isRecording = false;
+      updateMicUI();
     } else {
       rec._reset();
       voiceTranscript.value = "";
       try {
         rec.start();
         isRecording = true;
+        updateMicUI();
       } catch (e) {
+        // Most commonly "already started" — the previous session hasn't fully closed yet.
+        // Stop it and retry once after a brief pause instead of failing silently.
+        try { rec.abort(); } catch (e2) {}
         isRecording = false;
+        setTimeout(() => {
+          try {
+            rec.start();
+            isRecording = true;
+          } catch (e3) {
+            isRecording = false;
+            alert("Couldn't start the microphone — please try tapping it again.");
+          }
+          updateMicUI();
+        }, 300);
       }
     }
-    updateMicUI();
   });
 
   function openVoiceOverlay() {
@@ -2554,7 +2578,7 @@
         const itemsRaw = JSON.parse(localStorage.getItem(itemsKeyFor(listId)) || "[]");
         itemsRaw.unshift(restored);
         localStorage.setItem(itemsKeyFor(listId), JSON.stringify(itemsRaw));
-        scheduleSync();
+        if (gIsSignedIn) scheduleItemPush(listId, restored, false);
         if (listId === currentListId) { items = loadItems(); renderMain(); }
         renderTrash();
         renderListsScreen();
@@ -2584,7 +2608,18 @@
           localStorage.setItem(categoryKeyFor(entry.list.id), JSON.stringify(entry.categories || []));
           localStorage.setItem(historyKeyFor(entry.list.id), JSON.stringify(entry.history || []));
         } catch (e) {}
-        scheduleSync();
+        if (gIsSignedIn) {
+          (async () => {
+            try {
+              await ensureSpreadsheet();
+              await upsertRow("Lists", "A", entry.list.id, [entry.list.id, entry.list.name, entry.list.type, entry.list.createdAt || "", "no", ""], colLetter(LIST_COLS.length));
+              for (const it of (entry.items || [])) await upsertRow("Items", "B", it.id, itemRow(entry.list.id, it, false), colLetter(ITEM_COLS.length));
+              for (const c of (entry.categories || [])) await upsertRow("Categories", "B", c.id, [entry.list.id, c.id, c.name, c.color], colLetter(CATEGORY_COLS.length));
+              gSyncIconState = "synced";
+            } catch (e) { gSyncIconState = "error"; }
+            refreshSyncBadges();
+          })();
+        }
         renderTrash();
         renderListsScreen();
       })
@@ -2608,22 +2643,39 @@
   document.getElementById("trashCloseBtn").addEventListener("click", () => trashOverlay.classList.remove("open"));
   // ---------- end Trash ----------
 
-  // ---------- Google Sign-In + Drive sync ----------
+  // ---------- Google Sign-In + Sheets sync (per-item, not per-list) ----------
   const GOOGLE_CLIENT_ID = "14157388621-e68ubolbhas9aqlgqmeqoe0rscmdk5je.apps.googleusercontent.com";
-  const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email";
-  const DRIVE_FILE_NAME = "muhasib-app-data.csv";
+  const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email";
+  const SPREADSHEET_NAME = "Muhasib Data";
   const SIGNED_IN_FLAG = "expense_ledger_google_ever_signed_in";
   const PROFILE_CACHE_KEY = "expense_ledger_google_profile";
+  const SPREADSHEET_ID_KEY = "expense_ledger_spreadsheet_id";
+
+  const ITEM_COLS = ["ListId","ItemId","Name","Amount","Done","Active","CategoryId","DoneDate","Trashed","DeletedAt","UpdatedAt"];
+  const LIST_COLS = ["ListId","Name","Type","CreatedAt","Trashed","DeletedAt"];
+  const CATEGORY_COLS = ["ListId","CategoryId","Name","Color"];
+  const HISTORY_COLS = ["ListId","HistoryId","Label","Total","Spent","Remaining","ArchivedAt","ItemsJson"];
 
   let gTokenClient = null;
   let gAccessToken = null;
-  let gDriveFileId = null;
   let gIsSignedIn = false;
-  let gSyncTimer = null;
-  let gSyncInFlight = false;
-  let gSyncQueued = false;
-  let gProfile = null; // { name, email, picture }
+  let gProfile = null;
   let gSyncIconState = null; // null | 'pending' | 'synced' | 'error'
+  let gSpreadsheetId = null;
+  let gSheetsReady = false;
+  let gSheetsReadyPromise = null;
+
+  // Diff baselines so we only push the ONE record that actually changed
+  let gLastSyncedItems = {};       // { listId: { itemId: fieldsHash } }
+  let gLastSyncedTrash = {};       // { listId: { itemId: true } }  (which trash ids we've already pushed)
+  let gLastSyncedCategories = {};  // { listId: { categoryId: fieldsHash } }
+  let gLastSyncedLists = {};       // { listId: fieldsHash }
+
+  // Debounced per-record push queues
+  let gPendingItemPush = {};   // key "listId|itemId" -> {timer}
+  let gPendingCatPush = {};    // key "listId|catId" -> {timer}
+  let gPendingListPush = {};   // key listId -> {timer}
+  const PUSH_DEBOUNCE = 900;
 
   const googleSignInBtn = document.getElementById("googleSignInBtn");
   const googleSignInLabel = document.getElementById("googleSignInLabel");
@@ -2645,7 +2697,7 @@
       return '<span class="sync-badge error" title="Sync failed"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="13"/><circle cx="12" cy="16.5" r="0.5" fill="currentColor"/></svg></span>';
     }
     if (gSyncIconState === "synced") {
-      return '<span class="sync-badge synced" title="Synced to Google Drive"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>';
+      return '<span class="sync-badge synced" title="Synced to Google Sheets"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>';
     }
     return "";
   }
@@ -2697,15 +2749,65 @@
 
   async function fetchGoogleProfile() {
     try {
-      const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-        headers: { Authorization: "Bearer " + gAccessToken }
-      });
+      const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", { headers: { Authorization: "Bearer " + gAccessToken } });
       if (!res.ok) return;
       const data = await res.json();
       gProfile = { name: data.name || data.email, email: data.email || "", picture: data.picture || "" };
       try { localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(gProfile)); } catch (e) {}
       updateSignInUI();
     } catch (e) {}
+  }
+
+  const TOKEN_CACHE_KEY = "expense_ledger_google_token_cache";
+  let gTokenRefreshTimer = null;
+
+  function loadCachedToken() {
+    try {
+      const raw = localStorage.getItem(TOKEN_CACHE_KEY);
+      if (!raw) return null;
+      const obj = JSON.parse(raw);
+      if (obj && obj.access_token && obj.expires_at) return obj;
+    } catch (e) {}
+    return null;
+  }
+
+  function saveCachedToken(accessToken, expiresInSeconds) {
+    const expires_at = Date.now() + (expiresInSeconds || 3599) * 1000;
+    try { localStorage.setItem(TOKEN_CACHE_KEY, JSON.stringify({ access_token: accessToken, expires_at })); } catch (e) {}
+    return expires_at;
+  }
+
+  function clearCachedToken() {
+    try { localStorage.removeItem(TOKEN_CACHE_KEY); } catch (e) {}
+    clearTimeout(gTokenRefreshTimer);
+  }
+
+  function scheduleTokenRefresh(expiresAt) {
+    clearTimeout(gTokenRefreshTimer);
+    // Refresh 3 minutes before expiry, silently, in the background — keeps the
+    // session alive indefinitely while the tab stays open, no user action needed.
+    const msUntilRefresh = Math.max(expiresAt - Date.now() - 3 * 60 * 1000, 10000);
+    gTokenRefreshTimer = setTimeout(() => {
+      if (!gTokenClient) return;
+      try { gTokenClient.requestAccessToken({ prompt: "" }); } catch (e) {}
+    }, msUntilRefresh);
+  }
+
+  // Resume an already-signed-in session using a still-valid cached token —
+  // no network round trip, no re-consent, works instantly on refresh or in a new tab.
+  function resumeSessionWithToken(cached) {
+    gAccessToken = cached.access_token;
+    gIsSignedIn = true;
+    updateSignInUI();
+    scheduleTokenRefresh(cached.expires_at);
+    // Quietly catch up with anything changed on other devices since last visit.
+    pullAllFromSheets().then(() => {
+      gSyncIconState = "synced";
+      refreshSyncBadges();
+    }).catch(() => {
+      gSyncIconState = "error";
+      refreshSyncBadges();
+    });
   }
 
   window.onGsiLoaded = function () {
@@ -2717,11 +2819,21 @@
     });
     let everSignedIn = false;
     try { everSignedIn = localStorage.getItem(SIGNED_IN_FLAG) === "1"; } catch (e) {}
-    if (everSignedIn) {
-      try {
-        const cached = localStorage.getItem(PROFILE_CACHE_KEY);
-        if (cached) gProfile = JSON.parse(cached);
-      } catch (e) {}
+    if (!everSignedIn) return;
+
+    try {
+      const cachedProfile = localStorage.getItem(PROFILE_CACHE_KEY);
+      if (cachedProfile) gProfile = JSON.parse(cachedProfile);
+    } catch (e) {}
+
+    const cachedToken = loadCachedToken();
+    if (cachedToken && cachedToken.expires_at - Date.now() > 60000) {
+      // Still valid — resume instantly, no prompt, no waiting.
+      resumeSessionWithToken(cachedToken);
+    } else {
+      // Expired or missing — try one silent (no-popup) refresh using the
+      // browser's existing Google session. Only if that fails does the
+      // person see the "Sign in with Google" button again.
       try { gTokenClient.requestAccessToken({ prompt: "" }); } catch (e) {}
     }
   };
@@ -2735,11 +2847,13 @@
     }
     gAccessToken = response.access_token;
     gIsSignedIn = true;
+    const expiresAt = saveCachedToken(response.access_token, response.expires_in);
+    scheduleTokenRefresh(expiresAt);
     try { localStorage.setItem(SIGNED_IN_FLAG, "1"); } catch (e) {}
     updateSignInUI();
-    setSyncNote("Connecting to Google Drive…");
+    setSyncNote("Connecting to Google Sheets…");
     fetchGoogleProfile();
-    syncFromDriveOnSignIn();
+    initialSyncOnSignIn();
   }
 
   function doGoogleSignIn() {
@@ -2751,7 +2865,7 @@
   }
 
   function doGoogleSignOut() {
-    if (!confirm("Sign out from Google Drive sync? Your data stays on this phone, but won't sync anymore.")) return;
+    if (!confirm("Sign out from Google Sheets sync? Your data stays on this phone, but won't sync anymore.")) return;
     if (window.google && google.accounts && google.accounts.oauth2 && gAccessToken) {
       google.accounts.oauth2.revoke(gAccessToken, () => {});
     }
@@ -2759,6 +2873,8 @@
     gAccessToken = null;
     gProfile = null;
     gSyncIconState = null;
+    gSheetsReady = false;
+    clearCachedToken();
     try {
       localStorage.setItem(SIGNED_IN_FLAG, "0");
       localStorage.removeItem(PROFILE_CACHE_KEY);
@@ -2776,7 +2892,7 @@
   function openAccountOverlay() {
     if (gIsSignedIn) {
       accountSyncStatus.textContent = gSyncIconState === "error" ? "Last sync failed — tap Sync now to retry." :
-        gSyncIconState === "pending" ? "Sync pending…" : "✓ Synced with Google Drive.";
+        gSyncIconState === "pending" ? "Sync pending…" : "✓ Synced with Google Sheets.";
     }
     accountOverlay.classList.add("open");
   }
@@ -2794,165 +2910,290 @@
     const original = btn.innerHTML;
     btn.textContent = "Syncing…";
     btn.disabled = true;
-    await pushToDrive();
+    try {
+      await flushAllPendingPushes();
+      await pullAllFromSheets();
+      gSyncIconState = "synced";
+      accountSyncStatus.textContent = "✓ Synced with Google Sheets.";
+    } catch (err) {
+      gSyncIconState = "error";
+      accountSyncStatus.textContent = "Sync failed — check your connection and try again.";
+    }
+    refreshSyncBadges();
     btn.innerHTML = original;
     btn.disabled = false;
-    accountSyncStatus.textContent = gSyncIconState === "error" ? "Sync failed — check your connection and try again." : "✓ Synced with Google Drive.";
   });
 
-  async function driveFetch(url, options) {
+  // ---- low-level API helpers ----
+  async function gFetch(url, options) {
     options = options || {};
     options.headers = Object.assign({}, options.headers, { Authorization: "Bearer " + gAccessToken });
-    return fetch(url, options);
-  }
-
-  async function findDriveFile() {
-    const q = encodeURIComponent("name='" + DRIVE_FILE_NAME + "' and trashed=false");
-    const res = await driveFetch("https://www.googleapis.com/drive/v3/files?q=" + q + "&spaces=drive&fields=files(id,name)");
-    if (!res.ok) throw new Error("Couldn't reach Google Drive (" + res.status + ")");
-    const data = await res.json();
-    return (data.files && data.files[0]) ? data.files[0].id : null;
-  }
-
-  async function downloadDriveFile(fileId) {
-    const res = await driveFetch("https://www.googleapis.com/drive/v3/files/" + fileId + "?alt=media");
-    if (!res.ok) throw new Error("Couldn't download Drive backup (" + res.status + ")");
-    return res.text();
-  }
-
-  async function createDriveFile(csvText) {
-    const boundary = "muhasibBoundary" + uid();
-    const metadata = { name: DRIVE_FILE_NAME, mimeType: "text/csv" };
-    const body =
-      "--" + boundary + "\r\n" +
-      "Content-Type: application/json; charset=UTF-8\r\n\r\n" +
-      JSON.stringify(metadata) + "\r\n" +
-      "--" + boundary + "\r\n" +
-      "Content-Type: text/csv; charset=UTF-8\r\n\r\n" +
-      csvText + "\r\n" +
-      "--" + boundary + "--";
-    const res = await driveFetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id", {
-      method: "POST",
-      headers: { "Content-Type": "multipart/related; boundary=" + boundary },
-      body
-    });
-    if (!res.ok) throw new Error("Couldn't create Drive backup (" + res.status + ")");
-    const data = await res.json();
-    return data.id;
-  }
-
-  async function updateDriveFile(fileId, csvText) {
-    const res = await driveFetch("https://www.googleapis.com/upload/drive/v3/files/" + fileId + "?uploadType=media", {
-      method: "PATCH",
-      headers: { "Content-Type": "text/csv; charset=UTF-8" },
-      body: csvText
-    });
-    if (!res.ok) throw new Error("Couldn't update Drive backup (" + res.status + ")");
-  }
-
-  const SNAPSHOT_CSV_HEADER = ["RecordType","ListId","ListName","ListType","ItemId","Name","Amount","Done","Active",
-    "CategoryId","CategoryName","CategoryColor","DoneDate","DeletedAt","HistoryId","HistoryLabel",
-    "HistoryTotal","HistorySpent","HistoryRemaining","HistoryArchivedAt","HistoryItemsJson","ExtraJson"];
-
-  function buildFullSnapshotCsv() {
-    const rows = [SNAPSHOT_CSV_HEADER.join(",")];
-    function addRow(obj) {
-      rows.push(SNAPSHOT_CSV_HEADER.map(h => csvEscape(obj[h] !== undefined && obj[h] !== null ? obj[h] : "")).join(","));
+    const res = await fetch(url, options);
+    if (!res.ok) {
+      const t = await res.text();
+      const err = new Error("Google API error (" + res.status + "): " + t.slice(0, 200));
+      err.status = res.status;
+      throw err;
     }
-
-    lists.forEach(l => {
-      addRow({ RecordType: "list", ListId: l.id, ListName: l.name, ListType: l.type });
-
-      let cats = [];
-      try { cats = JSON.parse(localStorage.getItem(categoryKeyFor(l.id)) || "[]"); } catch (e) {}
-      cats.forEach(c => addRow({ RecordType: "category", ListId: l.id, CategoryId: c.id, CategoryName: c.name, CategoryColor: c.color }));
-
-      let itemsArr = [];
-      try { itemsArr = JSON.parse(localStorage.getItem(itemsKeyFor(l.id)) || "[]"); } catch (e) {}
-      itemsArr.forEach(it => addRow({
-        RecordType: "item", ListId: l.id, ItemId: it.id, Name: it.name, Amount: it.amount,
-        Done: it.done ? "yes" : "no", Active: it.active !== false ? "yes" : "no",
-        CategoryId: it.category || "", DoneDate: it.doneDate || ""
-      }));
-
-      let trashArr = [];
-      try { trashArr = JSON.parse(localStorage.getItem(trashKeyFor(l.id)) || "[]"); } catch (e) {}
-      trashArr.forEach(it => addRow({
-        RecordType: "trash_item", ListId: l.id, ItemId: it.id, Name: it.name, Amount: it.amount,
-        Done: it.done ? "yes" : "no", Active: it.active !== false ? "yes" : "no",
-        CategoryId: it.category || "", DoneDate: it.doneDate || "", DeletedAt: it.deletedAt || ""
-      }));
-
-      let histArr = [];
-      try { histArr = JSON.parse(localStorage.getItem(historyKeyFor(l.id)) || "[]"); } catch (e) {}
-      histArr.forEach(h => addRow({
-        RecordType: "history", ListId: l.id, HistoryId: h.id, HistoryLabel: h.label,
-        HistoryTotal: h.total, HistorySpent: h.spent, HistoryRemaining: h.remaining,
-        HistoryArchivedAt: h.archivedAt, HistoryItemsJson: JSON.stringify(h.items || [])
-      }));
-    });
-
-    loadDeletedLists().forEach(d => {
-      addRow({ RecordType: "deleted_list", DeletedAt: d.deletedAt, ExtraJson: JSON.stringify(d) });
-    });
-
-    return rows.join("\r\n");
+    return res;
   }
 
-  function parseFullSnapshotCsv(text) {
-    const lines = text.split(/\r?\n/).filter(l => l.trim() !== "");
-    if (lines.length < 1) return null;
-    const header = parseCsvLine(lines[0]);
-    const idx = {};
-    header.forEach((h, i) => { idx[h] = i; });
-
-    const outLists = [];
-    const itemsByList = {}, categoriesByList = {}, historyByList = {}, trashByList = {};
-    const deletedLists = [];
-
-    for (let i = 1; i < lines.length; i++) {
-      const cols = parseCsvLine(lines[i]);
-      const get = (name) => (idx[name] !== undefined && cols[idx[name]] !== undefined) ? cols[idx[name]] : "";
-      const type = get("RecordType");
-      const listId = get("ListId");
-
-      if (type === "list") {
-        outLists.push({ id: listId, name: get("ListName"), type: get("ListType"), createdAt: new Date().toISOString() });
-        itemsByList[listId] = itemsByList[listId] || [];
-        categoriesByList[listId] = categoriesByList[listId] || [];
-        historyByList[listId] = historyByList[listId] || [];
-        trashByList[listId] = trashByList[listId] || [];
-      } else if (type === "category") {
-        (categoriesByList[listId] = categoriesByList[listId] || []).push({ id: get("CategoryId"), name: get("CategoryName"), color: get("CategoryColor") });
-      } else if (type === "item") {
-        (itemsByList[listId] = itemsByList[listId] || []).push({
-          id: get("ItemId"), name: get("Name"), amount: parseFloat(get("Amount")) || 0,
-          done: get("Done") === "yes", active: get("Active") !== "no",
-          category: get("CategoryId") || null, doneDate: get("DoneDate") || null
-        });
-      } else if (type === "trash_item") {
-        (trashByList[listId] = trashByList[listId] || []).push({
-          id: get("ItemId"), name: get("Name"), amount: parseFloat(get("Amount")) || 0,
-          done: get("Done") === "yes", active: get("Active") !== "no",
-          category: get("CategoryId") || null, doneDate: get("DoneDate") || null,
-          deletedAt: get("DeletedAt") || null
-        });
-      } else if (type === "history") {
-        let histItems = [];
-        try { histItems = JSON.parse(get("HistoryItemsJson") || "[]"); } catch (e) {}
-        (historyByList[listId] = historyByList[listId] || []).push({
-          id: get("HistoryId"), label: get("HistoryLabel"),
-          total: parseFloat(get("HistoryTotal")) || 0, spent: parseFloat(get("HistorySpent")) || 0,
-          remaining: parseFloat(get("HistoryRemaining")) || 0, archivedAt: get("HistoryArchivedAt"), items: histItems
-        });
-      } else if (type === "deleted_list") {
-        try { deletedLists.push(JSON.parse(get("ExtraJson"))); } catch (e) {}
+  async function ensureSpreadsheet() {
+    if (gSheetsReady && gSpreadsheetId) return;
+    if (gSheetsReadyPromise) return gSheetsReadyPromise;
+    gSheetsReadyPromise = (async () => {
+      let cachedId = null;
+      try { cachedId = localStorage.getItem(SPREADSHEET_ID_KEY); } catch (e) {}
+      if (cachedId) {
+        try {
+          await gFetch("https://sheets.googleapis.com/v4/spreadsheets/" + cachedId + "?fields=spreadsheetId");
+          gSpreadsheetId = cachedId;
+        } catch (e) { cachedId = null; }
       }
+      if (!gSpreadsheetId) {
+        const q = encodeURIComponent("name='" + SPREADSHEET_NAME + "' and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false");
+        const res = await gFetch("https://www.googleapis.com/drive/v3/files?q=" + q + "&spaces=drive&fields=files(id,name)");
+        const data = await res.json();
+        if (data.files && data.files[0]) {
+          gSpreadsheetId = data.files[0].id;
+        }
+      }
+      if (!gSpreadsheetId) {
+        const createRes = await gFetch("https://sheets.googleapis.com/v4/spreadsheets", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            properties: { title: SPREADSHEET_NAME },
+            sheets: [{ properties: { title: "Lists" } }, { properties: { title: "Items" } }, { properties: { title: "Categories" } }, { properties: { title: "History" } }]
+          })
+        });
+        const data = await createRes.json();
+        gSpreadsheetId = data.spreadsheetId;
+        await sheetsUpdateRange("Lists!A1:" + colLetter(LIST_COLS.length) + "1", [LIST_COLS]);
+        await sheetsUpdateRange("Items!A1:" + colLetter(ITEM_COLS.length) + "1", [ITEM_COLS]);
+        await sheetsUpdateRange("Categories!A1:" + colLetter(CATEGORY_COLS.length) + "1", [CATEGORY_COLS]);
+        await sheetsUpdateRange("History!A1:" + colLetter(HISTORY_COLS.length) + "1", [HISTORY_COLS]);
+      }
+      try { localStorage.setItem(SPREADSHEET_ID_KEY, gSpreadsheetId); } catch (e) {}
+      gSheetsReady = true;
+    })();
+    try {
+      await gSheetsReadyPromise;
+    } finally {
+      gSheetsReadyPromise = null;
     }
-
-    return { version: 1, lists: outLists, itemsByList, categoriesByList, historyByList, trashByList, deletedLists };
   }
 
+  function colLetter(n) {
+    let s = "";
+    while (n > 0) {
+      const m = (n - 1) % 26;
+      s = String.fromCharCode(65 + m) + s;
+      n = Math.floor((n - 1) / 26);
+    }
+    return s;
+  }
+
+  async function sheetsGetRange(range) {
+    const res = await gFetch("https://sheets.googleapis.com/v4/spreadsheets/" + gSpreadsheetId + "/values/" + encodeURIComponent(range));
+    const data = await res.json();
+    return data.values || [];
+  }
+
+  async function sheetsUpdateRange(range, values) {
+    return gFetch("https://sheets.googleapis.com/v4/spreadsheets/" + gSpreadsheetId + "/values/" + encodeURIComponent(range) + "?valueInputOption=RAW", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ values })
+    });
+  }
+
+  async function sheetsAppendRow(sheetName, rowValues) {
+    return gFetch("https://sheets.googleapis.com/v4/spreadsheets/" + gSpreadsheetId + "/values/" + encodeURIComponent(sheetName + "!A1") + ":append?valueInputOption=RAW&insertDataOption=INSERT_ROWS", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ values: [rowValues] })
+    });
+  }
+
+  async function findRowNumber(sheetName, idColLetter, idValue) {
+    const col = await sheetsGetRange(sheetName + "!" + idColLetter + ":" + idColLetter);
+    for (let i = 0; i < col.length; i++) {
+      if (col[i][0] === idValue) return i + 1;
+    }
+    return null;
+  }
+
+  async function upsertRow(sheetName, idColLetter, idValue, rowValues, lastColLetter) {
+    const rowNum = await findRowNumber(sheetName, idColLetter, idValue);
+    if (rowNum) {
+      await sheetsUpdateRange(sheetName + "!A" + rowNum + ":" + lastColLetter + rowNum, [rowValues]);
+    } else {
+      await sheetsAppendRow(sheetName, rowValues);
+    }
+  }
+
+  // ---- per-record push (only the ONE changed row goes over the wire) ----
+  function itemRow(listId, item, trashed) {
+    return [
+      listId, item.id, item.name, item.amount,
+      item.done ? "yes" : "no", item.active !== false ? "yes" : "no",
+      item.category || "", item.doneDate || "",
+      trashed ? "yes" : "no", item.deletedAt || "",
+      new Date().toISOString()
+    ];
+  }
+
+  async function pushOneItem(listId, item, trashed) {
+    await ensureSpreadsheet();
+    await upsertRow("Items", "B", item.id, itemRow(listId, item, trashed), colLetter(ITEM_COLS.length));
+  }
+
+  function scheduleItemPush(listId, item, trashed) {
+    if (!gIsSignedIn) return;
+    const key = listId + "|" + item.id;
+    gSyncIconState = "pending";
+    refreshSyncBadges();
+    if (gPendingItemPush[key]) clearTimeout(gPendingItemPush[key].timer);
+    gPendingItemPush[key] = {
+      run: () => pushOneItem(listId, item, trashed),
+      timer: setTimeout(() => {
+        delete gPendingItemPush[key];
+        pushOneItem(listId, item, trashed).then(() => {
+          gSyncIconState = "synced"; refreshSyncBadges();
+        }).catch((err) => {
+          gSyncIconState = "error"; setSyncNote("Sync failed: " + (err.message || "unknown")); refreshSyncBadges();
+        });
+      }, PUSH_DEBOUNCE)
+    };
+  }
+
+  function fieldHashItem(item) {
+    return JSON.stringify([item.name, item.amount, item.done, item.active !== false, item.category || null, item.doneDate || null]);
+  }
+
+  // Called from saveItems(): diff old vs new, only push what actually changed
+  function diffAndSyncItems(listId, newItems) {
+    if (!gIsSignedIn) { gLastSyncedItems[listId] = null; return; }
+    const prevMap = gLastSyncedItems[listId] || {};
+    const newMap = {};
+    newItems.forEach(item => { newMap[item.id] = fieldHashItem(item); });
+
+    newItems.forEach(item => {
+      if (prevMap[item.id] !== newMap[item.id]) {
+        scheduleItemPush(listId, item, false);
+      }
+    });
+    const trash = loadTrash(listId);
+    Object.keys(prevMap).forEach(id => {
+      if (!(id in newMap) && !(gLastSyncedTrash[listId] && gLastSyncedTrash[listId][id])) {
+        const trashedItem = trash.find(t => t.id === id);
+        if (trashedItem) {
+          gLastSyncedTrash[listId] = gLastSyncedTrash[listId] || {};
+          gLastSyncedTrash[listId][id] = true;
+          scheduleItemPush(listId, trashedItem, true);
+        }
+      }
+    });
+    gLastSyncedItems[listId] = newMap;
+  }
+
+  function fieldHashCategory(cat) {
+    return JSON.stringify([cat.name, cat.color]);
+  }
+
+  function diffAndSyncCategories(listId, newCats) {
+    if (!gIsSignedIn) { gLastSyncedCategories[listId] = null; return; }
+    const prevMap = gLastSyncedCategories[listId] || {};
+    const newMap = {};
+    newCats.forEach(c => { newMap[c.id] = fieldHashCategory(c); });
+    newCats.forEach(c => {
+      if (prevMap[c.id] !== newMap[c.id]) {
+        const key = listId + "|" + c.id;
+        if (gPendingCatPush[key]) clearTimeout(gPendingCatPush[key]);
+        gSyncIconState = "pending"; refreshSyncBadges();
+        gPendingCatPush[key] = setTimeout(async () => {
+          delete gPendingCatPush[key];
+          try {
+            await ensureSpreadsheet();
+            await upsertRow("Categories", "B", c.id, [listId, c.id, c.name, c.color], colLetter(CATEGORY_COLS.length));
+            gSyncIconState = "synced";
+          } catch (err) {
+            gSyncIconState = "error"; setSyncNote("Sync failed: " + (err.message || "unknown"));
+          }
+          refreshSyncBadges();
+        }, PUSH_DEBOUNCE);
+      }
+    });
+    gLastSyncedCategories[listId] = newMap;
+  }
+
+  function fieldHashList(l) {
+    return JSON.stringify([l.name, l.type]);
+  }
+
+  function diffAndSyncLists(newLists) {
+    if (!gIsSignedIn) { gLastSyncedLists = {}; return; }
+    const prevMap = gLastSyncedLists;
+    const newMap = {};
+    newLists.forEach(l => { newMap[l.id] = fieldHashList(l); });
+    newLists.forEach(l => {
+      if (prevMap[l.id] !== newMap[l.id]) {
+        const key = l.id;
+        if (gPendingListPush[key]) clearTimeout(gPendingListPush[key]);
+        gSyncIconState = "pending"; refreshSyncBadges();
+        gPendingListPush[key] = setTimeout(async () => {
+          delete gPendingListPush[key];
+          try {
+            await ensureSpreadsheet();
+            await upsertRow("Lists", "A", l.id, [l.id, l.name, l.type, l.createdAt || "", "no", ""], colLetter(LIST_COLS.length));
+            gSyncIconState = "synced";
+          } catch (err) {
+            gSyncIconState = "error"; setSyncNote("Sync failed: " + (err.message || "unknown"));
+          }
+          refreshSyncBadges();
+        }, PUSH_DEBOUNCE);
+      }
+    });
+    // lists removed since last diff -> mark trashed in sheet
+    Object.keys(prevMap).forEach(id => {
+      if (!(id in newMap)) {
+        (async () => {
+          try {
+            await ensureSpreadsheet();
+            const rowNum = await findRowNumber("Lists", "A", id);
+            if (rowNum) {
+              await sheetsUpdateRange("Lists!E" + rowNum + ":F" + rowNum, [["yes", new Date().toISOString()]]);
+            }
+          } catch (e) {}
+        })();
+      }
+    });
+    gLastSyncedLists = newMap;
+  }
+
+  async function pushHistoryEntry(listId, entry) {
+    if (!gIsSignedIn) return;
+    try {
+      await ensureSpreadsheet();
+      await upsertRow("History", "B", entry.id, [
+        listId, entry.id, entry.label, entry.total, entry.spent, entry.remaining, entry.archivedAt, JSON.stringify(entry.items || [])
+      ], colLetter(HISTORY_COLS.length));
+      gSyncIconState = "synced";
+    } catch (err) {
+      gSyncIconState = "error"; setSyncNote("Sync failed: " + (err.message || "unknown"));
+    }
+    refreshSyncBadges();
+  }
+
+  async function flushAllPendingPushes() {
+    const jobs = [];
+    Object.values(gPendingItemPush).forEach(p => { clearTimeout(p.timer); jobs.push(p.run()); });
+    gPendingItemPush = {};
+    await Promise.all(jobs);
+  }
+
+  // ---- initial pull on sign-in ----
   function applyFullSnapshot(snap) {
     if (!snap || !Array.isArray(snap.lists)) return;
     lists = snap.lists;
@@ -2979,65 +3220,115 @@
     }
   }
 
-  async function syncFromDriveOnSignIn() {
-    try {
-      const fileId = await findDriveFile();
-      if (fileId) {
-        gDriveFileId = fileId;
-        const remoteCsv = await downloadDriveFile(fileId);
-        const remoteSnap = parseFullSnapshotCsv(remoteCsv);
-        applyFullSnapshot(remoteSnap);
-        setSyncNote("✓ Synced with Google Drive.");
+  async function pullAllFromSheets() {
+    await ensureSpreadsheet();
+    const listRows = await sheetsGetRange("Lists!A2:" + colLetter(LIST_COLS.length));
+    const itemRows = await sheetsGetRange("Items!A2:" + colLetter(ITEM_COLS.length));
+    const catRows = await sheetsGetRange("Categories!A2:" + colLetter(CATEGORY_COLS.length));
+    const histRows = await sheetsGetRange("History!A2:" + colLetter(HISTORY_COLS.length));
+
+    const activeLists = [];
+    const deletedLists = [];
+    const itemsByList = {}, categoriesByList = {}, historyByList = {}, trashByList = {};
+
+    listRows.forEach(r => {
+      const [id, name, type, createdAt, trashed] = r;
+      if (!id) return;
+      itemsByList[id] = []; categoriesByList[id] = []; historyByList[id] = []; trashByList[id] = [];
+      if (trashed === "yes") deletedLists.push({ id, name, type, createdAt });
+      else activeLists.push({ id, name, type, createdAt: createdAt || new Date().toISOString() });
+    });
+
+    itemRows.forEach(r => {
+      const [listId, itemId, name, amount, done, active, categoryId, doneDate, trashed, deletedAt] = r;
+      if (!listId || !itemId) return;
+      const obj = { id: itemId, name: name || "", amount: parseFloat(amount) || 0, done: done === "yes", active: active !== "no", category: categoryId || null, doneDate: doneDate || null };
+      if (trashed === "yes") {
+        obj.deletedAt = deletedAt || "";
+        (trashByList[listId] = trashByList[listId] || []).push(obj);
       } else {
-        const csv = buildFullSnapshotCsv();
-        gDriveFileId = await createDriveFile(csv);
-        setSyncNote("✓ Backup created in Google Drive.");
+        (itemsByList[listId] = itemsByList[listId] || []).push(obj);
+      }
+    });
+
+    catRows.forEach(r => {
+      const [listId, catId, name, color] = r;
+      if (!listId || !catId) return;
+      (categoriesByList[listId] = categoriesByList[listId] || []).push({ id: catId, name: name || "", color: color || "#2F5C4B" });
+    });
+
+    histRows.forEach(r => {
+      const [listId, histId, label, total, spent, remaining, archivedAt, itemsJson] = r;
+      if (!listId || !histId) return;
+      let histItems = [];
+      try { histItems = JSON.parse(itemsJson || "[]"); } catch (e) {}
+      (historyByList[listId] = historyByList[listId] || []).push({
+        id: histId, label: label || "", total: parseFloat(total) || 0, spent: parseFloat(spent) || 0,
+        remaining: parseFloat(remaining) || 0, archivedAt: archivedAt || "", items: histItems
+      });
+    });
+
+    // build deletedLists bundles with their data for the Trash screen
+    const deletedListBundles = deletedLists.map(dl => ({
+      list: dl,
+      items: itemsByList[dl.id] || [],
+      categories: categoriesByList[dl.id] || [],
+      history: historyByList[dl.id] || [],
+      deletedAt: ""
+    }));
+
+    applyFullSnapshot({
+      lists: activeLists,
+      itemsByList, categoriesByList, historyByList, trashByList,
+      deletedLists: deletedListBundles
+    });
+
+    // reset diff baselines to match what we just pulled, so we don't immediately re-push everything
+    gLastSyncedItems = {};
+    gLastSyncedCategories = {};
+    gLastSyncedLists = {};
+    activeLists.forEach(l => {
+      const im = {}; (itemsByList[l.id] || []).forEach(it => { im[it.id] = fieldHashItem(it); });
+      gLastSyncedItems[l.id] = im;
+      const cm = {}; (categoriesByList[l.id] || []).forEach(c => { cm[c.id] = fieldHashCategory(c); });
+      gLastSyncedCategories[l.id] = cm;
+    });
+    activeLists.forEach(l => { gLastSyncedLists[l.id] = fieldHashList(l); });
+  }
+
+  async function initialSyncOnSignIn() {
+    try {
+      await ensureSpreadsheet();
+      const listRows = await sheetsGetRange("Lists!A2:A");
+      if (listRows.length === 0 && lists.length > 0) {
+        // fresh spreadsheet, this device has local data -> push everything once
+        for (const l of lists) {
+          await upsertRow("Lists", "A", l.id, [l.id, l.name, l.type, l.createdAt || "", "no", ""], colLetter(LIST_COLS.length));
+          let itemsArr = []; try { itemsArr = JSON.parse(localStorage.getItem(itemsKeyFor(l.id)) || "[]"); } catch (e) {}
+          for (const it of itemsArr) await upsertRow("Items", "B", it.id, itemRow(l.id, it, false), colLetter(ITEM_COLS.length));
+          let trashArr = []; try { trashArr = JSON.parse(localStorage.getItem(trashKeyFor(l.id)) || "[]"); } catch (e) {}
+          for (const it of trashArr) await upsertRow("Items", "B", it.id, itemRow(l.id, it, true), colLetter(ITEM_COLS.length));
+          let catsArr = []; try { catsArr = JSON.parse(localStorage.getItem(categoryKeyFor(l.id)) || "[]"); } catch (e) {}
+          for (const c of catsArr) await upsertRow("Categories", "B", c.id, [l.id, c.id, c.name, c.color], colLetter(CATEGORY_COLS.length));
+          let histArr = []; try { histArr = JSON.parse(localStorage.getItem(historyKeyFor(l.id)) || "[]"); } catch (e) {}
+          for (const h of histArr) await upsertRow("History", "B", h.id, [l.id, h.id, h.label, h.total, h.spent, h.remaining, h.archivedAt, JSON.stringify(h.items || [])], colLetter(HISTORY_COLS.length));
+        }
+        setSyncNote("✓ Backup created in Google Sheets.");
+        await pullAllFromSheets();
+      } else {
+        await pullAllFromSheets();
+        setSyncNote("✓ Synced with Google Sheets.");
       }
       gSyncIconState = "synced";
       refreshSyncBadges();
       renderListsScreen();
     } catch (err) {
-      setSyncNote("Couldn't sync with Drive: " + (err.message || "unknown error"));
+      setSyncNote("Couldn't sync with Sheets: " + (err.message || "unknown error"));
       gSyncIconState = "error";
       refreshSyncBadges();
     }
   }
-
-  function scheduleSync() {
-    if (!gIsSignedIn) return;
-    gSyncIconState = "pending";
-    refreshSyncBadges();
-    clearTimeout(gSyncTimer);
-    gSyncTimer = setTimeout(pushToDrive, 1500);
-  }
-
-  async function pushToDrive() {
-    if (!gIsSignedIn || !gAccessToken) return;
-    if (gSyncInFlight) { gSyncQueued = true; return; }
-    gSyncInFlight = true;
-    try {
-      const csv = buildFullSnapshotCsv();
-      if (!gDriveFileId) {
-        gDriveFileId = await findDriveFile();
-      }
-      if (gDriveFileId) {
-        await updateDriveFile(gDriveFileId, csv);
-      } else {
-        gDriveFileId = await createDriveFile(csv);
-      }
-      setSyncNote("✓ Synced with Google Drive.");
-      gSyncIconState = "synced";
-      refreshSyncBadges();
-    } catch (err) {
-      setSyncNote("Sync paused: " + (err.message || "unknown error"));
-      gSyncIconState = "error";
-      refreshSyncBadges();
-    } finally {
-      gSyncInFlight = false;
-      if (gSyncQueued) { gSyncQueued = false; pushToDrive(); }
-    }
-  }
-  // ---------- end Google Sign-In + Drive sync ----------
+  // ---------- end Google Sign-In + Sheets sync ----------
 
   if (currentListId && lists.find(l => l.id === currentListId)) {
     openList(currentListId);
