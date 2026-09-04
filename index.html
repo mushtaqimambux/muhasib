@@ -133,6 +133,22 @@
   .sync-badge.synced { color:#2F5C4B; }
   .sync-badge.pending { color:#C7BEA4; }
   .sync-badge.error { color:#B5482A; }
+
+  .multiselect-bar {
+    display:none; align-items:center; gap:10px; background:#26241E; color:#F6F1E7;
+    border-radius:12px; padding:10px 12px; margin-bottom:12px; font-family:'Inter',sans-serif;
+  }
+  .multiselect-bar .ms-info { flex:1; min-width:0; font-size:13.5px; }
+  .multiselect-bar .ms-info .ms-total { font-weight:700; }
+  .multiselect-bar button {
+    border:none; border-radius:8px; padding:8px 12px; font-size:13px; cursor:pointer;
+    font-family:'Inter',sans-serif; flex-shrink:0;
+  }
+  .ms-delete-btn { background:#B5482A; color:#F6F1E7; }
+  .ms-cancel-btn { background:#4A4636; color:#F6F1E7; }
+  .row.ms-selected, .manage-row.ms-selected {
+    border-color:#2F5C4B; background:#EEF4EF; box-shadow:0 0 0 1.5px #2F5C4B inset;
+  }
   .row.done .row-amount { color:#9B937C; text-decoration:line-through; }
   .del {
     border:none; background:transparent; cursor:pointer; padding:2px;
@@ -541,9 +557,24 @@
     </div>
     <div class="manage-body" id="manageBodyEl">
       <div class="manage-hint">Tap "In this month" to exclude an item without deleting it — bring it back next time with one tap. Tap the pencil to edit name or amount. Press and drag the grip icon to reorder.</div>
+      <div class="stats" id="manageTotalsCards" style="margin-bottom:14px;">
+        <div class="stat spent">
+          <div class="stat-label">Active total</div>
+          <div class="stat-value" id="manageActiveTotal">0</div>
+        </div>
+        <div class="stat remaining">
+          <div class="stat-label">Excluded total</div>
+          <div class="stat-value" id="manageInactiveTotal">0</div>
+        </div>
+      </div>
       <div style="display:flex; gap:8px; margin-bottom:14px;">
         <button class="backup-btn" id="includeAllBtn" style="flex:1;">Include all</button>
         <button class="backup-btn" id="excludeAllBtn" style="flex:1;">Exclude all</button>
+      </div>
+      <div class="multiselect-bar" id="multiSelectBarManage">
+        <div class="ms-info"><span id="msCountManage">0</span> selected <span id="msTotalWrapManage"></span></div>
+        <button class="ms-delete-btn" id="msDeleteBtnManage">Delete</button>
+        <button class="ms-cancel-btn" id="msCancelBtnManage">Cancel</button>
       </div>
       <div class="manage-list" id="manageList"></div>
     </div>
@@ -662,6 +693,12 @@
     <input id="nameInput" type="text" placeholder="Item name" enterkeyhint="next" />
     <input id="amountInput" type="number" inputmode="decimal" placeholder="Amount" enterkeyhint="done" />
     <button id="addBtn">+</button>
+  </div>
+
+  <div class="multiselect-bar" id="multiSelectBarHome">
+    <div class="ms-info"><span id="msCountHome">0</span> selected <span id="msTotalWrapHome"></span></div>
+    <button class="ms-delete-btn" id="msDeleteBtnHome">Delete</button>
+    <button class="ms-cancel-btn" id="msCancelBtnHome">Cancel</button>
   </div>
 
   <div class="list" id="pendingList"></div>
@@ -884,6 +921,11 @@
     document.querySelectorAll("#pendingList [data-row-drag], #doneSection [data-row-drag]").forEach(el =>
       el.addEventListener("pointerdown", onRowDragPointerDown)
     );
+    document.querySelectorAll("#pendingList [data-longpress-select], #doneSection [data-longpress-select]").forEach(el => {
+      if (el.hasAttribute("data-toggle")) attachLongPressTimerOnly(el);
+      else attachLongPressSelect(el);
+    });
+    renderMultiSelectBars();
   }
 
   function render() {
@@ -901,6 +943,7 @@
   }
 
   function onRowDragPointerDown(e) {
+    if (multiSelectMode) return;
     const handle = e.currentTarget;
     const startX = e.clientX;
     const startY = e.clientY;
@@ -1006,12 +1049,13 @@
   function rowHtml(item) {
     const checklist = isChecklistType();
     const showDate = checklist && item.done && item.doneDate;
+    const selected = selectedItemIds.has(item.id);
     return `
-      <div class="row ${item.done ? "done" : ""}" data-id="${item.id}">
-        <button class="check" data-toggle="${item.id}">
+      <div class="row ${item.done ? "done" : ""} ${selected ? "ms-selected" : ""}" data-id="${item.id}">
+        <button class="check" data-toggle="${item.id}" data-longpress-select="${item.id}">
           ${item.done ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#F6F1E7" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>' : ""}
         </button>
-        <div class="row-name">
+        <div class="row-name" data-longpress-select="${item.id}">
           ${escapeHtml(item.name)}
           ${showDate ? `<div style="font-size:11px; color:#9B937C; font-weight:400; margin-top:1px;">Done on ${formatDoneDate(item.doneDate)}</div>` : ""}
         </div>
@@ -1055,6 +1099,7 @@
   }
 
   function toggle(id) {
+    if (duringMultiSelect(id)) return;
     items = items.map(i => {
       if (i.id !== id) return i;
       const nowDone = !i.done;
@@ -1065,6 +1110,11 @@
   }
 
   function remove(id) {
+    if (duringMultiSelect(id)) return;
+    removeItemDirect(id);
+  }
+
+  function removeItemDirect(id) {
     const removedItem = items.find(i => i.id === id);
     items = items.filter(i => i.id !== id);
     saveItems();
@@ -1100,6 +1150,17 @@
       ? items.map((item) => manageRowHtml(item)).join("")
       : '<div class="empty">No items yet. Add one from the main screen.</div>';
 
+    const totalsCard = document.getElementById("manageTotalsCards");
+    if (isChecklistType()) {
+      totalsCard.style.display = "none";
+    } else {
+      totalsCard.style.display = "flex";
+      const activeTotal = items.filter(i => i.active !== false).reduce((s, i) => s + i.amount, 0);
+      const inactiveTotal = items.filter(i => i.active === false).reduce((s, i) => s + i.amount, 0);
+      document.getElementById("manageActiveTotal").textContent = rupee(activeTotal);
+      document.getElementById("manageInactiveTotal").textContent = rupee(inactiveTotal);
+    }
+
     manageList.querySelectorAll("[data-toggle-active]").forEach(el =>
       el.addEventListener("click", () => toggleActive(el.getAttribute("data-toggle-active")))
     );
@@ -1109,6 +1170,7 @@
     manageList.querySelectorAll("[data-manage-del]").forEach(el =>
       el.addEventListener("click", () => {
         const id = el.getAttribute("data-manage-del");
+        if (duringMultiSelect(id)) return;
         if (!confirm("Delete this item completely? This can't be undone.")) return;
         remove(id);
       })
@@ -1116,6 +1178,10 @@
     manageList.querySelectorAll("[data-drag]").forEach(el =>
       el.addEventListener("pointerdown", onDragPointerDown)
     );
+    manageList.querySelectorAll("[data-longpress-select]").forEach(el =>
+      attachLongPressSelect(el)
+    );
+    renderMultiSelectBars();
   }
 
   function categoryBadgeHtml(categoryId) {
@@ -1128,9 +1194,10 @@
   function manageRowHtml(item) {
     const isActive = item.active !== false;
     const checklist = isChecklistType();
+    const selected = selectedItemIds.has(item.id);
     return `
-      <div class="manage-row ${isActive ? "" : "excluded"}" data-id="${item.id}">
-        <div class="manage-info">
+      <div class="manage-row ${isActive ? "" : "excluded"} ${selected ? "ms-selected" : ""}" data-id="${item.id}">
+        <div class="manage-info" data-longpress-select="${item.id}">
           <div class="manage-name">${escapeHtml(item.name)}</div>
           ${checklist ? "" : `<div class="manage-amount" style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
             <span>${rupee(item.amount)}</span>
@@ -1160,7 +1227,122 @@
   const HOLD_DELAY = 320;
   const MOVE_CANCEL_THRESHOLD = 8;
 
+  // ---------- Multi-select (long-press) ----------
+  const MULTISELECT_HOLD_DELAY = 600; // deliberately longer than the drag hold, so the two never conflict
+  let multiSelectMode = false;
+  let selectedItemIds = new Set();
+
+  function exitMultiSelect() {
+    multiSelectMode = false;
+    selectedItemIds.clear();
+    renderMultiSelectBars();
+    render();
+  }
+
+  function toggleSelection(id) {
+    if (selectedItemIds.has(id)) selectedItemIds.delete(id);
+    else selectedItemIds.add(id);
+    if (selectedItemIds.size === 0) {
+      exitMultiSelect();
+    } else {
+      renderMultiSelectBars();
+      render();
+    }
+  }
+
+  function duringMultiSelect(id) {
+    if (!multiSelectMode) return false;
+    toggleSelection(id);
+    return true;
+  }
+
+  function renderMultiSelectBars() {
+    const checklist = isChecklistType();
+    const count = selectedItemIds.size;
+    const selectedItems = items.filter(i => selectedItemIds.has(i.id));
+    const total = selectedItems.reduce((s, i) => s + i.amount, 0);
+    const totalHtml = checklist ? "" : `· <span class="ms-total">${rupee(total)}</span>`;
+
+    const barHome = document.getElementById("multiSelectBarHome");
+    const barManage = document.getElementById("multiSelectBarManage");
+    if (multiSelectMode && count > 0) {
+      barHome.style.display = "flex";
+      barManage.style.display = "flex";
+      document.getElementById("msCountHome").textContent = count;
+      document.getElementById("msTotalWrapHome").innerHTML = totalHtml;
+      document.getElementById("msCountManage").textContent = count;
+      document.getElementById("msTotalWrapManage").innerHTML = totalHtml;
+    } else {
+      barHome.style.display = "none";
+      barManage.style.display = "none";
+    }
+  }
+
+  function deleteSelectedItems() {
+    if (selectedItemIds.size === 0) return;
+    if (!confirm("Delete " + selectedItemIds.size + " selected item" + (selectedItemIds.size > 1 ? "s" : "") + "? They'll go to Trash.")) return;
+    Array.from(selectedItemIds).forEach(id => removeItemDirect(id));
+    exitMultiSelect();
+  }
+
+  ["Home", "Manage"].forEach(suffix => {
+    document.getElementById("msDeleteBtn" + suffix).addEventListener("click", deleteSelectedItems);
+    document.getElementById("msCancelBtn" + suffix).addEventListener("click", exitMultiSelect);
+  });
+
+  // Attach a long-press-to-select gesture to any element carrying data-longpress-select="<id>"
+  function attachLongPressTimer(el, onLongPress) {
+    el.addEventListener("pointerdown", (e) => {
+      const startX = e.clientX, startY = e.clientY;
+      function cleanup() {
+        document.removeEventListener("pointermove", moveHandler);
+        document.removeEventListener("pointerup", upHandler);
+        clearTimeout(timer);
+      }
+      function moveHandler(ev) {
+        if (Math.abs(ev.clientX - startX) > MOVE_CANCEL_THRESHOLD || Math.abs(ev.clientY - startY) > MOVE_CANCEL_THRESHOLD) cleanup();
+      }
+      function upHandler() { cleanup(); }
+      const timer = setTimeout(() => {
+        cleanup();
+        onLongPress();
+      }, MULTISELECT_HOLD_DELAY);
+      document.addEventListener("pointermove", moveHandler);
+      document.addEventListener("pointerup", upHandler);
+    });
+  }
+
+  function activateSelection(itemId) {
+    if (!multiSelectMode) multiSelectMode = true;
+    selectedItemIds.add(itemId);
+    renderMultiSelectBars();
+    render();
+  }
+
+  // For elements that have NO other click handler (row name / manage info) —
+  // long-press activates selection, and once active, a plain tap also toggles it.
+  function attachLongPressSelect(el) {
+    const itemId = el.getAttribute("data-longpress-select");
+    let fired = false;
+    attachLongPressTimer(el, () => { fired = true; activateSelection(itemId); });
+    el.addEventListener("click", (e) => {
+      if (fired) { fired = false; return; } // suppress the click that follows a successful long-press
+      if (multiSelectMode) { e.preventDefault(); e.stopPropagation(); toggleSelection(itemId); }
+    });
+  }
+
+  // For the checkbox — it already has its own click handler (toggle()) which
+  // itself checks multiSelectMode, so here we ONLY need the long-press timer,
+  // not a second competing click listener (that caused a select-then-instantly-
+  // deselect bug when both handlers fired for the same click).
+  function attachLongPressTimerOnly(el) {
+    const itemId = el.getAttribute("data-longpress-select");
+    attachLongPressTimer(el, () => activateSelection(itemId));
+  }
+  // ---------- end multi-select ----------
+
   function onDragPointerDown(e) {
+    if (multiSelectMode) return;
     const handle = e.currentTarget;
     const startX = e.clientX;
     const startY = e.clientY;
@@ -1281,6 +1463,7 @@
   }
 
   function openEditModal(id) {
+    if (duringMultiSelect(id)) return;
     const item = items.find(i => i.id === id);
     if (!item) return;
     editContext = { type: "current", id };
@@ -1372,6 +1555,7 @@
   });
 
   function toggleActive(id) {
+    if (duringMultiSelect(id)) return;
     items = items.map(i => i.id === id ? { ...i, active: !(i.active !== false) } : i);
     saveItems();
     render();
@@ -2419,6 +2603,8 @@
   }
 
   function openList(id) {
+    multiSelectMode = false;
+    selectedItemIds.clear();
     currentListId = id;
     try { localStorage.setItem(CURRENT_LIST_KEY, id); } catch (e) {}
     items = loadItems();
