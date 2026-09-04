@@ -336,6 +336,32 @@
   </button>
 </div>
 
+<div class="edit-overlay" id="sortOverlay">
+  <div class="edit-card">
+    <div class="edit-card-title">Sort items</div>
+    <div class="manage-hint" style="margin-bottom:10px;">This reorders the list itself — you can still drag items afterward to fine-tune.</div>
+    <button class="sheet-item" id="sortNameAscBtn" style="justify-content:flex-start;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8l4-4 4 4"/><path d="M7 4v16"/><path d="M13 6h8"/><path d="M13 12h5"/><path d="M13 18h3"/></svg>
+      Name (A → Z)
+    </button>
+    <button class="sheet-item" id="sortNameDescBtn" style="justify-content:flex-start;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 16l4 4 4-4"/><path d="M7 20V4"/><path d="M13 6h8"/><path d="M13 12h5"/><path d="M13 18h3"/></svg>
+      Name (Z → A)
+    </button>
+    <button class="sheet-item" id="sortAmountAscBtn" style="justify-content:flex-start;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8l4-4 4 4"/><path d="M7 4v16"/><path d="M13 18h3"/><path d="M13 12h5"/><path d="M13 6h8"/></svg>
+      Amount (low → high)
+    </button>
+    <button class="sheet-item" id="sortAmountDescBtn" style="justify-content:flex-start;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 16l4 4 4-4"/><path d="M7 20V4"/><path d="M13 6h3"/><path d="M13 12h5"/><path d="M13 18h8"/></svg>
+      Amount (high → low)
+    </button>
+    <div class="edit-actions">
+      <button class="edit-cancel" id="sortCancelBtn" style="width:100%;">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div class="manage-overlay" id="accountOverlay">
   <div class="manage-header">
     <div class="manage-title">Google Account</div>
@@ -487,6 +513,10 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
         Manage list (monthly items &amp; order)
       </button>
+      <button class="sheet-item" id="sortItemsBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="14" y2="6"/><line x1="4" y1="12" x2="11" y2="12"/><line x1="4" y1="18" x2="8" y2="18"/><polyline points="17 4 17 20"/><polyline points="14 17 17 20 20 17"/></svg>
+        Sort items
+      </button>
       <button class="sheet-item" id="historyBtn">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></svg>
         Month history
@@ -551,6 +581,9 @@
   <div class="manage-overlay" id="manageOverlay">
     <div class="manage-header">
       <div class="manage-title">Manage list</div>
+      <button class="manage-close" id="manageSortBtn" aria-label="Sort" style="margin-right:8px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="14" y2="6"/><line x1="4" y1="12" x2="11" y2="12"/><line x1="4" y1="18" x2="8" y2="18"/><polyline points="17 4 17 20"/><polyline points="14 17 17 20 20 17"/></svg>
+      </button>
       <button class="manage-close" id="manageCloseBtn" aria-label="Close">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
@@ -659,14 +692,16 @@
 
   <div class="edit-overlay" id="editOverlay">
     <div class="edit-card">
-      <div class="edit-card-title">Edit item</div>
-      <div class="edit-field">
-        <label class="edit-label">Name</label>
-        <input class="edit-input" id="editNameInput" type="text" />
+      <div class="edit-card-title" style="display:flex; align-items:center; justify-content:space-between;">
+        <span>Edit item</span>
+        <input type="checkbox" id="editActiveCheckbox" style="width:19px; height:19px; accent-color:#2F5C4B;" aria-label="Include in this month" />
       </div>
-      <div class="edit-field" id="editAmountField">
-        <label class="edit-label">Amount</label>
-        <input class="edit-input" id="editAmountInput" type="number" inputmode="decimal" />
+      <div class="edit-field">
+        <label class="edit-label">Name &amp; amount</label>
+        <div style="display:flex; gap:8px;">
+          <input class="edit-input" id="editNameInput" type="text" style="flex:1; min-width:0;" />
+          <input class="edit-input" id="editAmountInput" type="number" inputmode="decimal" style="width:90px; flex-shrink:0;" />
+        </div>
       </div>
       <div class="edit-field" id="editCategoryField">
         <label class="edit-label">Category</label>
@@ -675,12 +710,6 @@
       <div class="edit-field" id="editDoneDateField" style="display:none;">
         <label class="edit-label">Done date</label>
         <input class="edit-input" id="editDoneDateInput" type="date" />
-      </div>
-      <div class="edit-field" id="editActiveField">
-        <label style="display:flex; align-items:center; justify-content:space-between; cursor:pointer; font-family:'Inter',sans-serif; font-size:14px; color:#26241E;">
-          <span>Include in this month</span>
-          <input type="checkbox" id="editActiveCheckbox" style="width:18px; height:18px; accent-color:#2F5C4B;" />
-        </label>
       </div>
       <div class="edit-actions">
         <button class="edit-cancel" id="editCancelBtn">Cancel</button>
@@ -941,6 +970,40 @@
     let ptr = 0;
     items = items.map(item => idSet.has(item.id) ? itemMap.get(newOrderIds[ptr++]) : item);
   }
+
+  // ---------- Sort ----------
+  const sortOverlay = document.getElementById("sortOverlay");
+  const nameCollator = new Intl.Collator(undefined, { sensitivity: "base" });
+
+  function sortItems(mode) {
+    if (mode === "name-asc") items.sort((a, b) => nameCollator.compare(a.name, b.name));
+    else if (mode === "name-desc") items.sort((a, b) => nameCollator.compare(b.name, a.name));
+    else if (mode === "amount-asc") items.sort((a, b) => a.amount - b.amount);
+    else if (mode === "amount-desc") items.sort((a, b) => b.amount - a.amount);
+    saveItems();
+    render();
+    sortOverlay.classList.remove("open");
+  }
+
+  function openSortOverlay() {
+    const checklist = isChecklistType();
+    document.getElementById("sortAmountAscBtn").style.display = checklist ? "none" : "flex";
+    document.getElementById("sortAmountDescBtn").style.display = checklist ? "none" : "flex";
+    sortOverlay.classList.add("open");
+  }
+
+  document.getElementById("sortItemsBtn").addEventListener("click", () => {
+    settingsOverlay.classList.remove("open");
+    openSortOverlay();
+  });
+  document.getElementById("manageSortBtn").addEventListener("click", openSortOverlay);
+  document.getElementById("sortNameAscBtn").addEventListener("click", () => sortItems("name-asc"));
+  document.getElementById("sortNameDescBtn").addEventListener("click", () => sortItems("name-desc"));
+  document.getElementById("sortAmountAscBtn").addEventListener("click", () => sortItems("amount-asc"));
+  document.getElementById("sortAmountDescBtn").addEventListener("click", () => sortItems("amount-desc"));
+  document.getElementById("sortCancelBtn").addEventListener("click", () => sortOverlay.classList.remove("open"));
+  sortOverlay.addEventListener("click", (e) => { if (e.target === sortOverlay) sortOverlay.classList.remove("open"); });
+  // ---------- end Sort ----------
 
   function onRowDragPointerDown(e) {
     if (multiSelectMode) return;
@@ -1450,7 +1513,6 @@
   const editNameInput = document.getElementById("editNameInput");
   const editAmountInput = document.getElementById("editAmountInput");
   const editCategorySelect = document.getElementById("editCategorySelect");
-  const editActiveField = document.getElementById("editActiveField");
   const editActiveCheckbox = document.getElementById("editActiveCheckbox");
   const editDoneDateField = document.getElementById("editDoneDateField");
   const editDoneDateInput = document.getElementById("editDoneDateInput");
@@ -1471,9 +1533,9 @@
     editNameInput.value = item.name;
     editAmountInput.value = item.amount;
     populateCategorySelect(item.category || "");
-    document.getElementById("editAmountField").style.display = checklist ? "none" : "block";
+    editAmountInput.style.display = checklist ? "none" : "block";
     document.getElementById("editCategoryField").style.display = checklist ? "none" : "block";
-    editActiveField.style.display = "block";
+    editActiveCheckbox.style.display = "inline-block";
     editActiveCheckbox.checked = item.active !== false;
     if (checklist) {
       editDoneDateField.style.display = "block";
@@ -1493,9 +1555,9 @@
     editNameInput.value = item.name;
     editAmountInput.value = item.amount;
     populateCategorySelect(item.category || "");
-    document.getElementById("editAmountField").style.display = "block";
+    editAmountInput.style.display = "block";
     document.getElementById("editCategoryField").style.display = "block";
-    editActiveField.style.display = "none";
+    editActiveCheckbox.style.display = "none";
     editDoneDateField.style.display = "none";
     editOverlay.classList.add("open");
     setTimeout(() => editNameInput.focus(), 50);
