@@ -270,6 +270,7 @@
   .type-toggle-btn .tt-title { font-size:13.5px; font-weight:600; color:#26241E; margin-top:6px; }
   .type-toggle-btn .tt-sub { font-size:11px; color:#9B937C; margin-top:2px; }
 </style>
+<script src="https://accounts.google.com/gsi/client" async defer onload="onGsiLoaded()"></script>
 </head>
 <body>
 
@@ -287,12 +288,37 @@
       <div class="title">My Lists</div>
       <div class="subtitle">Pick a list, or create a new one</div>
     </div>
+    <button class="settings-btn" id="listsTrashBtn" aria-label="Trash">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+    </button>
   </div>
+
+  <div id="driveSyncBar" style="display:flex; align-items:center; gap:8px; margin-bottom:14px;">
+    <button id="googleSignInBtn" style="flex:1; display:flex; align-items:center; justify-content:center; gap:8px; padding:11px; border-radius:10px; border:1px solid #E4DCC8; background:#FFFDF8; color:#4A4636; font-family:'Inter',sans-serif; font-size:13.5px; cursor:pointer;">
+      <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34.1 5.5 29.3 3.5 24 3.5 12.7 3.5 3.5 12.7 3.5 24S12.7 44.5 24 44.5 44.5 35.3 44.5 24c0-1.2-.1-2.4-.3-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 16 19 13.5 24 13.5c3.1 0 5.8 1.1 8 3l6-6C34.1 5.5 29.3 3.5 24 3.5c-7.4 0-13.7 4.2-16.9 10.3z"/><path fill="#4CAF50" d="M24 44.5c5.2 0 9.9-1.7 13.5-4.7l-6.2-5.2c-2.1 1.4-4.8 2.3-7.3 2.3-5.2 0-9.6-3.3-11.2-7.9l-6.5 5C9.7 40.1 16.3 44.5 24 44.5z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4 5.6l6.2 5.2C40.6 36 44.5 30.5 44.5 24c0-1.2-.1-2.4-.3-3.5z"/></svg>
+      <span id="googleSignInLabel">Sign in with Google</span>
+    </button>
+  </div>
+  <div id="syncStatusNote" style="display:none; font-family:'Inter',sans-serif; font-size:11.5px; color:#9B937C; text-align:center; margin:-6px 0 12px;"></div>
+
   <div id="listsCards"></div>
   <button id="newListBtn" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; padding:14px; border-radius:12px; border:1.5px dashed #C7BEA4; background:transparent; color:#4A4636; font-family:'Inter',sans-serif; font-size:14px; cursor:pointer; margin-top:6px;">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     New list
   </button>
+</div>
+
+<div class="manage-overlay" id="trashOverlay">
+  <div class="manage-header">
+    <div class="manage-title">Trash</div>
+    <button class="manage-close" id="trashCloseBtn" aria-label="Close">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="manage-body">
+    <div class="manage-hint">Deleted items and lists land here first. Restore them, or delete forever.</div>
+    <div id="trashList"></div>
+  </div>
 </div>
 
 <div class="edit-overlay" id="newListOverlay">
@@ -631,9 +657,11 @@
 
   const LISTS_KEY = "expense_ledger_lists_v1";
   const CURRENT_LIST_KEY = "expense_ledger_current_list_v1";
+  const DELETED_LISTS_KEY = "expense_ledger_deleted_lists_v1";
   const itemsKeyFor = (id) => "expense_ledger_items_" + id;
   const historyKeyFor = (id) => "expense_ledger_history_" + id;
   const categoryKeyFor = (id) => "expense_ledger_categories_" + id;
+  const trashKeyFor = (id) => "expense_ledger_trash_" + id;
 
   function migrateOldSingleList() {
     try {
@@ -664,6 +692,7 @@
   }
   function saveLists() {
     try { localStorage.setItem(LISTS_KEY, JSON.stringify(lists)); } catch (e) {}
+    scheduleSync();
   }
 
   let lists = loadLists();
@@ -691,6 +720,7 @@
 
   function saveItems() {
     try { localStorage.setItem(itemsKeyFor(currentListId), JSON.stringify(items)); } catch (e) {}
+    scheduleSync();
   }
 
   function loadHistory() {
@@ -703,6 +733,7 @@
 
   function saveHistory() {
     try { localStorage.setItem(historyKeyFor(currentListId), JSON.stringify(history)); } catch (e) {}
+    scheduleSync();
   }
 
   let items = [];
@@ -724,6 +755,30 @@
 
   function saveCategories() {
     try { localStorage.setItem(categoryKeyFor(currentListId), JSON.stringify(categories)); } catch (e) {}
+    scheduleSync();
+  }
+
+  function loadTrash(listId) {
+    try {
+      const raw = localStorage.getItem(trashKeyFor(listId));
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return [];
+  }
+  function saveTrash(listId, arr) {
+    try { localStorage.setItem(trashKeyFor(listId), JSON.stringify(arr)); } catch (e) {}
+    scheduleSync();
+  }
+  function loadDeletedLists() {
+    try {
+      const raw = localStorage.getItem(DELETED_LISTS_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return [];
+  }
+  function saveDeletedLists(arr) {
+    try { localStorage.setItem(DELETED_LISTS_KEY, JSON.stringify(arr)); } catch (e) {}
+    scheduleSync();
   }
 
   let categories = [];
@@ -962,8 +1017,14 @@
   }
 
   function remove(id) {
+    const removedItem = items.find(i => i.id === id);
     items = items.filter(i => i.id !== id);
     saveItems();
+    if (removedItem) {
+      const trash = loadTrash(currentListId);
+      trash.unshift({ ...removedItem, deletedAt: new Date().toISOString() });
+      saveTrash(currentListId, trash);
+    }
     render();
   }
 
@@ -1849,13 +1910,19 @@
       throw new Error("Please add your Gemini API key first: Settings → Voice input setup.");
     }
     const checklist = isChecklistType();
+    const scriptRule = 'IMPORTANT: Write every item name using ONLY the Latin/Roman alphabet (English letters), ' +
+      'even if the spoken words are Hindi or Urdu. Transliterate Hindi/Urdu words into Roman spelling ' +
+      '(e.g. "कंप्यूटर" becomes "Computer", "मोबाइल फ़ोन" becomes "Mobile Phone", "किराया" becomes "Kiraya"). ' +
+      'NEVER output Devanagari or Urdu/Arabic script characters in the "name" field. ';
     const prompt = checklist
       ? 'Extract each individual to-do or checklist item from the following spoken text. ' +
-        'The text may mix Hindi, Urdu, and English words. Return ONLY a valid JSON array with no markdown formatting, ' +
+        'The text may mix Hindi, Urdu, and English words. ' + scriptRule +
+        'Return ONLY a valid JSON array with no markdown formatting, ' +
         'no code fences, and no extra commentary — just the array. Each element must look like {"name": "short item name", "amount": 0}. ' +
         'Text: """' + transcript + '"""'
       : 'Extract each individual expense item and its amount in Indian Rupees from the following spoken text. ' +
-        'The text may mix Hindi, Urdu, and English words. Return ONLY a valid JSON array with no markdown formatting, ' +
+        'The text may mix Hindi, Urdu, and English words. ' + scriptRule +
+        'Return ONLY a valid JSON array with no markdown formatting, ' +
         'no code fences, and no extra commentary — just the array. Each element must look like {"name": "short item name", "amount": number}. ' +
         'Skip anything without a clear numeric amount. Text: """' + transcript + '"""';
 
@@ -2325,8 +2392,26 @@
   });
   document.getElementById("listDeleteBtn").addEventListener("click", () => {
     if (!listSettingsId) return;
-    if (!confirm("Delete this entire list, including all its items and history? This can't be undone.")) return;
+    if (!confirm("Move this list to Trash? You can restore it later, or delete it forever from Trash.")) return;
     const idToDelete = listSettingsId;
+    const listObj = lists.find(l => l.id === idToDelete);
+    let itemsData = [], catsData = [], histData = [];
+    try {
+      itemsData = JSON.parse(localStorage.getItem(itemsKeyFor(idToDelete)) || "[]");
+      catsData = JSON.parse(localStorage.getItem(categoryKeyFor(idToDelete)) || "[]");
+      histData = JSON.parse(localStorage.getItem(historyKeyFor(idToDelete)) || "[]");
+    } catch (e) {}
+
+    const deletedLists = loadDeletedLists();
+    deletedLists.unshift({
+      list: listObj,
+      items: itemsData,
+      categories: catsData,
+      history: histData,
+      deletedAt: new Date().toISOString()
+    });
+    saveDeletedLists(deletedLists);
+
     lists = lists.filter(l => l.id !== idToDelete);
     saveLists();
     try {
@@ -2347,6 +2432,439 @@
     if (e.target === listSettingsOverlay) listSettingsOverlay.classList.remove("open");
   });
   // ---------- end multi-list management ----------
+
+  // ---------- Trash ----------
+  const trashOverlay = document.getElementById("trashOverlay");
+  const trashListEl = document.getElementById("trashList");
+
+  function listNameFor(listId) {
+    const l = lists.find(x => x.id === listId);
+    if (l) return l.name;
+    const dl = loadDeletedLists().find(d => d.list && d.list.id === listId);
+    return dl ? dl.list.name + " (deleted list)" : "Unknown list";
+  }
+
+  function renderTrash() {
+    let html = "";
+
+    // Deleted items, grouped across all current lists
+    const itemRows = [];
+    lists.forEach(l => {
+      const trash = loadTrash(l.id);
+      trash.forEach(t => itemRows.push({ ...t, listId: l.id, listName: l.name }));
+    });
+    itemRows.sort((a, b) => new Date(b.deletedAt) - new Date(a.deletedAt));
+
+    if (itemRows.length > 0) {
+      html += `<div class="chart-title" style="margin-top:4px;">Deleted items</div>`;
+      html += itemRows.map(t => `
+        <div class="cat-row" style="align-items:center;">
+          <div style="flex:1; min-width:0;">
+            <div style="font-family:'Inter',sans-serif; font-size:14px; color:#26241E;">${escapeHtml(t.name)}</div>
+            <div style="font-family:'Inter',sans-serif; font-size:11.5px; color:#9B937C; margin-top:2px;">${escapeHtml(t.listName)}${t.amount ? " · " + rupee(t.amount) : ""}</div>
+          </div>
+          <button class="backup-btn" data-restore-item="${t.listId}|${t.id}" style="flex:none; padding:7px 10px;">Restore</button>
+          <button class="cat-del" data-purge-item="${t.listId}|${t.id}" aria-label="Delete forever" style="margin-left:6px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+          </button>
+        </div>`).join("");
+    }
+
+    // Deleted lists
+    const deletedLists = loadDeletedLists();
+    if (deletedLists.length > 0) {
+      html += `<div class="chart-title" style="margin-top:16px;">Deleted lists</div>`;
+      html += deletedLists.map((d, idx) => `
+        <div class="cat-row" style="align-items:center;">
+          <div style="flex:1; min-width:0;">
+            <div style="font-family:'Inter',sans-serif; font-size:14px; color:#26241E;">${escapeHtml(d.list ? d.list.name : "Untitled list")}</div>
+            <div style="font-family:'Inter',sans-serif; font-size:11.5px; color:#9B937C; margin-top:2px;">${(d.items || []).length} items</div>
+          </div>
+          <button class="backup-btn" data-restore-list="${idx}" style="flex:none; padding:7px 10px;">Restore</button>
+          <button class="cat-del" data-purge-list="${idx}" aria-label="Delete forever" style="margin-left:6px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+          </button>
+        </div>`).join("");
+    }
+
+    if (!html) html = '<div class="empty">Trash is empty.</div>';
+    trashListEl.innerHTML = html;
+
+    trashListEl.querySelectorAll("[data-restore-item]").forEach(el =>
+      el.addEventListener("click", () => {
+        const [listId, itemId] = el.getAttribute("data-restore-item").split("|");
+        const trash = loadTrash(listId);
+        const idx = trash.findIndex(t => t.id === itemId);
+        if (idx === -1) return;
+        const [restored] = trash.splice(idx, 1);
+        saveTrash(listId, trash);
+        delete restored.deletedAt;
+        const itemsRaw = JSON.parse(localStorage.getItem(itemsKeyFor(listId)) || "[]");
+        itemsRaw.unshift(restored);
+        localStorage.setItem(itemsKeyFor(listId), JSON.stringify(itemsRaw));
+        scheduleSync();
+        if (listId === currentListId) { items = loadItems(); renderMain(); }
+        renderTrash();
+        renderListsScreen();
+      })
+    );
+    trashListEl.querySelectorAll("[data-purge-item]").forEach(el =>
+      el.addEventListener("click", () => {
+        if (!confirm("Delete this item forever? This can't be undone.")) return;
+        const [listId, itemId] = el.getAttribute("data-purge-item").split("|");
+        const trash = loadTrash(listId).filter(t => t.id !== itemId);
+        saveTrash(listId, trash);
+        renderTrash();
+      })
+    );
+    trashListEl.querySelectorAll("[data-restore-list]").forEach(el =>
+      el.addEventListener("click", () => {
+        const idx = parseInt(el.getAttribute("data-restore-list"), 10);
+        const deletedLists = loadDeletedLists();
+        const entry = deletedLists[idx];
+        if (!entry || !entry.list) return;
+        deletedLists.splice(idx, 1);
+        saveDeletedLists(deletedLists);
+        lists.push(entry.list);
+        saveLists();
+        try {
+          localStorage.setItem(itemsKeyFor(entry.list.id), JSON.stringify(entry.items || []));
+          localStorage.setItem(categoryKeyFor(entry.list.id), JSON.stringify(entry.categories || []));
+          localStorage.setItem(historyKeyFor(entry.list.id), JSON.stringify(entry.history || []));
+        } catch (e) {}
+        scheduleSync();
+        renderTrash();
+        renderListsScreen();
+      })
+    );
+    trashListEl.querySelectorAll("[data-purge-list]").forEach(el =>
+      el.addEventListener("click", () => {
+        if (!confirm("Delete this entire list forever? This can't be undone.")) return;
+        const idx = parseInt(el.getAttribute("data-purge-list"), 10);
+        const deletedLists = loadDeletedLists();
+        deletedLists.splice(idx, 1);
+        saveDeletedLists(deletedLists);
+        renderTrash();
+      })
+    );
+  }
+
+  document.getElementById("listsTrashBtn").addEventListener("click", () => {
+    trashOverlay.classList.add("open");
+    renderTrash();
+  });
+  document.getElementById("trashCloseBtn").addEventListener("click", () => trashOverlay.classList.remove("open"));
+  // ---------- end Trash ----------
+
+  // ---------- Google Sign-In + Drive sync ----------
+  const GOOGLE_CLIENT_ID = "14157388621-e68ubolbhas9aqlgqmeqoe0rscmdk5je.apps.googleusercontent.com";
+  const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
+  const DRIVE_FILE_NAME = "muhasib-app-data.csv";
+  const SIGNED_IN_FLAG = "expense_ledger_google_ever_signed_in";
+
+  let gTokenClient = null;
+  let gAccessToken = null;
+  let gDriveFileId = null;
+  let gIsSignedIn = false;
+  let gSyncTimer = null;
+  let gSyncInFlight = false;
+  let gSyncQueued = false;
+
+  const googleSignInBtn = document.getElementById("googleSignInBtn");
+  const googleSignInLabel = document.getElementById("googleSignInLabel");
+  const syncStatusNote = document.getElementById("syncStatusNote");
+
+  function setSyncNote(text) {
+    if (!text) { syncStatusNote.style.display = "none"; return; }
+    syncStatusNote.textContent = text;
+    syncStatusNote.style.display = "block";
+  }
+
+  function updateSignInUI() {
+    if (gIsSignedIn) {
+      googleSignInLabel.textContent = "Signed in · tap to sign out";
+    } else {
+      googleSignInLabel.textContent = "Sign in with Google";
+    }
+  }
+
+  window.onGsiLoaded = function () {
+    if (!window.google || !google.accounts || !google.accounts.oauth2) return;
+    gTokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: GOOGLE_CLIENT_ID,
+      scope: DRIVE_SCOPE,
+      callback: handleGoogleToken
+    });
+    let everSignedIn = false;
+    try { everSignedIn = localStorage.getItem(SIGNED_IN_FLAG) === "1"; } catch (e) {}
+    if (everSignedIn) {
+      try { gTokenClient.requestAccessToken({ prompt: "" }); } catch (e) {}
+    }
+  };
+
+  function handleGoogleToken(response) {
+    if (!response || response.error || !response.access_token) {
+      if (response && response.error && response.error !== "immediate_failed" && response.error !== "user_logged_out") {
+        setSyncNote("Google sign-in failed: " + response.error);
+      }
+      return;
+    }
+    gAccessToken = response.access_token;
+    gIsSignedIn = true;
+    try { localStorage.setItem(SIGNED_IN_FLAG, "1"); } catch (e) {}
+    updateSignInUI();
+    setSyncNote("Connecting to Google Drive…");
+    syncFromDriveOnSignIn();
+  }
+
+  googleSignInBtn.addEventListener("click", () => {
+    if (gIsSignedIn) {
+      if (!confirm("Sign out from Google Drive sync? Your data stays on this phone, but won't sync anymore.")) return;
+      gIsSignedIn = false;
+      gAccessToken = null;
+      try { localStorage.setItem(SIGNED_IN_FLAG, "0"); } catch (e) {}
+      if (window.google && google.accounts && google.accounts.oauth2 && gAccessToken) {
+        google.accounts.oauth2.revoke(gAccessToken, () => {});
+      }
+      updateSignInUI();
+      setSyncNote("Signed out. Data is local-only now.");
+      return;
+    }
+    if (!gTokenClient) {
+      alert("Google sign-in is still loading — please try again in a moment.");
+      return;
+    }
+    gTokenClient.requestAccessToken({ prompt: "consent" });
+  });
+
+  async function driveFetch(url, options) {
+    options = options || {};
+    options.headers = Object.assign({}, options.headers, { Authorization: "Bearer " + gAccessToken });
+    return fetch(url, options);
+  }
+
+  async function findDriveFile() {
+    const q = encodeURIComponent("name='" + DRIVE_FILE_NAME + "' and trashed=false");
+    const res = await driveFetch("https://www.googleapis.com/drive/v3/files?q=" + q + "&spaces=drive&fields=files(id,name)");
+    if (!res.ok) throw new Error("Couldn't reach Google Drive (" + res.status + ")");
+    const data = await res.json();
+    return (data.files && data.files[0]) ? data.files[0].id : null;
+  }
+
+  async function downloadDriveFile(fileId) {
+    const res = await driveFetch("https://www.googleapis.com/drive/v3/files/" + fileId + "?alt=media");
+    if (!res.ok) throw new Error("Couldn't download Drive backup (" + res.status + ")");
+    return res.text();
+  }
+
+  async function createDriveFile(csvText) {
+    const boundary = "muhasibBoundary" + uid();
+    const metadata = { name: DRIVE_FILE_NAME, mimeType: "text/csv" };
+    const body =
+      "--" + boundary + "\r\n" +
+      "Content-Type: application/json; charset=UTF-8\r\n\r\n" +
+      JSON.stringify(metadata) + "\r\n" +
+      "--" + boundary + "\r\n" +
+      "Content-Type: text/csv; charset=UTF-8\r\n\r\n" +
+      csvText + "\r\n" +
+      "--" + boundary + "--";
+    const res = await driveFetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id", {
+      method: "POST",
+      headers: { "Content-Type": "multipart/related; boundary=" + boundary },
+      body
+    });
+    if (!res.ok) throw new Error("Couldn't create Drive backup (" + res.status + ")");
+    const data = await res.json();
+    return data.id;
+  }
+
+  async function updateDriveFile(fileId, csvText) {
+    const res = await driveFetch("https://www.googleapis.com/upload/drive/v3/files/" + fileId + "?uploadType=media", {
+      method: "PATCH",
+      headers: { "Content-Type": "text/csv; charset=UTF-8" },
+      body: csvText
+    });
+    if (!res.ok) throw new Error("Couldn't update Drive backup (" + res.status + ")");
+  }
+
+  const SNAPSHOT_CSV_HEADER = ["RecordType","ListId","ListName","ListType","ItemId","Name","Amount","Done","Active",
+    "CategoryId","CategoryName","CategoryColor","DoneDate","DeletedAt","HistoryId","HistoryLabel",
+    "HistoryTotal","HistorySpent","HistoryRemaining","HistoryArchivedAt","HistoryItemsJson","ExtraJson"];
+
+  function buildFullSnapshotCsv() {
+    const rows = [SNAPSHOT_CSV_HEADER.join(",")];
+    function addRow(obj) {
+      rows.push(SNAPSHOT_CSV_HEADER.map(h => csvEscape(obj[h] !== undefined && obj[h] !== null ? obj[h] : "")).join(","));
+    }
+
+    lists.forEach(l => {
+      addRow({ RecordType: "list", ListId: l.id, ListName: l.name, ListType: l.type });
+
+      let cats = [];
+      try { cats = JSON.parse(localStorage.getItem(categoryKeyFor(l.id)) || "[]"); } catch (e) {}
+      cats.forEach(c => addRow({ RecordType: "category", ListId: l.id, CategoryId: c.id, CategoryName: c.name, CategoryColor: c.color }));
+
+      let itemsArr = [];
+      try { itemsArr = JSON.parse(localStorage.getItem(itemsKeyFor(l.id)) || "[]"); } catch (e) {}
+      itemsArr.forEach(it => addRow({
+        RecordType: "item", ListId: l.id, ItemId: it.id, Name: it.name, Amount: it.amount,
+        Done: it.done ? "yes" : "no", Active: it.active !== false ? "yes" : "no",
+        CategoryId: it.category || "", DoneDate: it.doneDate || ""
+      }));
+
+      let trashArr = [];
+      try { trashArr = JSON.parse(localStorage.getItem(trashKeyFor(l.id)) || "[]"); } catch (e) {}
+      trashArr.forEach(it => addRow({
+        RecordType: "trash_item", ListId: l.id, ItemId: it.id, Name: it.name, Amount: it.amount,
+        Done: it.done ? "yes" : "no", Active: it.active !== false ? "yes" : "no",
+        CategoryId: it.category || "", DoneDate: it.doneDate || "", DeletedAt: it.deletedAt || ""
+      }));
+
+      let histArr = [];
+      try { histArr = JSON.parse(localStorage.getItem(historyKeyFor(l.id)) || "[]"); } catch (e) {}
+      histArr.forEach(h => addRow({
+        RecordType: "history", ListId: l.id, HistoryId: h.id, HistoryLabel: h.label,
+        HistoryTotal: h.total, HistorySpent: h.spent, HistoryRemaining: h.remaining,
+        HistoryArchivedAt: h.archivedAt, HistoryItemsJson: JSON.stringify(h.items || [])
+      }));
+    });
+
+    loadDeletedLists().forEach(d => {
+      addRow({ RecordType: "deleted_list", DeletedAt: d.deletedAt, ExtraJson: JSON.stringify(d) });
+    });
+
+    return rows.join("\r\n");
+  }
+
+  function parseFullSnapshotCsv(text) {
+    const lines = text.split(/\r?\n/).filter(l => l.trim() !== "");
+    if (lines.length < 1) return null;
+    const header = parseCsvLine(lines[0]);
+    const idx = {};
+    header.forEach((h, i) => { idx[h] = i; });
+
+    const outLists = [];
+    const itemsByList = {}, categoriesByList = {}, historyByList = {}, trashByList = {};
+    const deletedLists = [];
+
+    for (let i = 1; i < lines.length; i++) {
+      const cols = parseCsvLine(lines[i]);
+      const get = (name) => (idx[name] !== undefined && cols[idx[name]] !== undefined) ? cols[idx[name]] : "";
+      const type = get("RecordType");
+      const listId = get("ListId");
+
+      if (type === "list") {
+        outLists.push({ id: listId, name: get("ListName"), type: get("ListType"), createdAt: new Date().toISOString() });
+        itemsByList[listId] = itemsByList[listId] || [];
+        categoriesByList[listId] = categoriesByList[listId] || [];
+        historyByList[listId] = historyByList[listId] || [];
+        trashByList[listId] = trashByList[listId] || [];
+      } else if (type === "category") {
+        (categoriesByList[listId] = categoriesByList[listId] || []).push({ id: get("CategoryId"), name: get("CategoryName"), color: get("CategoryColor") });
+      } else if (type === "item") {
+        (itemsByList[listId] = itemsByList[listId] || []).push({
+          id: get("ItemId"), name: get("Name"), amount: parseFloat(get("Amount")) || 0,
+          done: get("Done") === "yes", active: get("Active") !== "no",
+          category: get("CategoryId") || null, doneDate: get("DoneDate") || null
+        });
+      } else if (type === "trash_item") {
+        (trashByList[listId] = trashByList[listId] || []).push({
+          id: get("ItemId"), name: get("Name"), amount: parseFloat(get("Amount")) || 0,
+          done: get("Done") === "yes", active: get("Active") !== "no",
+          category: get("CategoryId") || null, doneDate: get("DoneDate") || null,
+          deletedAt: get("DeletedAt") || null
+        });
+      } else if (type === "history") {
+        let histItems = [];
+        try { histItems = JSON.parse(get("HistoryItemsJson") || "[]"); } catch (e) {}
+        (historyByList[listId] = historyByList[listId] || []).push({
+          id: get("HistoryId"), label: get("HistoryLabel"),
+          total: parseFloat(get("HistoryTotal")) || 0, spent: parseFloat(get("HistorySpent")) || 0,
+          remaining: parseFloat(get("HistoryRemaining")) || 0, archivedAt: get("HistoryArchivedAt"), items: histItems
+        });
+      } else if (type === "deleted_list") {
+        try { deletedLists.push(JSON.parse(get("ExtraJson"))); } catch (e) {}
+      }
+    }
+
+    return { version: 1, lists: outLists, itemsByList, categoriesByList, historyByList, trashByList, deletedLists };
+  }
+
+  function applyFullSnapshot(snap) {
+    if (!snap || !Array.isArray(snap.lists)) return;
+    lists = snap.lists;
+    try { localStorage.setItem(LISTS_KEY, JSON.stringify(lists)); } catch (e) {}
+    lists.forEach(l => {
+      try { localStorage.setItem(itemsKeyFor(l.id), JSON.stringify((snap.itemsByList || {})[l.id] || [])); } catch (e) {}
+      try { localStorage.setItem(categoryKeyFor(l.id), JSON.stringify((snap.categoriesByList || {})[l.id] || [])); } catch (e) {}
+      try { localStorage.setItem(historyKeyFor(l.id), JSON.stringify((snap.historyByList || {})[l.id] || [])); } catch (e) {}
+      try { localStorage.setItem(trashKeyFor(l.id), JSON.stringify((snap.trashByList || {})[l.id] || [])); } catch (e) {}
+    });
+    try { localStorage.setItem(DELETED_LISTS_KEY, JSON.stringify(snap.deletedLists || [])); } catch (e) {}
+
+    if (currentListId && !lists.find(l => l.id === currentListId)) {
+      currentListId = null;
+      try { localStorage.removeItem(CURRENT_LIST_KEY); } catch (e) {}
+    }
+    if (currentListId) {
+      items = loadItems();
+      categories = loadCategories();
+      history = loadHistory();
+      render();
+    } else {
+      showListsScreen();
+    }
+  }
+
+  async function syncFromDriveOnSignIn() {
+    try {
+      const fileId = await findDriveFile();
+      if (fileId) {
+        gDriveFileId = fileId;
+        const remoteCsv = await downloadDriveFile(fileId);
+        const remoteSnap = parseFullSnapshotCsv(remoteCsv);
+        applyFullSnapshot(remoteSnap);
+        setSyncNote("✓ Synced with Google Drive.");
+      } else {
+        const csv = buildFullSnapshotCsv();
+        gDriveFileId = await createDriveFile(csv);
+        setSyncNote("✓ Backup created in Google Drive.");
+      }
+      renderListsScreen();
+    } catch (err) {
+      setSyncNote("Couldn't sync with Drive: " + (err.message || "unknown error"));
+    }
+  }
+
+  function scheduleSync() {
+    if (!gIsSignedIn) return;
+    clearTimeout(gSyncTimer);
+    gSyncTimer = setTimeout(pushToDrive, 1500);
+  }
+
+  async function pushToDrive() {
+    if (!gIsSignedIn || !gAccessToken) return;
+    if (gSyncInFlight) { gSyncQueued = true; return; }
+    gSyncInFlight = true;
+    try {
+      const csv = buildFullSnapshotCsv();
+      if (!gDriveFileId) {
+        gDriveFileId = await findDriveFile();
+      }
+      if (gDriveFileId) {
+        await updateDriveFile(gDriveFileId, csv);
+      } else {
+        gDriveFileId = await createDriveFile(csv);
+      }
+      setSyncNote("✓ Synced with Google Drive.");
+    } catch (err) {
+      setSyncNote("Sync paused: " + (err.message || "unknown error"));
+    } finally {
+      gSyncInFlight = false;
+      if (gSyncQueued) { gSyncQueued = false; pushToDrive(); }
+    }
+  }
+  // ---------- end Google Sign-In + Drive sync ----------
 
   if (currentListId && lists.find(l => l.id === currentListId)) {
     openList(currentListId);
