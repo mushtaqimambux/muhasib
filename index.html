@@ -315,6 +315,9 @@
       <div class="title" data-i18n="appName">Muhasib محاسب</div>
       <div class="subtitle" data-i18n="pickListSubtitle">Pick a list, or create a new one</div>
     </div>
+    <button class="settings-btn" id="listsAvatarBtn" style="display:none; padding:0; overflow:hidden;" aria-label="Account">
+      <img id="listsAvatarImg" src="" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" />
+    </button>
     <button class="settings-btn" id="langToggleBtn" aria-label="Language" style="font-family:'Inter',sans-serif; font-size:11px; font-weight:700;">EN</button>
     <button class="settings-btn" id="userGuideQuickBtn2" aria-label="User Guide">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
@@ -553,6 +556,9 @@
     </div>
     <button class="settings-btn" id="micQuickBtn" aria-label="Add items by voice">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+    </button>
+    <button class="settings-btn" id="appAvatarBtn" style="display:none; padding:0; overflow:hidden;" aria-label="Account">
+      <img id="appAvatarImg" src="" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" />
     </button>
     <button class="settings-btn" id="langToggleBtn2" aria-label="Language" style="font-family:'Inter',sans-serif; font-size:11px; font-weight:700;">EN</button>
     <button class="settings-btn" id="userGuideQuickBtn" aria-label="User Guide">
@@ -1358,8 +1364,8 @@
     const checklist = isChecklistType();
     const selected = selectedItemIds.has(item.id);
     const dateBits = [];
-    if (item.createdAt) dateBits.push("Added " + formatDoneDate(item.createdAt));
-    if (item.done && item.doneDate) dateBits.push("Done " + formatDoneDate(item.doneDate));
+    if (item.createdAt) dateBits.push("+ " + formatDoneDate(item.createdAt));
+    if (item.done && item.doneDate) dateBits.push("✓ " + formatDoneDate(item.doneDate));
     const dateLine = dateBits.length
       ? `<div style="font-size:11px; color:#9B937C; font-weight:400; margin-top:1px;">${dateBits.join(" · ")}</div>`
       : "";
@@ -3239,8 +3245,23 @@
   }
 
   function updateSignInUI() {
+    const listsAvatarBtn = document.getElementById("listsAvatarBtn");
+    const listsAvatarImg = document.getElementById("listsAvatarImg");
+    const appAvatarBtn = document.getElementById("appAvatarBtn");
+    const appAvatarImg = document.getElementById("appAvatarImg");
+
     if (gIsSignedIn) {
       googleSignInBtn.style.display = "none";
+      const pic = gProfile && gProfile.picture;
+      if (pic) {
+        listsAvatarImg.src = pic;
+        appAvatarImg.src = pic;
+        listsAvatarBtn.style.display = "flex";
+        appAvatarBtn.style.display = "flex";
+      } else {
+        listsAvatarBtn.style.display = "none";
+        appAvatarBtn.style.display = "none";
+      }
       accountSignedOutView.style.display = "none";
       accountSignedInView.style.display = "block";
       if (gProfile) {
@@ -3250,6 +3271,8 @@
       }
     } else {
       googleSignInBtn.style.display = "flex";
+      listsAvatarBtn.style.display = "none";
+      appAvatarBtn.style.display = "none";
       accountSignedOutView.style.display = "block";
       accountSignedInView.style.display = "none";
     }
@@ -3408,6 +3431,8 @@
     settingsOverlay.classList.remove("open");
     openAccountOverlay();
   });
+  document.getElementById("listsAvatarBtn").addEventListener("click", openAccountOverlay);
+  document.getElementById("appAvatarBtn").addEventListener("click", openAccountOverlay);
   document.getElementById("accountCloseBtn").addEventListener("click", () => accountOverlay.classList.remove("open"));
   accountOverlay.addEventListener("click", (e) => { if (e.target === accountOverlay) accountOverlay.classList.remove("open"); });
 
