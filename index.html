@@ -171,6 +171,7 @@
     background:#FFFDF8; display:flex; align-items:center; justify-content:center;
     cursor:pointer; color:#4A4636; flex-shrink:0;
   }
+  .manage-close.selected, .settings-btn.selected { border-color:#2F5C4B; background:#EEF4EF; color:#2F5C4B; }
   .manage-body { flex:1; overflow-y:auto; padding:14px 16px calc(20px + env(safe-area-inset-bottom)); }
   .manage-hint { font-size:12.5px; color:#9B937C; font-family:'Inter',sans-serif; margin:0 2px 14px; line-height:1.5; }
   .manage-list { display:flex; flex-direction:column; gap:8px; touch-action:pan-y; }
@@ -310,21 +311,22 @@
       </div>
     </div>
     <div class="header-text">
-      <div class="title">Muhasib محاسب</div>
-      <div class="subtitle">Pick a list, or create a new one</div>
+      <div class="title" data-i18n="appName">Muhasib محاسب</div>
+      <div class="subtitle" data-i18n="pickListSubtitle">Pick a list, or create a new one</div>
     </div>
-    <button class="settings-btn" id="listsAvatarBtn" style="display:none; padding:0; overflow:hidden;" aria-label="Account">
-      <img id="listsAvatarImg" src="" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" />
+    <button class="settings-btn" id="langToggleBtn" aria-label="Language" style="font-family:'Inter',sans-serif; font-size:11px; font-weight:700;">EN</button>
+    <button class="settings-btn" id="userGuideQuickBtn2" aria-label="User Guide">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
     </button>
-    <button class="settings-btn" id="listsTrashBtn" aria-label="Trash">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+    <button class="settings-btn" id="listsMenuBtn" aria-label="Menu">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     </button>
   </div>
 
   <div id="driveSyncBar" style="margin-bottom:14px;">
     <button id="googleSignInBtn" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; padding:11px; border-radius:10px; border:1px solid #E4DCC8; background:#FFFDF8; color:#4A4636; font-family:'Inter',sans-serif; font-size:13.5px; cursor:pointer;">
       <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34.1 5.5 29.3 3.5 24 3.5 12.7 3.5 3.5 12.7 3.5 24S12.7 44.5 24 44.5 44.5 35.3 44.5 24c0-1.2-.1-2.4-.3-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 16 19 13.5 24 13.5c3.1 0 5.8 1.1 8 3l6-6C34.1 5.5 29.3 3.5 24 3.5c-7.4 0-13.7 4.2-16.9 10.3z"/><path fill="#4CAF50" d="M24 44.5c5.2 0 9.9-1.7 13.5-4.7l-6.2-5.2c-2.1 1.4-4.8 2.3-7.3 2.3-5.2 0-9.6-3.3-11.2-7.9l-6.5 5C9.7 40.1 16.3 44.5 24 44.5z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4 5.6l6.2 5.2C40.6 36 44.5 30.5 44.5 24c0-1.2-.1-2.4-.3-3.5z"/></svg>
-      <span id="googleSignInLabel">Sign in with Google</span>
+      <span id="googleSignInLabel" data-i18n="signInGoogle">Sign in with Google</span>
     </button>
   </div>
   <div id="syncStatusNote" style="display:none; font-family:'Inter',sans-serif; font-size:11.5px; color:#9B937C; text-align:center; margin:-6px 0 12px;"></div>
@@ -332,8 +334,19 @@
   <div id="listsCards"></div>
   <button id="newListBtn" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; padding:14px; border-radius:12px; border:1.5px dashed #C7BEA4; background:transparent; color:#4A4636; font-family:'Inter',sans-serif; font-size:14px; cursor:pointer; margin-top:6px;">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    New list
+    <span data-i18n="newList">New list</span>
   </button>
+</div>
+
+<div class="edit-overlay" id="confirmOverlay" style="z-index:300;">
+  <div class="edit-card">
+    <div class="edit-card-title">Are you sure?</div>
+    <p id="confirmMessage" style="font-family:'Inter',sans-serif; font-size:14px; color:#4A4636; line-height:1.5; margin:0 0 6px;"></p>
+    <div class="edit-actions">
+      <button class="edit-cancel" id="confirmNoBtn">Cancel</button>
+      <button class="edit-save" id="confirmYesBtn" style="background:#B5482A;">Delete</button>
+    </div>
+  </div>
 </div>
 
 <div class="edit-overlay" id="sortOverlay">
@@ -360,6 +373,28 @@
       <button class="edit-cancel" id="sortCancelBtn" style="width:100%;">Cancel</button>
     </div>
   </div>
+</div>
+
+<div class="manage-overlay" id="userGuideOverlay">
+  <div class="manage-header">
+    <div class="manage-title">User Guide</div>
+    <button class="manage-close" id="guideLangToggleBtn" style="font-family:'Inter',sans-serif; font-size:11px; font-weight:700; margin-right:6px;">EN</button>
+    <button class="manage-close" id="userGuideCloseBtn" aria-label="Close">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="manage-body" id="userGuideBody" style="font-family:'Inter',sans-serif; font-size:13.5px; line-height:1.7; color:#4A4636;"></div>
+</div>
+
+<div class="manage-overlay" id="privacyOverlay">
+  <div class="manage-header">
+    <div class="manage-title">Privacy Policy</div>
+    <button class="manage-close" id="privacyLangToggleBtn" style="font-family:'Inter',sans-serif; font-size:11px; font-weight:700; margin-right:6px;">EN</button>
+    <button class="manage-close" id="privacyCloseBtn" aria-label="Close">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="manage-body" id="privacyBody" style="font-family:'Inter',sans-serif; font-size:13.5px; line-height:1.7; color:#4A4636;"></div>
 </div>
 
 <div class="manage-overlay" id="accountOverlay">
@@ -461,30 +496,28 @@
       <div class="title" id="appTitle">Muhasib محاسب</div>
       <div class="subtitle" id="appSubtitle">Check an item off once you've paid it</div>
     </div>
-    <button class="settings-btn" id="manageListQuickBtn" aria-label="Manage list">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-    </button>
     <button class="settings-btn" id="micQuickBtn" aria-label="Add items by voice">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
     </button>
-    <button class="settings-btn" id="appAvatarBtn" style="display:none; padding:0; overflow:hidden;" aria-label="Account">
-      <img id="appAvatarImg" src="" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" />
+    <button class="settings-btn" id="langToggleBtn2" aria-label="Language" style="font-family:'Inter',sans-serif; font-size:11px; font-weight:700;">EN</button>
+    <button class="settings-btn" id="userGuideQuickBtn" aria-label="User Guide">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
     </button>
-    <button class="settings-btn" id="settingsBtn" aria-label="Backup settings">
+    <button class="settings-btn" id="settingsBtn" aria-label="Menu">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     </button>
   </div>
 
   <div class="summary" id="summaryCard">
-    <div class="summary-top"><span>Total</span><span id="totalVal">0</span></div>
+    <div class="summary-top"><span data-i18n="total">Total</span><span id="totalVal">0</span></div>
     <div class="bar"><div class="bar-fill" id="barFill" style="width:0%"></div></div>
     <div class="stats">
       <div class="stat spent">
-        <div class="stat-label">Spent</div>
+        <div class="stat-label" data-i18n="spent">Spent</div>
         <div class="stat-value" id="spentVal">0</div>
       </div>
       <div class="stat remaining">
-        <div class="stat-label">Remaining</div>
+        <div class="stat-label" data-i18n="remaining">Remaining</div>
         <div class="stat-value" id="remainingVal">0</div>
       </div>
 
@@ -496,11 +529,11 @@
     <div class="bar"><div class="bar-fill" id="checklistBarFill" style="width:0%"></div></div>
     <div class="stats">
       <div class="stat spent">
-        <div class="stat-label">Done</div>
+        <div class="stat-label" data-i18n="doneItems">Done</div>
         <div class="stat-value" id="checklistDoneVal">0</div>
       </div>
       <div class="stat remaining">
-        <div class="stat-label">Remaining</div>
+        <div class="stat-label" data-i18n="remaining">Remaining</div>
         <div class="stat-value" id="checklistRemainingVal">0</div>
       </div>
     </div>
@@ -508,67 +541,63 @@
 
   <div class="overlay" id="settingsOverlay">
     <div class="sheet">
-      <div class="sheet-title">Backup &amp; restore</div>
-      <button class="sheet-item" id="manageListBtn">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-        Manage list (monthly items &amp; order)
-      </button>
-      <button class="sheet-item" id="sortItemsBtn">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="14" y2="6"/><line x1="4" y1="12" x2="11" y2="12"/><line x1="4" y1="18" x2="8" y2="18"/><polyline points="17 4 17 20"/><polyline points="14 17 17 20 20 17"/></svg>
-        Sort items
-      </button>
-      <button class="sheet-item" id="historyBtn">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></svg>
-        Month history
-      </button>
-      <button class="sheet-item" id="categoriesBtn">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h7v7H4z"/><path d="M13 4h7v7h-7z"/><path d="M4 13h7v7H4z"/><path d="M13 13h7v7h-7z"/></svg>
-        Categories
+      <div class="sheet-title" data-i18n="menu">Menu</div>
+      <button class="sheet-item" id="menuLangBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <span data-i18n="language">Language</span>: <span id="menuLangValue" style="font-weight:600; margin-left:2px;">English</span>
       </button>
       <button class="sheet-item" id="settingsAccountBtn">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        Google Account &amp; sync
+        <span data-i18n="account">Google Account &amp; sync</span>
       </button>
-      <button class="sheet-item" id="aiSetupBtn">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
-        Voice input setup (Gemini)
+      <button class="sheet-item" id="menuTrashBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        <span data-i18n="trash">Trash</span>
       </button>
-      <button class="sheet-item" id="restartBtn">
+      <button class="sheet-item" id="menuManageListBtn" data-needs-list="true">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        <span data-i18n="manageList">Manage list (monthly items &amp; order)</span>
+      </button>
+      <button class="sheet-item" id="menuVoiceBtn" data-needs-list="true">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        <span data-i18n="addByVoice">Add items by voice</span>
+      </button>
+      <button class="sheet-item" id="historyBtn" data-needs-list="true">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></svg>
+        Month history
+      </button>
+      <button class="sheet-item" id="categoriesBtn" data-needs-list="true">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h7v7H4z"/><path d="M13 4h7v7h-7z"/><path d="M4 13h7v7H4z"/><path d="M13 13h7v7h-7z"/></svg>
+        <span data-i18n="categories">Categories</span>
+      </button>
+      <button class="sheet-item" id="privacyPolicyBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span data-i18n="privacy">Privacy Policy</span>
+      </button>
+      <button class="sheet-item" id="restartBtn" data-needs-list="true">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 9 8 9"/></svg>
-        Start new month
+        <span data-i18n="startNewMonth">Start new month</span>
       </button>
-      <button class="sheet-item" id="exportBtn">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Save backup
-      </button>
-      <button class="sheet-item" id="importBtn">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        Restore backup
-      </button>
-      <button class="sheet-item" id="exportCsvBtn">
+      <button class="sheet-item" id="exportCsvBtn" data-needs-list="true">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="10" x2="9" y2="20"/></svg>
-        Export as CSV (for editing)
+        <span data-i18n="exportCsv">Export as CSV (for editing)</span>
       </button>
-      <button class="sheet-item" id="importCsvBtn">
+      <button class="sheet-item" id="importCsvBtn" data-needs-list="true">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="10" x2="9" y2="20"/></svg>
-        Import edited CSV
+        <span data-i18n="importCsv">Import edited CSV</span>
       </button>
-      <button class="sheet-item" id="pasteImportBtn">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
-        Paste CSV or backup text instead
-      </button>
-      <input type="file" id="importFile" accept=".json,application/json,text/plain,*/*" style="display:none" />
+      <button id="pasteImportBtn" data-i18n="pasteCsv" data-needs-list="true" style="background:none; border:none; color:#7A7460; font-family:'Inter',sans-serif; font-size:11.5px; text-decoration:underline; cursor:pointer; padding:2px 6px 10px; text-align:left;">Or paste CSV text instead</button>
       <input type="file" id="importCsvFile" accept=".csv,text/csv,text/plain,*/*" style="display:none" />
-      <div class="sheet-note">If "Restore/Import" doesn't show your file (common on some Android phones), use "Paste" instead — no file picker needed.</div>
-      <button class="sheet-close" id="sheetCloseBtn">Close</button>
+      <div class="sheet-note" data-needs-list="true">Your data already backs up automatically to Google Sheets when signed in.</div>
+      <button class="sheet-close" id="sheetCloseBtn" data-i18n="close">Close</button>
     </div>
   </div>
 
   <div class="edit-overlay" id="pasteOverlay">
     <div class="edit-card">
-      <div class="edit-card-title" id="pasteTitle">Paste your backup</div>
+      <div class="edit-card-title" id="pasteTitle">Paste your CSV</div>
       <div class="edit-field">
-        <label class="edit-label">Open your CSV or backup file in any app, select all, copy — then paste it below</label>
+        <label class="edit-label">Open your CSV file in any app, select all, copy — then paste it below</label>
         <textarea class="edit-input" id="pasteTextarea" rows="8" style="resize:vertical; font-family:'Inter',sans-serif; font-size:13px;"></textarea>
       </div>
       <div class="edit-actions">
@@ -582,7 +611,7 @@
     <div class="manage-header">
       <div class="manage-title">Manage list</div>
       <button class="manage-close" id="manageSortBtn" aria-label="Sort" style="margin-right:8px;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="14" y2="6"/><line x1="4" y1="12" x2="11" y2="12"/><line x1="4" y1="18" x2="8" y2="18"/><polyline points="17 4 17 20"/><polyline points="14 17 17 20 20 17"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 4v16"/><path d="M4 7l3-3 3 3"/><path d="M17 20V4"/><path d="M20 17l-3 3-3-3"/></svg>
       </button>
       <button class="manage-close" id="manageCloseBtn" aria-label="Close">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -707,9 +736,12 @@
         <label class="edit-label">Category</label>
         <select class="edit-input" id="editCategorySelect"></select>
       </div>
-      <div class="edit-field" id="editDoneDateField" style="display:none;">
-        <label class="edit-label">Done date</label>
-        <input class="edit-input" id="editDoneDateInput" type="date" />
+      <div class="edit-field">
+        <label class="edit-label">Created &amp; done date</label>
+        <div style="display:flex; gap:8px;">
+          <input class="edit-input" id="editCreatedDateInput" type="date" style="flex:1; min-width:0;" />
+          <input class="edit-input" id="editDoneDateInput" type="date" style="flex:1; min-width:0;" />
+        </div>
       </div>
       <div class="edit-actions">
         <button class="edit-cancel" id="editCancelBtn">Cancel</button>
@@ -719,8 +751,8 @@
   </div>
 
   <div class="add-row">
-    <input id="nameInput" type="text" placeholder="Item name" enterkeyhint="next" />
-    <input id="amountInput" type="number" inputmode="decimal" placeholder="Amount" enterkeyhint="done" />
+    <input id="nameInput" type="text" placeholder="Item name" data-i18n-placeholder="itemNamePlaceholder" enterkeyhint="next" />
+    <input id="amountInput" type="number" inputmode="decimal" placeholder="Amount" data-i18n-placeholder="amountPlaceholder" enterkeyhint="done" />
     <button id="addBtn">+</button>
   </div>
 
@@ -744,10 +776,11 @@
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
         </button>
         <div id="voiceStatusText" style="font-family:'Inter',sans-serif; font-size:12.5px; color:#9B937C; margin-top:8px;">Tap the mic and speak your items</div>
+        <button id="voiceSetupLink" style="background:none; border:none; color:#7A7460; font-family:'Inter',sans-serif; font-size:11.5px; text-decoration:underline; cursor:pointer; margin-top:4px; padding:4px;">Set up Gemini API key</button>
       </div>
       <div class="edit-field">
         <label class="edit-label">Transcript (you can edit before parsing)</label>
-        <textarea class="edit-input" id="voiceTranscript" rows="4" style="resize:vertical; font-family:'Inter',sans-serif; font-size:13px;" placeholder="e.g. Aata 500 rupees, kiraya 1000, bijli ka bill 500"></textarea>
+        <textarea class="edit-input" id="voiceTranscript" rows="4" style="resize:vertical; font-family:'Inter',sans-serif; font-size:13px;" placeholder="e.g. Groceries 500 rupees, rent 1000, electricity bill 500" data-i18n-placeholder="voicePlaceholder"></textarea>
       </div>
       <div class="edit-actions">
         <button class="edit-cancel" id="voiceCancelBtn">Cancel</button>
@@ -768,6 +801,221 @@
 </div>
 
 <script>
+  // ---------- i18n (English / Roman Urdu) ----------
+  const STRINGS = {
+    en: {
+      appName: "Muhasib", myLists: "My Lists", pickListSubtitle: "Pick a list, or create a new one",
+      newList: "New list", signInGoogle: "Sign in with Google", trash: "Trash",
+      total: "Total", spent: "Spent", remaining: "Remaining", done: "Done", doneItems: "Done",
+      paidItems: "Paid", itemNamePlaceholder: "Item name", amountPlaceholder: "Amount",
+      nothingLeftExpense: "Nothing left to pay. Add an item above.",
+      nothingLeftChecklist: "All done! Add an item above.",
+      checkOffSubtitle: "Check an item off once you've paid it",
+      checkOffChecklistSubtitle: "Check items off as you go",
+      menu: "Menu", manageList: "Manage list", sort: "Sort", categories: "Categories",
+      account: "Google Account & sync", privacy: "Privacy Policy", userGuide: "User Guide",
+      startNewMonth: "Start new month", exportCsv: "Export as CSV (for editing)", importCsv: "Import edited CSV",
+      pasteCsv: "Or paste CSV text instead", close: "Close", cancel: "Cancel", save: "Save", delete: "Delete",
+      restore: "Restore", editItem: "Edit item", name: "Name & amount", category: "Category",
+      createdDoneDate: "Created & done date", includeThisMonth: "Include in this month",
+      language: "Language", addByVoice: "Add items by voice",
+      voicePlaceholder: "e.g. Groceries 500 rupees, rent 1000, electricity bill 500",
+    },
+    ur: {
+      appName: "Muhasib", myLists: "Meri Lists", pickListSubtitle: "Koi list chuno, ya nayi banao",
+      newList: "Nayi list", signInGoogle: "Google se sign in karein", trash: "Trash",
+      total: "Total", spent: "Kharch huye", remaining: "Baaki", done: "Done", doneItems: "Ho gaye",
+      paidItems: "Ada ho gaye", itemNamePlaceholder: "Item ka naam", amountPlaceholder: "Amount",
+      nothingLeftExpense: "Kuch baaki nahi. Upar se item add karein.",
+      nothingLeftChecklist: "Sab ho gaya! Upar se item add karein.",
+      checkOffSubtitle: "Ada karne ke baad item check kar dein",
+      checkOffChecklistSubtitle: "Jaise jaise karte jaayein, check karte jaayein",
+      menu: "Menu", manageList: "List arrange karein", sort: "Sort karein", categories: "Categories",
+      account: "Google Account aur sync", privacy: "Privacy Policy", userGuide: "User Guide",
+      startNewMonth: "Naya mahina shuru karein", exportCsv: "CSV banayein (edit karne ke liye)", importCsv: "Edit ki hui CSV import karein",
+      pasteCsv: "Ya CSV text paste karein", close: "Band karein", cancel: "Cancel", save: "Save karein", delete: "Delete karein",
+      restore: "Wapas laayein", editItem: "Item edit karein", name: "Naam aur amount", category: "Category",
+      createdDoneDate: "Banne aur done hone ki date", includeThisMonth: "Is mahine mein shaamil karein",
+      language: "Zaban", addByVoice: "Awaaz se items add karein",
+      voicePlaceholder: "jaise Aata 500 rupaye, kiraya 1000, bijli ka bill 500",
+    }
+  };
+
+  let currentLang = "en";
+  try { currentLang = localStorage.getItem("expense_ledger_lang") || "en"; } catch (e) {}
+
+  function t(key) {
+    return (STRINGS[currentLang] && STRINGS[currentLang][key]) || STRINGS.en[key] || key;
+  }
+
+  function applyLanguage() {
+    try { localStorage.setItem("expense_ledger_lang", currentLang); } catch (e) {}
+    document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.getAttribute("data-i18n")); });
+    document.querySelectorAll("[data-i18n-placeholder]").forEach(el => { el.placeholder = t(el.getAttribute("data-i18n-placeholder")); });
+    document.querySelectorAll("[data-lang-btn]").forEach(el => {
+      el.classList.toggle("selected", el.getAttribute("data-lang-btn") === currentLang);
+    });
+    if (currentListId && typeof currentList === "function") {
+      const l = currentList();
+      if (l) {
+        const sub = document.getElementById("appSubtitle");
+        if (sub) sub.textContent = l.type === "checklist" ? t("checkOffChecklistSubtitle") : t("checkOffSubtitle");
+      }
+    }
+    if (typeof renderListsScreen === "function") renderListsScreen();
+    if (typeof render === "function" && currentListId) render();
+  }
+
+  function setLanguage(lang) {
+    currentLang = lang;
+    applyLanguage();
+  }
+  // ---------- end i18n ----------
+
+  // ---------- User Guide (independent of app language) ----------
+  let guideLang = "en";
+  const GUIDE_CONTENT = {
+    en: `
+      <div style="background:#EEF4EF; border-radius:12px; padding:14px 16px; margin-bottom:18px;">
+        <p style="font-weight:700; color:#2F5C4B; font-size:16px; margin:0 0 8px;">Why Muhasib is different</p>
+        <p style="margin:0 0 6px;">✅ <b>Truly yours</b> — your data lives in your own Google Drive, not on someone else's server. No company, no ads, no middleman.</p>
+        <p style="margin:0 0 6px;">✅ <b>Money and to-dos, one app</b> — track expenses with full totals and charts, or run a simple checklist. Switch between as many lists as you need.</p>
+        <p style="margin:0 0 6px;">✅ <b>Speak instead of type</b> — say a whole shopping list out loud and AI sorts it into items and amounts for you.</p>
+        <p style="margin:0 0 6px;">✅ <b>Nothing is ever really gone</b> — every delete lands safely in Trash first.</p>
+        <p style="margin:0 0 6px;">✅ <b>Bilingual, properly</b> — every screen, and this whole guide, works fully in English or Roman Urdu.</p>
+        <p style="margin:0;">✅ <b>Free, and open to inspect</b> — export to CSV anytime, edit it in Excel, bring it back in. Nothing hidden.</p>
+      </div>
+
+      <p style="font-weight:600; color:#26241E; font-size:15px; margin-bottom:4px;">1. Getting started</p>
+      <p>On the home screen, tap <b>+ New list</b> and pick a type:</p>
+      <p><b>Expense list</b> — for money. Each item has a name and an amount. Shows Total, Spent, and Remaining.<br>
+      <b>Simple checklist</b> — just names, no amounts. Good for to-do lists. Shows a Total/Done/Remaining progress card instead.</p>
+      <p>Tap a list's name to open it. Tap the pencil on a list card to rename or delete that list.</p>
+
+      <p style="font-weight:600; color:#26241E; margin-top:16px;">2. Adding items</p>
+      <p><b>By typing:</b> enter a name (and amount, for expense lists) at the top and tap +. On the keyboard, "Next" moves from name to amount, and "Go/Done" adds the item and jumps back to the name box — so you can add several in a row without touching the screen.</p>
+      <p><b>By voice:</b> tap the 🎤 icon in the header, tap the mic, speak your items in one go (e.g. "Groceries 500 rupees, rent 1000 rupees"), tap the mic again to stop, review what was understood, then tap "Add to list". The first time, add a free Gemini API key using the small link inside that popup.</p>
+
+      <p style="font-weight:600; color:#26241E; margin-top:16px;">3. Working through your list</p>
+      <p>Tap the circle to mark an item done — it moves into a "Paid"/"Done" section with the date it was completed. Tap again to undo.</p>
+      <p>Tap the pencil on any item to change its name, amount, category, dates (created and done), or whether it's included this month.</p>
+
+      <p style="font-weight:600; color:#26241E; margin-top:16px;">4. Organizing your list</p>
+      <p>Press and drag the grip icon (⋮⋮) to reorder an item. Press and hold an item a little <i>longer</i> (anywhere except the grip icon) to select multiple items at once — a bar appears showing how many are selected and their total, with an option to delete them together.</p>
+      <p>In Menu → Categories, create categories like "Groceries" or "Bills" and assign one to an item from its edit screen — category totals show up as a chart in Month History.</p>
+      <p>Tap the ☰ icon in the header for Manage list — see every item at a glance, drag to reorder, sort by name or amount, exclude an item from this month without deleting it (its cost still shows in an "Excluded total" card), or delete permanently.</p>
+
+      <p style="font-weight:600; color:#26241E; margin-top:16px;">5. Your monthly cycle</p>
+      <p>When a month ends, tap "Start new month" in the Menu — it saves the current month's totals to history and clears every checkmark, but keeps your item list ready for next month. See past months anytime in Menu → Month history.</p>
+
+      <p style="font-weight:600; color:#26241E; margin-top:16px;">6. Trash — nothing is lost instantly</p>
+      <p>Deleted items and deleted lists land in Trash (icon on the home screen) before they're gone for good. Restore them, or delete forever from there.</p>
+
+      <p style="font-weight:600; color:#26241E; margin-top:16px;">7. Backup, sync &amp; your data</p>
+      <p>Tap "Sign in with Google" on the home screen to automatically back up everything to your own Google Sheet, and use it across devices. In Menu, "Export as CSV" gives you a spreadsheet-friendly file to edit in Excel/Sheets, and "Import edited CSV" brings it back in — use "paste CSV text instead" if the file picker doesn't cooperate. For exactly how your data is stored, see Menu → Privacy Policy.</p>
+    `,
+    ur: `
+      <div style="background:#EEF4EF; border-radius:12px; padding:14px 16px; margin-bottom:18px;">
+        <p style="font-weight:700; color:#2F5C4B; font-size:16px; margin:0 0 8px;">Muhasib alag kyun hai</p>
+        <p style="margin:0 0 6px;">✅ <b>Waqai aapki apni</b> — aapka data aapki apni Google Drive mein rehta hai, kisi aur ke server par nahi. Koi company nahi, koi ads nahi, koi beech mein nahi.</p>
+        <p style="margin:0 0 6px;">✅ <b>Paise aur to-do, ek hi app mein</b> — poore totals aur charts ke saath expenses track karein, ya simple checklist chalayein. Jitni chahein utni lists banayein.</p>
+        <p style="margin:0 0 6px;">✅ <b>Type karne ki jagah bolein</b> — poori shopping list zabaani bol dein aur AI khud items aur amounts mein baant deta hai.</p>
+        <p style="margin:0 0 6px;">✅ <b>Kuch bhi hamesha ke liye turant khatam nahi hota</b> — har delete pehle Trash mein mehfooz jata hai.</p>
+        <p style="margin:0 0 6px;">✅ <b>Do zabanon mein, poori tarah se</b> — har screen, aur yeh poora guide, English aur Roman Urdu dono mein poori tarah kaam karta hai.</p>
+        <p style="margin:0;">✅ <b>Free, aur khud dekhne ke liye khula</b> — kabhi bhi CSV mein export karein, Excel mein edit karein, wapas le aayein. Kuch bhi chhupa nahi.</p>
+      </div>
+
+      <p style="font-weight:600; color:#26241E; font-size:15px; margin-bottom:4px;">1. Shuruaat kaise karein</p>
+      <p>Home screen par <b>+ Nayi list</b> pe tap karein aur ek type chunein:</p>
+      <p><b>Expense list</b> — paison ke liye. Har item ka naam aur amount hota hai. Total, Kharch huye, aur Baaki dikhata hai.<br>
+      <b>Simple checklist</b> — sirf naam, amount nahi. To-do list ke liye behtareen. Iske bajaye Total/Done/Baaki wala progress card dikhata hai.</p>
+      <p>List ka naam tap karke usay khol lein. List card par pencil se naam badal sakte hain ya usay delete kar sakte hain.</p>
+
+      <p style="font-weight:600; color:#26241E; margin-top:16px;">2. Items add karna</p>
+      <p><b>Type karke:</b> upar naam (aur expense list ke liye amount) likhein aur + dabayein. Keyboard par "Next" naam se amount pe le jata hai, aur "Go/Done" item add karke wapas naam wale box mein le aata hai — isliye screen ko baar baar chhue bina lagataar items add kar sakte hain.</p>
+      <p><b>Awaaz (voice) se:</b> header mein 🎤 icon dabayein, mic pe tap karein, apne items ek saath bolein (jaise "Aata 500 rupaye, kiraya 1000 rupaye"), rukne ke liye mic dobara dabayein, jo samjha gaya hai wo dekh lein, phir "Add to list" dabayein. Pehli baar, us popup ke andar diye gaye chhote link se apni free Gemini API key add kar lein.</p>
+
+      <p style="font-weight:600; color:#26241E; margin-top:16px;">3. List par kaam karna</p>
+      <p>Item done mark karne ke liye circle pe tap karein — wo "Paid"/"Done" section mein chala jayega, us date ke saath jab poora hua. Dobara tap karke wapas la sakte hain.</p>
+      <p>Kisi bhi item ka pencil dabakar uska naam, amount, category, dates (bana aur done hone ki), ya yeh mahine shaamil hai ya nahi — badal sakte hain.</p>
+
+      <p style="font-weight:600; color:#26241E; margin-top:16px;">4. List ko organize karna</p>
+      <p>Grip icon (⋮⋮) dabakar drag karein taake item ki jagah badal sakein. Kisi item ko thodi <i>zyada der</i> dabaye rakhein (grip icon ke ilawa kahin bhi) taake ek saath kayi items select ho jayein — ek bar dikhega jisme batayega kitne select hain aur unka total kitna hai, saath mein sabko ek saath delete karne ka option.</p>
+      <p>Menu → Categories mein "Grocery" ya "Bills" jaisi categories banayein aur item ke edit screen se koi ek category laga dein — category ke totals Month History ke andar chart ki soorat mein dikhte hain.</p>
+      <p>Header mein ☰ icon dabakar Manage list kholein — har item ek nazar mein dekhein, drag karke tarteeb badlein, naam ya amount se sort karein, kisi item ko is mahine se bina delete kiye exclude karein (uski cost phir bhi "Excluded total" card mein dikhti rahegi), ya hamesha ke liye delete karein.</p>
+
+      <p style="font-weight:600; color:#26241E; margin-top:16px;">5. Har mahine ka silsila</p>
+      <p>Jab mahina khatam ho, Menu mein "Naya mahina shuru karein" dabayein — yeh is mahine ke totals history mein save kar deta hai aur sab checkmarks saaf kar deta hai, lekin item list agle mahine ke liye tayyar rakhta hai. Guzray hue mahinay kabhi bhi Menu → Month history mein dekh sakte hain.</p>
+
+      <p style="font-weight:600; color:#26241E; margin-top:16px;">6. Trash — kuch bhi turant khatam nahi hota</p>
+      <p>Delete ki hui items aur delete ki hui lists hamesha ke liye khatam hone se pehle Trash (home screen ka icon) mein chali jati hain. Wahan se wapas la sakte hain, ya hamesha ke liye delete kar sakte hain.</p>
+
+      <p style="font-weight:600; color:#26241E; margin-top:16px;">7. Backup, sync, aur aapka data</p>
+      <p>Home screen par "Sign in with Google" dabakar sab kuch khud-b-khud apni Google Sheet mein backup ho jata hai, aur alag devices par bhi use kar sakte hain. Menu mein "Export as CSV" Excel/Sheets mein edit karne ke liye ek file deta hai, aur "Import edited CSV" usay wapas le aata hai — agar file-picker sahi kaam na kare to "CSV text paste karein" use karein. Aapka data bilkul kaise store hota hai, iske liye Menu → Privacy Policy dekhein.</p>
+    `
+  };
+
+  function renderUserGuide() {
+    document.getElementById("userGuideBody").innerHTML = GUIDE_CONTENT[guideLang] || GUIDE_CONTENT.en;
+    document.getElementById("guideLangToggleBtn").textContent = guideLang === "en" ? "EN" : "UR";
+  }
+  // ---------- end User Guide ----------
+
+  // ---------- Privacy Policy (independent of app language) ----------
+  let privacyLang = "en";
+  const PRIVACY_CONTENT = {
+    en: `
+      <p style="font-weight:600; color:#26241E; font-size:15px; margin-bottom:4px;">Muhasib does not collect or store your data.</p>
+      <p>This app has no server, no database, and no company behind it collecting your information. There is nothing for anyone — including the app's developer — to see, sell, or lose.</p>
+
+      <p style="font-weight:600; color:#26241E; margin-top:16px;">Where your data actually lives</p>
+      <p>Everything you enter — lists, items, amounts, categories, month history — is saved in two places only:</p>
+      <p>1. <b>On your own phone</b>, in this browser's local storage.<br>
+      2. <b>In your own Google Drive</b>, if you choose to sign in — as a plain spreadsheet named "Muhasib Data", created under your Google account, using your own Google sign-in.</p>
+      <p>Nobody else's app, server, or account is involved in either of those. Your data goes directly from your phone to your Google account, and nowhere else.</p>
+
+      <p style="font-weight:600; color:#26241E; margin-top:16px;">You can see and edit it yourself, directly</p>
+      <p>Open Google Sheets or Google Drive on your own account, find the "Muhasib Data" spreadsheet, and you can view every row — or edit it by hand — at any time. Nothing is hidden or encrypted in a way that keeps it from you; it's your spreadsheet, in your Drive.</p>
+
+      <p style="font-weight:600; color:#26241E; margin-top:16px;">What Google sign-in is used for</p>
+      <p>Signing in only grants this app permission to create and edit that one spreadsheet, and to read your name/photo so the app can show who's signed in. It cannot see your emails, other files, or anything else in your Google account.</p>
+
+      <p style="font-weight:600; color:#26241E; margin-top:16px;">Voice input (optional)</p>
+      <p>If you use the voice-add feature, your spoken words are sent directly from your phone to Google's Gemini AI service, using an API key you provide yourself in Menu. This app does not see or store that audio or text on any server of its own.</p>
+
+      <p style="font-weight:600; color:#26241E; margin-top:16px;">Signing out</p>
+      <p>Signing out simply stops the connection to Google Drive. Your data already on your phone stays right where it is.</p>
+    `,
+    ur: `
+      <p style="font-weight:600; color:#26241E; font-size:15px; margin-bottom:4px;">Muhasib aapka koi data collect ya store nahi karti.</p>
+      <p>Is app ka koi server nahi, koi database nahi, aur iske peeche koi company nahi jo aapki maloomat jama karti ho. Kisi ke paas bhi — app banane wale samet — kuch dekhne, bechne, ya kho dene ko nahi hai.</p>
+
+      <p style="font-weight:600; color:#26241E; margin-top:16px;">Aapka data asal mein kahan rehta hai</p>
+      <p>Jo bhi aap likhte hain — lists, items, amounts, categories, month history — sirf do jagah save hota hai:</p>
+      <p>1. <b>Aapke apne phone par</b>, is browser ki local storage mein.<br>
+      2. <b>Aapki apni Google Drive mein</b>, agar aap sign in karna chunain — ek seedhi si spreadsheet ke roop mein "Muhasib Data" naam se, jo aapke apne Google account ke neeche banti hai, aapke apne Google sign-in se.</p>
+      <p>In dono mein se kisi mein bhi koi aur app, server, ya account shaamil nahi. Aapka data seedha aapke phone se aapke Google account tak jata hai, aur kahin nahi.</p>
+
+      <p style="font-weight:600; color:#26241E; margin-top:16px;">Aap khud isay dekh aur edit kar sakte hain</p>
+      <p>Apne account se Google Sheets ya Google Drive kholein, "Muhasib Data" spreadsheet dhoondein, aur aap har row kabhi bhi dekh sakte hain — ya haath se edit kar sakte hain. Kuch bhi is tarah chhupa ya encrypt nahi kiya gaya ke aap se door rahe; yeh aapki apni spreadsheet hai, aapki apni Drive mein.</p>
+
+      <p style="font-weight:600; color:#26241E; margin-top:16px;">Google sign-in kis liye istemal hota hai</p>
+      <p>Sign in karne se app ko sirf usi ek spreadsheet ko banane aur edit karne ki ijazat milti hai, aur aapka naam/photo padhne ki taake app dikha sake kaun sign in hai. Yeh aapke emails, doosri files, ya aapke Google account mein kuch aur nahi dekh sakti.</p>
+
+      <p style="font-weight:600; color:#26241E; margin-top:16px;">Voice input (agar istemal karein)</p>
+      <p>Agar aap voice-add feature use karte hain, to aapke bole hue lafz seedha aapke phone se Google ki Gemini AI service ko bheje jate hain, ek API key ke zariye jo aap khud Menu mein daalte hain. Yeh app us awaaz ya text ko apne kisi server par nahi dekhti ya store nahi karti.</p>
+
+      <p style="font-weight:600; color:#26241E; margin-top:16px;">Sign out karna</p>
+      <p>Sign out karne se sirf Google Drive ka connection band ho jata hai. Aapka data jo phone par pehle se hai, wahin mehfooz rehta hai.</p>
+    `
+  };
+
+  function renderPrivacy() {
+    document.getElementById("privacyBody").innerHTML = PRIVACY_CONTENT[privacyLang] || PRIVACY_CONTENT.en;
+    document.getElementById("privacyLangToggleBtn").textContent = privacyLang === "en" ? "EN" : "UR";
+  }
+  // ---------- end Privacy Policy ----------
+
   const uid = () => Math.random().toString(36).slice(2, 10);
   const rupee = (n) => Math.round(n).toLocaleString("en-IN");
 
@@ -828,7 +1076,7 @@
       const raw = localStorage.getItem(itemsKeyFor(currentListId));
       if (raw) {
         const parsed = JSON.parse(raw);
-        return parsed.map(i => ({ ...i, active: i.active !== false, category: i.category || null, amount: i.amount || 0, doneDate: i.doneDate || null }));
+        return parsed.map(i => ({ ...i, active: i.active !== false, category: i.category || null, amount: i.amount || 0, doneDate: i.doneDate || null, createdAt: i.createdAt || null }));
       }
     } catch (e) {}
     return [];
@@ -932,10 +1180,10 @@
 
     pendingList.innerHTML = pending.length
       ? pending.map(rowHtml).join("")
-      : `<div class="empty">${checklist ? "All done! Add an item above." : "Nothing left to pay. Add an item above."}</div>`;
+      : `<div class="empty">${checklist ? t("nothingLeftChecklist") : t("nothingLeftExpense")}</div>`;
 
     doneSection.innerHTML = done.length
-      ? `<div class="done-heading">${checklist ? "Done" : "Paid"} (${done.length})</div><div class="list">${done.map(rowHtml).join("")}</div>`
+      ? `<div class="done-heading">${checklist ? t("doneItems") : t("paidItems")} (${done.length})</div><div class="list">${done.map(rowHtml).join("")}</div>`
       : "";
 
     document.querySelectorAll("[data-toggle]").forEach(el =>
@@ -992,10 +1240,6 @@
     sortOverlay.classList.add("open");
   }
 
-  document.getElementById("sortItemsBtn").addEventListener("click", () => {
-    settingsOverlay.classList.remove("open");
-    openSortOverlay();
-  });
   document.getElementById("manageSortBtn").addEventListener("click", openSortOverlay);
   document.getElementById("sortNameAscBtn").addEventListener("click", () => sortItems("name-asc"));
   document.getElementById("sortNameDescBtn").addEventListener("click", () => sortItems("name-desc"));
@@ -1111,8 +1355,13 @@
 
   function rowHtml(item) {
     const checklist = isChecklistType();
-    const showDate = checklist && item.done && item.doneDate;
     const selected = selectedItemIds.has(item.id);
+    const dateBits = [];
+    if (item.createdAt) dateBits.push("Added " + formatDoneDate(item.createdAt));
+    if (item.done && item.doneDate) dateBits.push("Done " + formatDoneDate(item.doneDate));
+    const dateLine = dateBits.length
+      ? `<div style="font-size:11px; color:#9B937C; font-weight:400; margin-top:1px;">${dateBits.join(" · ")}</div>`
+      : "";
     return `
       <div class="row ${item.done ? "done" : ""} ${selected ? "ms-selected" : ""}" data-id="${item.id}">
         <button class="check" data-toggle="${item.id}" data-longpress-select="${item.id}">
@@ -1120,7 +1369,7 @@
         </button>
         <div class="row-name" data-longpress-select="${item.id}">
           ${escapeHtml(item.name)}
-          ${showDate ? `<div style="font-size:11px; color:#9B937C; font-weight:400; margin-top:1px;">Done on ${formatDoneDate(item.doneDate)}</div>` : ""}
+          ${dateLine}
         </div>
         ${checklist ? "" : `<div class="row-amount">${rupee(item.amount)}</div>`}
         ${syncBadgeHtml()}
@@ -1197,7 +1446,7 @@
       amount = parseFloat(amountInput.value);
       if (isNaN(amount) || amount <= 0) return;
     }
-    items.unshift({ id: uid(), name, amount, done: false, active: true, category: null });
+    items.unshift({ id: uid(), name, amount, done: false, active: true, category: null, createdAt: todayStr(), doneDate: null });
     saveItems();
     nameInput.value = "";
     amountInput.value = "";
@@ -1231,10 +1480,10 @@
       el.addEventListener("click", () => openEditModal(el.getAttribute("data-edit-item")))
     );
     manageList.querySelectorAll("[data-manage-del]").forEach(el =>
-      el.addEventListener("click", () => {
+      el.addEventListener("click", async () => {
         const id = el.getAttribute("data-manage-del");
         if (duringMultiSelect(id)) return;
-        if (!confirm("Delete this item completely? This can't be undone.")) return;
+        if (!await customConfirm("Delete this item completely? This can't be undone.")) return;
         remove(id);
       })
     );
@@ -1286,6 +1535,31 @@
 
   let dragState = null;
   const manageBodyEl = document.getElementById("manageBodyEl");
+
+  function customConfirm(message, confirmLabel) {
+    confirmLabel = confirmLabel || "Delete";
+    return new Promise((resolve) => {
+      const overlay = document.getElementById("confirmOverlay");
+      document.getElementById("confirmMessage").textContent = message;
+      const yesBtn = document.getElementById("confirmYesBtn");
+      const noBtn = document.getElementById("confirmNoBtn");
+      yesBtn.textContent = confirmLabel;
+      overlay.classList.add("open");
+      function cleanup(result) {
+        overlay.classList.remove("open");
+        yesBtn.removeEventListener("click", onYes);
+        noBtn.removeEventListener("click", onNo);
+        overlay.removeEventListener("click", onBackdrop);
+        resolve(result);
+      }
+      function onYes() { cleanup(true); }
+      function onNo() { cleanup(false); }
+      function onBackdrop(e) { if (e.target === overlay) cleanup(false); }
+      yesBtn.addEventListener("click", onYes);
+      noBtn.addEventListener("click", onNo);
+      overlay.addEventListener("click", onBackdrop);
+    });
+  }
 
   const HOLD_DELAY = 320;
   const MOVE_CANCEL_THRESHOLD = 8;
@@ -1341,9 +1615,9 @@
     }
   }
 
-  function deleteSelectedItems() {
+  async function deleteSelectedItems() {
     if (selectedItemIds.size === 0) return;
-    if (!confirm("Delete " + selectedItemIds.size + " selected item" + (selectedItemIds.size > 1 ? "s" : "") + "? They'll go to Trash.")) return;
+    if (!await customConfirm("Delete " + selectedItemIds.size + " selected item" + (selectedItemIds.size > 1 ? "s" : "") + "? They'll go to Trash.")) return;
     Array.from(selectedItemIds).forEach(id => removeItemDirect(id));
     exitMultiSelect();
   }
@@ -1514,7 +1788,7 @@
   const editAmountInput = document.getElementById("editAmountInput");
   const editCategorySelect = document.getElementById("editCategorySelect");
   const editActiveCheckbox = document.getElementById("editActiveCheckbox");
-  const editDoneDateField = document.getElementById("editDoneDateField");
+  const editCreatedDateInput = document.getElementById("editCreatedDateInput");
   const editDoneDateInput = document.getElementById("editDoneDateInput");
   let editContext = null; // { type: 'current', id } or { type: 'history', entryId, itemId }
 
@@ -1537,12 +1811,8 @@
     document.getElementById("editCategoryField").style.display = checklist ? "none" : "block";
     editActiveCheckbox.style.display = "inline-block";
     editActiveCheckbox.checked = item.active !== false;
-    if (checklist) {
-      editDoneDateField.style.display = "block";
-      editDoneDateInput.value = item.doneDate || "";
-    } else {
-      editDoneDateField.style.display = "none";
-    }
+    editCreatedDateInput.value = item.createdAt || "";
+    editDoneDateInput.value = item.doneDate || "";
     editOverlay.classList.add("open");
     setTimeout(() => editNameInput.focus(), 50);
   }
@@ -1558,7 +1828,8 @@
     editAmountInput.style.display = "block";
     document.getElementById("editCategoryField").style.display = "block";
     editActiveCheckbox.style.display = "none";
-    editDoneDateField.style.display = "none";
+    editCreatedDateInput.value = item.createdAt || "";
+    editDoneDateInput.value = item.doneDate || "";
     editOverlay.classList.add("open");
     setTimeout(() => editNameInput.focus(), 50);
   }
@@ -1585,14 +1856,13 @@
       alert("Please enter a name.");
       return;
     }
+    const createdAt = editCreatedDateInput.value || null;
+    const doneDate = editDoneDateInput.value || null;
     if (editContext.type === "current") {
       const active = editActiveCheckbox.checked;
-      const doneDate = checklist ? (editDoneDateInput.value || null) : undefined;
       items = items.map(i => {
         if (i.id !== editContext.id) return i;
-        const updated = { ...i, name, amount, category, active };
-        if (checklist) updated.doneDate = doneDate;
-        return updated;
+        return { ...i, name, amount, category, active, createdAt, doneDate };
       });
       saveItems();
       closeEditModal();
@@ -1600,7 +1870,7 @@
     } else {
       const entry = history.find(h => h.id === editContext.entryId);
       if (entry) {
-        entry.items = entry.items.map(i => i.id === editContext.itemId ? { ...i, name, amount, category } : i);
+        entry.items = entry.items.map(i => i.id === editContext.itemId ? { ...i, name, amount, category, createdAt, doneDate } : i);
         recomputeHistoryTotals(entry);
         saveHistory();
         if (gIsSignedIn) pushHistoryEntry(currentListId, entry);
@@ -1642,9 +1912,9 @@
       : '<div class="empty">No categories yet. Add one above.</div>';
 
     categoriesList.querySelectorAll("[data-cat-del]").forEach(el =>
-      el.addEventListener("click", () => {
+      el.addEventListener("click", async () => {
         const id = el.getAttribute("data-cat-del");
-        if (!confirm("Delete this category? Items using it will become uncategorized.")) return;
+        if (!await customConfirm("Delete this category? Items using it will become uncategorized.")) return;
         categories = categories.filter(c => c.id !== id);
         items = items.map(i => i.category === id ? { ...i, category: null } : i);
         saveCategories();
@@ -1697,12 +1967,8 @@
   }
   // ---------- end categories ----------
 
-  document.getElementById("manageListBtn").addEventListener("click", () => {
+  document.getElementById("menuManageListBtn").addEventListener("click", () => {
     settingsOverlay.classList.remove("open");
-    manageOverlay.classList.add("open");
-    renderManageList();
-  });
-  document.getElementById("manageListQuickBtn").addEventListener("click", () => {
     manageOverlay.classList.add("open");
     renderManageList();
   });
@@ -1714,8 +1980,8 @@
     render();
     renderManageList();
   });
-  document.getElementById("excludeAllBtn").addEventListener("click", () => {
-    if (!confirm("Exclude every item from this month? You can bring any of them back later with one tap.")) return;
+  document.getElementById("excludeAllBtn").addEventListener("click", async () => {
+    if (!await customConfirm("Exclude every item from this month? You can bring any of them back later with one tap.", "Exclude all")) return;
     items = items.map(i => ({ ...i, active: false }));
     saveItems();
     render();
@@ -1749,12 +2015,12 @@
     entry.remaining = t.remaining;
   }
 
-  function archiveMonth() {
+  async function archiveMonth() {
     if (items.length === 0) {
       alert("Add some items first before starting a new month.");
       return;
     }
-    const ok = confirm("Save this month to history and start fresh? Paid checkmarks will be cleared, but your item list stays the same.");
+    const ok = await customConfirm("Save this month to history and start fresh? Paid checkmarks will be cleared, but your item list stays the same.", "Start fresh");
     if (!ok) return;
     const t = computeTotals(items);
     const entry = {
@@ -1894,69 +2160,21 @@
   });
   // ---------- end month history ----------
 
-  document.getElementById("exportBtn").addEventListener("click", () => {
-    const dateStr = new Date().toISOString().slice(0, 10);
-    const blob = new Blob([JSON.stringify(items, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `ledger-backup-${dateStr}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  });
-
-  const importFile = document.getElementById("importFile");
-  document.getElementById("importBtn").addEventListener("click", () => importFile.click());
-
-  function processJsonImport(text) {
-    let parsed;
-    try {
-      parsed = JSON.parse(text);
-    } catch (parseErr) {
-      throw new Error("This isn't valid JSON — it may be damaged or the wrong content.");
-    }
-    if (!Array.isArray(parsed)) {
-      throw new Error("This JSON doesn't contain a list of items.");
-    }
-    if (parsed.length === 0) {
-      throw new Error("This backup is empty.");
-    }
-    const badIdx = parsed.findIndex(i => typeof i.name !== "string" || typeof i.amount !== "number");
-    if (badIdx !== -1) {
-      throw new Error(`Item ${badIdx + 1} is missing a valid name or amount.`);
-    }
-    items = parsed.map(i => ({
-      id: i.id || uid(),
-      name: i.name,
-      amount: i.amount,
-      done: !!i.done,
-      active: i.active !== false,
-      category: i.category || null
-    }));
-    saveItems();
-    render();
-  }
-
-  importFile.addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      try {
-        processJsonImport(evt.target.result);
-        alert("Backup restored successfully.");
-      } catch (err) {
-        alert(err.message || "That file doesn't look like a valid ledger backup.");
-      }
-    };
-    reader.readAsText(file);
-    importFile.value = "";
-  });
-
   const settingsOverlay = document.getElementById("settingsOverlay");
-  document.getElementById("settingsBtn").addEventListener("click", () => settingsOverlay.classList.add("open"));
+  function openMenu() {
+    const hasList = !!currentListId;
+    document.querySelectorAll("#settingsOverlay [data-needs-list]").forEach(el => {
+      el.style.display = hasList ? "" : "none";
+    });
+    settingsOverlay.classList.add("open");
+  }
+  document.getElementById("settingsBtn").addEventListener("click", openMenu);
+  document.getElementById("listsMenuBtn").addEventListener("click", openMenu);
+  document.getElementById("userGuideQuickBtn2").addEventListener("click", () => {
+    guideLang = currentLang;
+    renderUserGuide();
+    userGuideOverlay.classList.add("open");
+  });
   document.getElementById("sheetCloseBtn").addEventListener("click", () => settingsOverlay.classList.remove("open"));
   settingsOverlay.addEventListener("click", (e) => {
     if (e.target === settingsOverlay) settingsOverlay.classList.remove("open");
@@ -2023,8 +2241,8 @@
     geminiModelStatus.style.display = "block";
   }
 
-  document.getElementById("aiSetupBtn").addEventListener("click", () => {
-    settingsOverlay.classList.remove("open");
+  document.getElementById("voiceSetupLink").addEventListener("click", () => {
+    voiceOverlay.classList.remove("open");
     geminiKeyInput.value = loadGeminiKeys().join("\n");
     geminiModelInput.value = "";
     const currentModel = loadGeminiModel();
@@ -2208,6 +2426,10 @@
   }
 
   document.getElementById("micQuickBtn").addEventListener("click", openVoiceOverlay);
+  document.getElementById("menuVoiceBtn").addEventListener("click", () => {
+    settingsOverlay.classList.remove("open");
+    openVoiceOverlay();
+  });
   document.getElementById("voiceCancelBtn").addEventListener("click", closeVoiceOverlay);
   voiceOverlay.addEventListener("click", (e) => {
     if (e.target === voiceOverlay) closeVoiceOverlay();
@@ -2432,7 +2654,7 @@
       return;
     }
     toAdd.forEach(it => {
-      items.unshift({ id: uid(), name: it.name.trim(), amount: checklist ? 0 : it.amount, done: false, active: true, category: null });
+      items.unshift({ id: uid(), name: it.name.trim(), amount: checklist ? 0 : it.amount, done: false, active: true, category: null, createdAt: todayStr(), doneDate: null });
     });
     saveItems();
     render();
@@ -2462,18 +2684,12 @@
       alert("Please paste some content first.");
       return;
     }
-    const looksLikeJson = text.startsWith("[") || text.startsWith("{");
     try {
-      if (looksLikeJson) {
-        processJsonImport(text);
-        alert("Backup restored successfully.");
-      } else {
-        processCsvImport(text);
-        alert("CSV imported successfully.");
-      }
+      processCsvImport(text);
+      alert("CSV imported successfully.");
       pasteOverlay.classList.remove("open");
     } catch (err) {
-      alert(err.message || "Couldn't read that content. Make sure you copied the whole file.");
+      alert(err.message || "Couldn't read that content. Make sure you copied the whole CSV.");
     }
   });
   // ---------- end paste-to-import ----------
@@ -2485,10 +2701,10 @@
 
   document.getElementById("exportCsvBtn").addEventListener("click", () => {
     const dateStr = new Date().toISOString().slice(0, 10);
-    const header = "name,amount,done,active,category\n";
+    const header = "name,amount,done,active,category,createdAt,doneDate\n";
     const rows = items.map(i => {
       const catName = i.category ? (categories.find(c => c.id === i.category)?.name || "") : "";
-      return [csvEscape(i.name), i.amount, i.done ? "yes" : "no", i.active !== false ? "yes" : "no", csvEscape(catName)].join(",");
+      return [csvEscape(i.name), i.amount, i.done ? "yes" : "no", i.active !== false ? "yes" : "no", csvEscape(catName), i.createdAt || "", i.doneDate || ""].join(",");
     }).join("\n");
     const csv = header + rows;
     const blob = new Blob([csv], { type: "text/csv" });
@@ -2530,6 +2746,8 @@
     const doneIdx = header.indexOf("done");
     const activeIdx = header.indexOf("active");
     const categoryIdx = header.indexOf("category");
+    const createdIdx = header.indexOf("createdat");
+    const doneDateIdx = header.indexOf("donedate");
     if (nameIdx === -1 || amountIdx === -1) {
       throw new Error("This CSV needs 'name' and 'amount' column headers in the first row.");
     }
@@ -2557,7 +2775,9 @@
         amount,
         done: doneVal === "yes" || doneVal === "true" || doneVal === "1",
         active: !(activeVal === "no" || activeVal === "false" || activeVal === "0"),
-        category: categoryId
+        category: categoryId,
+        createdAt: createdIdx !== -1 ? ((cols[createdIdx] || "").trim() || todayStr()) : todayStr(),
+        doneDate: doneDateIdx !== -1 ? ((cols[doneDateIdx] || "").trim() || null) : null
       });
     }
     if (parsed.length === 0) throw new Error("No valid rows found — each row needs a name and a numeric amount.");
@@ -2676,8 +2896,8 @@
     if (!l) { showListsScreen(); return; }
     document.getElementById("appTitle").textContent = l.name;
     document.getElementById("appSubtitle").textContent = l.type === "checklist"
-      ? "Check items off as you go"
-      : "Check an item off once you've paid it";
+      ? t("checkOffChecklistSubtitle")
+      : t("checkOffSubtitle");
     applyListTypeUI();
     listsScreen.style.display = "none";
     appScreen.style.display = "block";
@@ -2751,9 +2971,9 @@
     }
     renderListsScreen();
   });
-  document.getElementById("listDeleteBtn").addEventListener("click", () => {
+  document.getElementById("listDeleteBtn").addEventListener("click", async () => {
     if (!listSettingsId) return;
-    if (!confirm("Move this list to Trash? You can restore it later, or delete it forever from Trash.")) return;
+    if (!await customConfirm("Move this list to Trash? You can restore it later, or delete it forever from Trash.", "Move to Trash")) return;
     const idToDelete = listSettingsId;
     const listObj = lists.find(l => l.id === idToDelete);
     let itemsData = [], catsData = [], histData = [];
@@ -2870,8 +3090,8 @@
       })
     );
     trashListEl.querySelectorAll("[data-purge-item]").forEach(el =>
-      el.addEventListener("click", () => {
-        if (!confirm("Delete this item forever? This can't be undone.")) return;
+      el.addEventListener("click", async () => {
+        if (!await customConfirm("Delete this item forever? This can't be undone.")) return;
         const [listId, itemId] = el.getAttribute("data-purge-item").split("|");
         const trash = loadTrash(listId);
         const item = trash.find(t => t.id === itemId);
@@ -2913,8 +3133,8 @@
       })
     );
     trashListEl.querySelectorAll("[data-purge-list]").forEach(el =>
-      el.addEventListener("click", () => {
-        if (!confirm("Delete this entire list forever? This can't be undone.")) return;
+      el.addEventListener("click", async () => {
+        if (!await customConfirm("Delete this entire list forever? This can't be undone.")) return;
         const idx = parseInt(el.getAttribute("data-purge-list"), 10);
         const deletedLists = loadDeletedLists();
         const entry = deletedLists[idx];
@@ -2937,7 +3157,8 @@
     );
   }
 
-  document.getElementById("listsTrashBtn").addEventListener("click", () => {
+  document.getElementById("menuTrashBtn").addEventListener("click", () => {
+    settingsOverlay.classList.remove("open");
     trashOverlay.classList.add("open");
     renderTrash();
   });
@@ -2952,7 +3173,7 @@
   const PROFILE_CACHE_KEY = "expense_ledger_google_profile";
   const SPREADSHEET_ID_KEY = "expense_ledger_spreadsheet_id";
 
-  const ITEM_COLS = ["ListId","ItemId","Name","Amount","Done","Active","CategoryId","DoneDate","Trashed","DeletedAt","UpdatedAt","Purged"];
+  const ITEM_COLS = ["ListId","ItemId","Name","Amount","Done","Active","CategoryId","DoneDate","Trashed","DeletedAt","UpdatedAt","Purged","CreatedAt"];
   const LIST_COLS = ["ListId","Name","Type","CreatedAt","Trashed","DeletedAt","Purged"];
   const CATEGORY_COLS = ["ListId","CategoryId","Name","Color"];
   const HISTORY_COLS = ["ListId","HistoryId","Label","Total","Spent","Remaining","ArchivedAt","ItemsJson"];
@@ -3015,23 +3236,8 @@
   }
 
   function updateSignInUI() {
-    const listsAvatarBtn = document.getElementById("listsAvatarBtn");
-    const listsAvatarImg = document.getElementById("listsAvatarImg");
-    const appAvatarBtn = document.getElementById("appAvatarBtn");
-    const appAvatarImg = document.getElementById("appAvatarImg");
-
     if (gIsSignedIn) {
       googleSignInBtn.style.display = "none";
-      const pic = gProfile && gProfile.picture;
-      if (pic) {
-        listsAvatarImg.src = pic;
-        appAvatarImg.src = pic;
-        listsAvatarBtn.style.display = "flex";
-        appAvatarBtn.style.display = "flex";
-      } else {
-        listsAvatarBtn.style.display = "none";
-        appAvatarBtn.style.display = "none";
-      }
       accountSignedOutView.style.display = "none";
       accountSignedInView.style.display = "block";
       if (gProfile) {
@@ -3041,8 +3247,6 @@
       }
     } else {
       googleSignInBtn.style.display = "flex";
-      listsAvatarBtn.style.display = "none";
-      appAvatarBtn.style.display = "none";
       accountSignedOutView.style.display = "block";
       accountSignedInView.style.display = "none";
     }
@@ -3165,8 +3369,8 @@
     gTokenClient.requestAccessToken({ prompt: "consent" });
   }
 
-  function doGoogleSignOut() {
-    if (!confirm("Sign out from Google Sheets sync? Your data stays on this phone, but won't sync anymore.")) return;
+  async function doGoogleSignOut() {
+    if (!await customConfirm("Sign out from Google Sheets sync? Your data stays on this phone, but won't sync anymore.", "Sign out")) return;
     if (window.google && google.accounts && google.accounts.oauth2 && gAccessToken) {
       google.accounts.oauth2.revoke(gAccessToken, () => {});
     }
@@ -3197,14 +3401,40 @@
     }
     accountOverlay.classList.add("open");
   }
-  document.getElementById("listsAvatarBtn").addEventListener("click", openAccountOverlay);
-  document.getElementById("appAvatarBtn").addEventListener("click", openAccountOverlay);
   document.getElementById("settingsAccountBtn").addEventListener("click", () => {
     settingsOverlay.classList.remove("open");
     openAccountOverlay();
   });
   document.getElementById("accountCloseBtn").addEventListener("click", () => accountOverlay.classList.remove("open"));
   accountOverlay.addEventListener("click", (e) => { if (e.target === accountOverlay) accountOverlay.classList.remove("open"); });
+
+  const privacyOverlay = document.getElementById("privacyOverlay");
+  const privacyLangToggleBtn = document.getElementById("privacyLangToggleBtn");
+  document.getElementById("privacyPolicyBtn").addEventListener("click", () => {
+    settingsOverlay.classList.remove("open");
+    privacyLang = currentLang;
+    renderPrivacy();
+    privacyOverlay.classList.add("open");
+  });
+  document.getElementById("privacyCloseBtn").addEventListener("click", () => privacyOverlay.classList.remove("open"));
+  privacyLangToggleBtn.addEventListener("click", () => {
+    privacyLang = privacyLang === "en" ? "ur" : "en";
+    renderPrivacy();
+  });
+  if (window.location.hash === "#privacy") { renderPrivacy(); privacyOverlay.classList.add("open"); }
+
+  const userGuideOverlay = document.getElementById("userGuideOverlay");
+  const guideLangToggleBtn = document.getElementById("guideLangToggleBtn");
+  document.getElementById("userGuideQuickBtn").addEventListener("click", () => {
+    guideLang = currentLang;
+    renderUserGuide();
+    userGuideOverlay.classList.add("open");
+  });
+  document.getElementById("userGuideCloseBtn").addEventListener("click", () => userGuideOverlay.classList.remove("open"));
+  guideLangToggleBtn.addEventListener("click", () => {
+    guideLang = guideLang === "en" ? "ur" : "en";
+    renderUserGuide();
+  });
 
   document.getElementById("manualSyncBtn").addEventListener("click", async () => {
     const btn = document.getElementById("manualSyncBtn");
@@ -3343,7 +3573,8 @@
       item.category || "", item.doneDate || "",
       trashed ? "yes" : "no", item.deletedAt || "",
       new Date().toISOString(),
-      purged ? "yes" : "no"
+      purged ? "yes" : "no",
+      item.createdAt || ""
     ];
   }
 
@@ -3393,7 +3624,7 @@
   }
 
   function fieldHashItem(item) {
-    return JSON.stringify([item.name, item.amount, item.done, item.active !== false, item.category || null, item.doneDate || null]);
+    return JSON.stringify([item.name, item.amount, item.done, item.active !== false, item.category || null, item.doneDate || null, item.createdAt || null]);
   }
 
   // Called from saveItems(): diff old vs new, only push what actually changed
@@ -3564,10 +3795,10 @@
     });
 
     itemRows.forEach(r => {
-      const [listId, itemId, name, amount, done, active, categoryId, doneDate, trashed, deletedAt, updatedAt, purged] = r;
+      const [listId, itemId, name, amount, done, active, categoryId, doneDate, trashed, deletedAt, updatedAt, purged, createdAt] = r;
       if (!listId || !itemId || purged === "yes") return;
       if (!(listId in itemsByList)) return; // list itself was purged — skip its items too
-      const obj = { id: itemId, name: name || "", amount: parseFloat(amount) || 0, done: done === "yes", active: active !== "no", category: categoryId || null, doneDate: doneDate || null };
+      const obj = { id: itemId, name: name || "", amount: parseFloat(amount) || 0, done: done === "yes", active: active !== "no", category: categoryId || null, doneDate: doneDate || null, createdAt: createdAt || null };
       if (trashed === "yes") {
         obj.deletedAt = deletedAt || "";
         (trashByList[listId] = trashByList[listId] || []).push(obj);
@@ -3654,6 +3885,27 @@
     }
   }
   // ---------- end Google Sign-In + Sheets sync ----------
+
+  const langToggleBtn = document.getElementById("langToggleBtn");
+  const langToggleBtn2 = document.getElementById("langToggleBtn2");
+  const menuLangBtn = document.getElementById("menuLangBtn");
+  const menuLangValue = document.getElementById("menuLangValue");
+
+  function updateLangToggleLabel() {
+    const label = currentLang === "en" ? "EN" : "UR";
+    langToggleBtn.textContent = label;
+    langToggleBtn2.textContent = label;
+    menuLangValue.textContent = currentLang === "en" ? "English" : "Roman Urdu";
+  }
+  function toggleGlobalLanguage() {
+    setLanguage(currentLang === "en" ? "ur" : "en");
+    updateLangToggleLabel();
+  }
+  langToggleBtn.addEventListener("click", toggleGlobalLanguage);
+  langToggleBtn2.addEventListener("click", toggleGlobalLanguage);
+  menuLangBtn.addEventListener("click", toggleGlobalLanguage);
+  updateLangToggleLabel();
+  applyLanguage();
 
   if (currentListId && lists.find(l => l.id === currentListId)) {
     openList(currentListId);
