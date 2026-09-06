@@ -15,6 +15,8 @@
 <!-- Icon (used for home screen icon on iOS/Android) -->
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%232F5C4B'/%3E%3Crect x='27' y='17' width='44' height='64' rx='5' fill='%23F6F1E7'/%3E%3Cline x1='35' y1='31' x2='63' y2='31' stroke='%232F5C4B' stroke-width='3.6' stroke-linecap='round'/%3E%3Cline x1='35' y1='41.5' x2='63' y2='41.5' stroke='%232F5C4B' stroke-width='3.6' stroke-linecap='round'/%3E%3Cline x1='35' y1='52' x2='52' y2='52' stroke='%232F5C4B' stroke-width='3.6' stroke-linecap='round'/%3E%3Ccircle cx='70' cy='67' r='18' fill='%23B5482A' stroke='%232F5C4B' stroke-width='2.5'/%3E%3Cpath d='M61.5 67l6 6.5 13-14' fill='none' stroke='%23F6F1E7' stroke-width='4.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%232F5C4B'/%3E%3Crect x='27' y='17' width='44' height='64' rx='5' fill='%23F6F1E7'/%3E%3Cline x1='35' y1='31' x2='63' y2='31' stroke='%232F5C4B' stroke-width='3.6' stroke-linecap='round'/%3E%3Cline x1='35' y1='41.5' x2='63' y2='41.5' stroke='%232F5C4B' stroke-width='3.6' stroke-linecap='round'/%3E%3Cline x1='35' y1='52' x2='52' y2='52' stroke='%232F5C4B' stroke-width='3.6' stroke-linecap='round'/%3E%3Ccircle cx='70' cy='67' r='18' fill='%23B5482A' stroke='%232F5C4B' stroke-width='2.5'/%3E%3Cpath d='M61.5 67l6 6.5 13-14' fill='none' stroke='%23F6F1E7' stroke-width='4.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#2F5C4B" />
 
 <style>
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -972,20 +974,20 @@
   let privacyLang = "en";
   const PRIVACY_CONTENT = {
     en: `
-      <p style="font-weight:600; color:#26241E; font-size:15px; margin-bottom:4px;">Muhasib does not collect or store your data.</p>
-      <p>This app has no server, no database, and no company behind it collecting your information. There is nothing for anyone — including the app's developer — to see, sell, or lose.</p>
+      <p style="font-weight:600; color:#26241E; font-size:15px; margin-bottom:4px;">The only thing Muhasib collects is your name, email, and the date you first signed in.</p>
+      <p>This app has no server holding your lists or expenses. The one exception: the very first time you sign in with Google, your <b>name</b>, <b>email address</b>, and that <b>first sign-in date</b> are recorded once in a private log the app's owner can see — purely to count how many different people use the app. Signing in again after that is not separately recorded.</p>
 
-      <p style="font-weight:600; color:#26241E; margin-top:16px;">Where your data actually lives</p>
-      <p>Everything you enter — lists, items, amounts, categories, month history — is saved in two places only:</p>
+      <p style="font-weight:600; color:#26241E; margin-top:16px;">Everything you actually enter stays out of our reach</p>
+      <p>Every list, item, amount, category, and month of history you create is saved in two places only:</p>
       <p>1. <b>On your own phone</b>, in this browser's local storage.<br>
       2. <b>In your own Google Drive</b>, if you choose to sign in — as a plain spreadsheet named "Muhasib Data", created under your Google account, using your own Google sign-in.</p>
-      <p>Nobody else's app, server, or account is involved in either of those. Your data goes directly from your phone to your Google account, and nowhere else.</p>
+      <p>The app, and its owner, cannot open, read, or reach that spreadsheet from anywhere else — not from another device, not from any server. It lives only in your own Google account, under your own control. The app's owner cannot access it either.</p>
 
       <p style="font-weight:600; color:#26241E; margin-top:16px;">You can see and edit it yourself, directly</p>
-      <p>Open Google Sheets or Google Drive on your own account, find the "Muhasib Data" spreadsheet, and you can view every row — or edit it by hand — at any time. Nothing is hidden or encrypted in a way that keeps it from you; it's your spreadsheet, in your Drive.</p>
+      <p>Open Google Sheets or Google Drive on your own account, find the "Muhasib Data" spreadsheet, and you can view every row — or edit it by hand — at any time. It's your spreadsheet, in your Drive.</p>
 
       <p style="font-weight:600; color:#26241E; margin-top:16px;">What Google sign-in is used for</p>
-      <p>Signing in only grants this app permission to create and edit that one spreadsheet, and to read your name/photo so the app can show who's signed in. It cannot see your emails, other files, or anything else in your Google account.</p>
+      <p>Signing in grants this app permission to create and edit that one spreadsheet, and to read your name/email/photo so the app can show who's signed in (and record the sign-in log mentioned above). It cannot see your emails, other files, or anything else in your Google account.</p>
 
       <p style="font-weight:600; color:#26241E; margin-top:16px;">Voice input (optional)</p>
       <p>If you use the voice-add feature, your spoken words are sent directly from your phone to Google's Gemini AI service, using an API key you provide yourself in Menu. This app does not see or store that audio or text on any server of its own.</p>
@@ -994,20 +996,20 @@
       <p>Signing out simply stops the connection to Google Drive. Your data already on your phone stays right where it is.</p>
     `,
     ur: `
-      <p style="font-weight:600; color:#26241E; font-size:15px; margin-bottom:4px;">Muhasib aapka koi data collect ya store nahi karti.</p>
-      <p>Is app ka koi server nahi, koi database nahi, aur iske peeche koi company nahi jo aapki maloomat jama karti ho. Kisi ke paas bhi — app banane wale samet — kuch dekhne, bechne, ya kho dene ko nahi hai.</p>
+      <p style="font-weight:600; color:#26241E; font-size:15px; margin-bottom:4px;">Muhasib sirf itna collect karti hai: aapka naam, email, aur pehli baar sign-in karne ki date.</p>
+      <p>Is app ka koi server nahi jo aapki lists ya expenses rakhta ho. Sirf ek istisna hai: jab aap PEHLI baar Google se sign in karte hain, to aapka <b>naam</b>, <b>email address</b>, aur wo <b>pehli sign-in date</b> ek dafa ek private log mein darj hoti hai jo sirf app ke owner ko dikhti hai — sirf yeh ginne ke liye ke kitne alag log app istemal karte hain. Uske baad dobara sign in karna alag se record nahi hota.</p>
 
-      <p style="font-weight:600; color:#26241E; margin-top:16px;">Aapka data asal mein kahan rehta hai</p>
-      <p>Jo bhi aap likhte hain — lists, items, amounts, categories, month history — sirf do jagah save hota hai:</p>
+      <p style="font-weight:600; color:#26241E; margin-top:16px;">Jo bhi aap khud likhte hain, wo humari pahunch se bahar rehta hai</p>
+      <p>Har list, item, amount, category, aur mahine ki history sirf do jagah save hoti hai:</p>
       <p>1. <b>Aapke apne phone par</b>, is browser ki local storage mein.<br>
       2. <b>Aapki apni Google Drive mein</b>, agar aap sign in karna chunain — ek seedhi si spreadsheet ke roop mein "Muhasib Data" naam se, jo aapke apne Google account ke neeche banti hai, aapke apne Google sign-in se.</p>
-      <p>In dono mein se kisi mein bhi koi aur app, server, ya account shaamil nahi. Aapka data seedha aapke phone se aapke Google account tak jata hai, aur kahin nahi.</p>
+      <p>App, aur iska owner, us spreadsheet ko kahin se bhi khol, padh, ya wahan pahunch nahi sakte — na kisi doosre device se, na kisi server se. Yeh sirf aapke apne Google account mein rehti hai, aapke apne control mein. App ka owner bhi isay access nahi kar sakta.</p>
 
       <p style="font-weight:600; color:#26241E; margin-top:16px;">Aap khud isay dekh aur edit kar sakte hain</p>
-      <p>Apne account se Google Sheets ya Google Drive kholein, "Muhasib Data" spreadsheet dhoondein, aur aap har row kabhi bhi dekh sakte hain — ya haath se edit kar sakte hain. Kuch bhi is tarah chhupa ya encrypt nahi kiya gaya ke aap se door rahe; yeh aapki apni spreadsheet hai, aapki apni Drive mein.</p>
+      <p>Apne account se Google Sheets ya Google Drive kholein, "Muhasib Data" spreadsheet dhoondein, aur aap har row kabhi bhi dekh sakte hain — ya haath se edit kar sakte hain. Yeh aapki apni spreadsheet hai, aapki apni Drive mein.</p>
 
       <p style="font-weight:600; color:#26241E; margin-top:16px;">Google sign-in kis liye istemal hota hai</p>
-      <p>Sign in karne se app ko sirf usi ek spreadsheet ko banane aur edit karne ki ijazat milti hai, aur aapka naam/photo padhne ki taake app dikha sake kaun sign in hai. Yeh aapke emails, doosri files, ya aapke Google account mein kuch aur nahi dekh sakti.</p>
+      <p>Sign in karne se app ko usi ek spreadsheet ko banane aur edit karne ki ijazat milti hai, aur aapka naam/email/photo padhne ki taake app dikha sake kaun sign in hai (aur upar bataya gaya sign-in log record ho sake). Yeh aapke emails, doosri files, ya aapke Google account mein kuch aur nahi dekh sakti.</p>
 
       <p style="font-weight:600; color:#26241E; margin-top:16px;">Voice input (agar istemal karein)</p>
       <p>Agar aap voice-add feature use karte hain, to aapke bole hue lafz seedha aapke phone se Google ki Gemini AI service ko bheje jate hain, ek API key ke zariye jo aap khud Menu mein daalte hain. Yeh app us awaaz ya text ko apne kisi server par nahi dekhti ya store nahi karti.</p>
@@ -3278,6 +3280,31 @@
     }
   }
 
+  // ---------- Login tracking (owner-only usage log, via Google Form — no code/script needed) ----------
+  // Fill these in after creating the Google Form (see login-tracking-GOOGLE-FORM-setup.txt).
+  // Leave LOGIN_TRACKING_FORM_ID empty to disable this entirely.
+  const LOGIN_TRACKING_FORM_ID = "1FAIpQLSeU0LJOTthq6sf_TFetjRhPBB5Xnget3OZzu8QmqhH9lPaWNg";
+  const LOGIN_TRACKING_NAME_ENTRY = "entry.2049302291";
+  const LOGIN_TRACKING_EMAIL_ENTRY = "entry.1349976221";
+  const LOGIN_TRACKED_FLAG_KEY = "expense_ledger_login_tracked";
+
+  function logSignInEvent() {
+    if (!LOGIN_TRACKING_FORM_ID || !gProfile || !gProfile.email) return;
+    let alreadyTracked = false;
+    try { alreadyTracked = localStorage.getItem(LOGIN_TRACKED_FLAG_KEY) === "1"; } catch (e) {}
+    if (alreadyTracked) return; // only ever submit once per device — first sign-in only
+    try { localStorage.setItem(LOGIN_TRACKED_FLAG_KEY, "1"); } catch (e) {}
+
+    const params = new URLSearchParams();
+    if (LOGIN_TRACKING_NAME_ENTRY) params.set(LOGIN_TRACKING_NAME_ENTRY, gProfile.name || "");
+    if (LOGIN_TRACKING_EMAIL_ENTRY) params.set(LOGIN_TRACKING_EMAIL_ENTRY, gProfile.email);
+    fetch("https://docs.google.com/forms/d/e/" + LOGIN_TRACKING_FORM_ID + "/formResponse?" + params.toString(), {
+      method: "POST",
+      mode: "no-cors"
+    }).catch(() => {});
+  }
+  // ---------- end login tracking ----------
+
   async function fetchGoogleProfile() {
     try {
       const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", { headers: { Authorization: "Bearer " + gAccessToken } });
@@ -3286,6 +3313,7 @@
       gProfile = { name: data.name || data.email, email: data.email || "", picture: data.picture || "" };
       try { localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(gProfile)); } catch (e) {}
       updateSignInUI();
+      logSignInEvent();
     } catch (e) {}
   }
 
@@ -3331,6 +3359,7 @@
     gIsSignedIn = true;
     updateSignInUI();
     scheduleTokenRefresh(cached.expires_at);
+    logSignInEvent();
     // Quietly catch up with anything changed on other devices since last visit.
     pullAllFromSheets().then(() => {
       gSyncIconState = "synced";
@@ -3939,6 +3968,12 @@
     openList(currentListId);
   } else {
     showListsScreen();
+  }
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    });
   }
 </script>
 </body>
