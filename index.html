@@ -2560,6 +2560,27 @@
     }
     listSettingsOverlay.classList.add("open");
   }
+  function resetDoneStatusForList(listId) {
+    try {
+      const raw = localStorage.getItem(itemsKeyFor(listId));
+      if (!raw) return;
+      const arr = JSON.parse(raw);
+      const changedItems = [];
+      const updated = arr.map(it => {
+        if (it.done) {
+          const newIt = { ...it, done: false, doneDate: null };
+          changedItems.push(newIt);
+          return newIt;
+        }
+        return it;
+      });
+      if (changedItems.length === 0) return;
+      localStorage.setItem(itemsKeyFor(listId), JSON.stringify(updated));
+      if (listId === currentListId) items = updated;
+      if (gIsSignedIn) changedItems.forEach(it => scheduleItemPush(listId, it, false));
+    } catch (e) {}
+  }
+
   document.getElementById("listRenameSaveBtn").addEventListener("click", () => {
     const name = listRenameInput.value.trim();
     if (!name || !listSettingsId) return;
@@ -2568,8 +2589,10 @@
     const newType = typeFieldVisible
       ? (document.getElementById("listHasCheckboxInput").checked ? "expense" : "expense_record")
       : (l ? l.type : "expense");
+    const removingCheckbox = l && l.type !== "expense_record" && newType === "expense_record";
     lists = lists.map(x => x.id === listSettingsId ? { ...x, name, type: newType } : x);
     saveLists();
+    if (removingCheckbox) resetDoneStatusForList(listSettingsId);
     listSettingsOverlay.classList.remove("open");
     if (currentListId === listSettingsId) {
       document.getElementById("appTitle").textContent = name;
