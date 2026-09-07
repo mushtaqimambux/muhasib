@@ -286,9 +286,9 @@
     border:none; background:transparent; cursor:pointer; color:#C7BEA4; flex-shrink:0;
     display:flex; padding:6px;
   }
-  .type-toggle { display:flex; gap:8px; margin-bottom:12px; }
+  .type-toggle { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
   .type-toggle-btn {
-    flex:1; padding:14px 10px; border-radius:12px; border:1.5px solid #E4DCC8; background:#FFFDF8;
+    flex:1 1 calc(50% - 4px); padding:14px 10px; border-radius:12px; border:1.5px solid #E4DCC8; background:#FFFDF8;
     cursor:pointer; font-family:'Inter',sans-serif; text-align:center;
   }
   .type-toggle-btn.selected { border-color:#2F5C4B; background:#EEF4EF; }
@@ -471,7 +471,12 @@
         <button class="type-toggle-btn selected" id="typeExpenseBtn" data-list-type="expense">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2F5C4B" stroke-width="1.8"><path d="M6 4h12v16l-2-1.3-2 1.3-2-1.3-2 1.3-2-1.3-2 1.3-1.5-1.5z"/><line x1="8.5" y1="9" x2="15.5" y2="9"/><line x1="8.5" y1="12.5" x2="15.5" y2="12.5"/></svg>
           <div class="tt-title">Expense list</div>
-          <div class="tt-sub">Items with amounts</div>
+          <div class="tt-sub">Check off as you pay</div>
+        </button>
+        <button class="type-toggle-btn" id="typeRecordBtn" data-list-type="expense_record">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B5482A" stroke-width="1.8"><path d="M6 4h12v16l-2-1.3-2 1.3-2-1.3-2 1.3-2-1.3-2 1.3-1.5-1.5z"/><line x1="8.5" y1="9" x2="15.5" y2="9"/><line x1="8.5" y1="12.5" x2="15.5" y2="12.5"/></svg>
+          <div class="tt-title">Expense record</div>
+          <div class="tt-sub">Already-paid, no checkbox</div>
         </button>
         <button class="type-toggle-btn" id="typeChecklistBtn" data-list-type="checklist">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8A6D3B" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="3"/><polyline points="8 12 11 15 16 9"/></svg>
@@ -493,6 +498,12 @@
     <div class="edit-field">
       <label class="edit-label">List name</label>
       <input class="edit-input" id="listRenameInput" type="text" />
+    </div>
+    <div class="edit-field" id="listTypeToggleField" style="display:none;">
+      <label style="display:flex; align-items:center; justify-content:space-between; cursor:pointer; font-family:'Inter',sans-serif; font-size:14px; color:#26241E;">
+        <span>Show checkbox (mark items as paid)</span>
+        <input type="checkbox" id="listHasCheckboxInput" style="width:19px; height:19px; accent-color:#2F5C4B;" />
+      </label>
     </div>
     <div class="edit-actions">
       <button class="edit-cancel" id="listDeleteBtn" style="color:#B5482A;">Delete list</button>
@@ -733,10 +744,7 @@
       </div>
       <div class="edit-field" id="editMoveField" style="display:none;">
         <label class="edit-label">Move to another list</label>
-        <div style="display:flex; gap:8px;">
-          <select class="edit-input" id="editMoveListSelect" style="flex:1; min-width:0;"></select>
-          <button id="editMoveBtn" style="flex-shrink:0; background:#4A4636; color:#F6F1E7; border:none; border-radius:8px; padding:0 14px; font-family:'Inter',sans-serif; font-size:13px; cursor:pointer;">Move</button>
-        </div>
+        <select class="edit-input" id="editMoveListSelect"></select>
       </div>
       <div class="edit-actions">
         <button class="edit-cancel" id="editCancelBtn">Cancel</button>
@@ -1021,6 +1029,13 @@
     const l = currentList();
     return l && l.type === "checklist";
   }
+  function isRecordType() {
+    const l = currentList();
+    return l && l.type === "expense_record";
+  }
+  function hasCheckbox() {
+    return !isRecordType(); // both "expense" and "checklist" use a checkbox; "expense_record" does not
+  }
 
   function loadItems() {
     try {
@@ -1131,6 +1146,7 @@
 
   function renderMain() {
     const checklist = isChecklistType();
+    const record = isRecordType();
     const activeItems = items.filter(i => i.active !== false);
     const total = activeItems.reduce((s, i) => s + i.amount, 0);
     const spent = activeItems.filter(i => i.done).reduce((s, i) => s + i.amount, 0);
@@ -1142,6 +1158,13 @@
     remainingVal.textContent = rupee(remaining);
     barFill.style.width = pct + "%";
 
+    // Record-type lists (already-paid expenses) show just a running Total — no
+    // paid/unpaid split, since there's nothing left to "pay".
+    const summaryBar = document.querySelector("#summaryCard .bar");
+    const summaryStats = document.querySelector("#summaryCard .stats");
+    if (summaryBar) summaryBar.style.display = record ? "none" : "";
+    if (summaryStats) summaryStats.style.display = record ? "none" : "";
+
     const doneCount = activeItems.filter(i => i.done).length;
     const totalCount = activeItems.length;
     const remainingCount = totalCount - doneCount;
@@ -1151,8 +1174,8 @@
     document.getElementById("checklistRemainingVal").textContent = remainingCount;
     document.getElementById("checklistBarFill").style.width = checklistPct + "%";
 
-    const pending = activeItems.filter(i => !i.done);
-    const done = activeItems.filter(i => i.done);
+    const pending = record ? activeItems : activeItems.filter(i => !i.done);
+    const done = record ? [] : activeItems.filter(i => i.done);
 
     pendingList.innerHTML = pending.length
       ? groupedPendingHtml(pending, checklist)
@@ -1335,6 +1358,7 @@
 
   function rowHtml(item, skipCreatedDate) {
     const checklist = isChecklistType();
+    const showCheckbox = hasCheckbox();
     const selected = selectedItemIds.has(item.id);
     const dateBits = [];
     if (item.createdAt && !skipCreatedDate) dateBits.push("+ " + formatDoneDate(item.createdAt));
@@ -1344,10 +1368,10 @@
       : "";
     return `
       <div class="row ${item.done ? "done" : ""} ${selected ? "ms-selected" : ""}" data-id="${item.id}">
-        <button class="check" data-toggle="${item.id}" data-longpress-select="${item.id}">
+        ${showCheckbox ? `<button class="check" data-toggle="${item.id}" data-longpress-select="${item.id}">
           ${item.done ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#F6F1E7" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>' : ""}
-        </button>
-        <div class="row-name" data-longpress-select="${item.id}">
+        </button>` : ""}
+        <div class="row-name" data-longpress-select="${item.id}" style="${showCheckbox ? "" : "padding-left:4px;"}">
           ${escapeHtml(item.name)}
           ${dateLine}
         </div>
@@ -1793,7 +1817,8 @@
     }
     field.style.display = "block";
     const select = document.getElementById("editMoveListSelect");
-    select.innerHTML = otherLists.map(l => `<option value="${l.id}">${escapeHtml(l.name)}</option>`).join("");
+    select.innerHTML = '<option value="">Keep in this list</option>' +
+      otherLists.map(l => `<option value="${l.id}">${escapeHtml(l.name)}</option>`).join("");
   }
 
   function openEditModal(id) {
@@ -1840,14 +1865,15 @@
     editContext = null;
   }
 
-  function moveItemToList(itemId, targetListId) {
+  function moveItemToList(itemId, targetListId, overrides) {
     const item = items.find(i => i.id === itemId);
     if (!item) return;
     const targetList = lists.find(l => l.id === targetListId);
     if (!targetList) return;
 
-    // Add a copy into the target list's own storage (category cleared — categories are per-list)
-    const movedItem = { ...item, id: uid(), category: null };
+    // Apply any edited fields (name/amount) but keep createdAt/doneDate exactly as they
+    // were on the original item — moving lists should never change its dates.
+    const movedItem = { ...item, ...(overrides || {}), id: uid(), category: null };
     try {
       const targetItems = JSON.parse(localStorage.getItem(itemsKeyFor(targetListId)) || "[]");
       targetItems.unshift(movedItem);
@@ -1861,13 +1887,6 @@
     closeEditModal();
     alert(`Moved to "${targetList.name}".`);
   }
-
-  document.getElementById("editMoveBtn").addEventListener("click", () => {
-    if (!editContext || editContext.type !== "current") return;
-    const targetListId = document.getElementById("editMoveListSelect").value;
-    if (!targetListId) return;
-    moveItemToList(editContext.id, targetListId);
-  });
 
   document.getElementById("editSaveBtn").addEventListener("click", () => {
     if (!editContext) return;
@@ -1886,6 +1905,17 @@
       alert("Please enter a name.");
       return;
     }
+
+    // If a different list was picked, move it there — keeping the edited name/amount
+    // but leaving its created/done dates exactly as they already were.
+    if (editContext.type === "current") {
+      const targetListId = document.getElementById("editMoveListSelect").value;
+      if (targetListId) {
+        moveItemToList(editContext.id, targetListId, { name, amount });
+        return;
+      }
+    }
+
     const createdAt = editCreatedDateInput.value || null;
     const doneDate = editDoneDateInput.value || null;
     if (editContext.type === "current") {
@@ -2409,7 +2439,7 @@
               <div class="list-card-icon ${l.type}">${typeIconSvg(l.type)}</div>
               <div class="list-card-info">
                 <div class="list-card-name">${escapeHtml(l.name)}${totalHtml}</div>
-                <div class="list-card-meta">${l.type === "checklist" ? "Checklist" : "Expense list"} · ${itemCount} item${itemCount === 1 ? "" : "s"}</div>
+                <div class="list-card-meta">${l.type === "checklist" ? "Checklist" : l.type === "expense_record" ? "Expense record" : "Expense list"} · ${itemCount} item${itemCount === 1 ? "" : "s"}</div>
               </div>
               <button class="list-card-edit" data-list-settings="${l.id}" aria-label="List settings">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
@@ -2476,9 +2506,7 @@
 
   document.getElementById("newListBtn").addEventListener("click", () => {
     newListNameInput.value = "";
-    selectedNewListType = "expense";
-    document.getElementById("typeExpenseBtn").classList.add("selected");
-    document.getElementById("typeChecklistBtn").classList.remove("selected");
+    selectNewListType("expense");
     newListOverlay.classList.add("open");
     setTimeout(() => newListNameInput.focus(), 50);
   });
@@ -2486,15 +2514,15 @@
   newListOverlay.addEventListener("click", (e) => {
     if (e.target === newListOverlay) newListOverlay.classList.remove("open");
   });
-  document.getElementById("typeExpenseBtn").addEventListener("click", () => {
-    selectedNewListType = "expense";
-    document.getElementById("typeExpenseBtn").classList.add("selected");
-    document.getElementById("typeChecklistBtn").classList.remove("selected");
-  });
-  document.getElementById("typeChecklistBtn").addEventListener("click", () => {
-    selectedNewListType = "checklist";
-    document.getElementById("typeChecklistBtn").classList.add("selected");
-    document.getElementById("typeExpenseBtn").classList.remove("selected");
+
+  function selectNewListType(type) {
+    selectedNewListType = type;
+    document.querySelectorAll(".type-toggle-btn").forEach(btn => {
+      btn.classList.toggle("selected", btn.getAttribute("data-list-type") === type);
+    });
+  }
+  document.querySelectorAll(".type-toggle-btn").forEach(btn => {
+    btn.addEventListener("click", () => selectNewListType(btn.getAttribute("data-list-type")));
   });
 
   document.getElementById("newListCreateBtn").addEventListener("click", () => {
@@ -2522,16 +2550,31 @@
     if (!l) return;
     listSettingsId = id;
     listRenameInput.value = l.name;
+    const typeField = document.getElementById("listTypeToggleField");
+    const checkboxInput = document.getElementById("listHasCheckboxInput");
+    if (l.type === "checklist") {
+      typeField.style.display = "none";
+    } else {
+      typeField.style.display = "block";
+      checkboxInput.checked = l.type !== "expense_record";
+    }
     listSettingsOverlay.classList.add("open");
   }
   document.getElementById("listRenameSaveBtn").addEventListener("click", () => {
     const name = listRenameInput.value.trim();
     if (!name || !listSettingsId) return;
-    lists = lists.map(l => l.id === listSettingsId ? { ...l, name } : l);
+    const l = lists.find(x => x.id === listSettingsId);
+    const typeFieldVisible = l && l.type !== "checklist";
+    const newType = typeFieldVisible
+      ? (document.getElementById("listHasCheckboxInput").checked ? "expense" : "expense_record")
+      : (l ? l.type : "expense");
+    lists = lists.map(x => x.id === listSettingsId ? { ...x, name, type: newType } : x);
     saveLists();
     listSettingsOverlay.classList.remove("open");
     if (currentListId === listSettingsId) {
       document.getElementById("appTitle").textContent = name;
+      applyListTypeUI();
+      render();
     }
     renderListsScreen();
   });
