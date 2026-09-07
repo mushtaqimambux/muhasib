@@ -209,12 +209,13 @@
 
   .edit-overlay {
     display:none; position:fixed; inset:0; background:rgba(38,36,30,0.45); z-index:70;
-    align-items:flex-start; justify-content:center; padding-top:14vh;
+    align-items:flex-start; justify-content:center; padding-top:5vh;
   }
   .edit-overlay.open { display:flex; }
   .edit-card {
     background:#FFFDF8; width:calc(100% - 32px); max-width:400px; border-radius:16px;
     padding:20px; font-family:'Inter',sans-serif; box-shadow:0 8px 30px rgba(38,36,30,0.25);
+    max-height:90vh; overflow-y:auto;
   }
   .edit-card-title { font-size:15px; font-weight:600; margin-bottom:14px; font-family:'Source Serif 4',Georgia,serif; color:#26241E; }
   .edit-field { margin-bottom:12px; }
@@ -707,7 +708,10 @@
     <div class="edit-card">
       <div class="edit-card-title" style="display:flex; align-items:center; justify-content:space-between;">
         <span>Edit item</span>
-        <input type="checkbox" id="editActiveCheckbox" style="width:19px; height:19px; accent-color:#2F5C4B;" aria-label="Include in this month" />
+        <label style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:500; color:#7A7460; cursor:pointer;">
+          <span id="editActiveLabel">Show</span>
+          <input type="checkbox" id="editActiveCheckbox" style="width:19px; height:19px; accent-color:#2F5C4B;" aria-label="Include in this month" />
+        </label>
       </div>
       <div class="edit-field">
         <label class="edit-label">Name &amp; amount</label>
@@ -1405,12 +1409,12 @@
   function removeItemDirect(id) {
     const removedItem = items.find(i => i.id === id);
     items = items.filter(i => i.id !== id);
-    saveItems();
     if (removedItem) {
       const trash = loadTrash(currentListId);
       trash.unshift({ ...removedItem, deletedAt: new Date().toISOString() });
       saveTrash(currentListId, trash);
     }
+    saveItems();
     render();
   }
 
@@ -1764,9 +1768,15 @@
   const editAmountInput = document.getElementById("editAmountInput");
   const editCategorySelect = document.getElementById("editCategorySelect");
   const editActiveCheckbox = document.getElementById("editActiveCheckbox");
+  const editActiveLabel = document.getElementById("editActiveLabel");
   const editCreatedDateInput = document.getElementById("editCreatedDateInput");
   const editDoneDateInput = document.getElementById("editDoneDateInput");
   let editContext = null; // { type: 'current', id } or { type: 'history', entryId, itemId }
+
+  function updateEditActiveLabel() {
+    editActiveLabel.textContent = editActiveCheckbox.checked ? "Show" : "Hide";
+  }
+  editActiveCheckbox.addEventListener("change", updateEditActiveLabel);
 
   function populateCategorySelect(selectedId) {
     const options = ['<option value="">No category</option>']
@@ -1799,6 +1809,7 @@
     document.getElementById("editCategoryField").style.display = checklist ? "none" : "block";
     editActiveCheckbox.style.display = "inline-block";
     editActiveCheckbox.checked = item.active !== false;
+    updateEditActiveLabel();
     editCreatedDateInput.value = item.createdAt || "";
     editDoneDateInput.value = item.doneDate || "";
     populateMoveListSelect();
@@ -3517,6 +3528,15 @@
       navigator.serviceWorker.register("sw.js").catch(() => {});
     });
   }
+
+  // Keep whatever input the person is typing in visible above the on-screen keyboard.
+  document.addEventListener("focusin", (e) => {
+    const tag = e.target.tagName;
+    if (tag !== "INPUT" && tag !== "TEXTAREA" && tag !== "SELECT") return;
+    setTimeout(() => {
+      e.target.scrollIntoView({ block: "center", behavior: "smooth" });
+    }, 300); // wait for the keyboard's own open animation first
+  });
 </script>
 </body>
 </html>
