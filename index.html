@@ -275,10 +275,8 @@
   }
   .list-card-icon {
     width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center;
-    flex-shrink:0; color:#F6F1E7;
+    flex-shrink:0; color:#F6F1E7; background:#2F5C4B;
   }
-  .list-card-icon.expense { background:#2F5C4B; }
-  .list-card-icon.checklist { background:#8A6D3B; }
   .list-card-info { flex:1; min-width:0; font-family:'Inter',sans-serif; }
   .list-card-name { font-size:15px; font-weight:600; color:#26241E; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .list-card-meta { font-size:12px; color:#9B937C; margin-top:2px; }
@@ -448,12 +446,13 @@
 <div class="manage-overlay" id="expenseSummaryOverlay">
   <div class="manage-header">
     <div class="manage-title">Expense Summary</div>
+    <button class="manage-close" id="expenseSummaryExpandAllBtn" style="font-size:11px; font-weight:600; width:auto; padding:0 10px; margin-right:8px;">Expand all</button>
     <button class="manage-close" id="expenseSummaryCloseBtn" aria-label="Close">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
   </div>
   <div class="manage-body">
-    <div class="manage-hint">Every expense across all your lists, grouped by month and date. Tap a month to expand it, tap a date to see which items made up that day's total.</div>
+    <div class="manage-hint">Every expense across all your lists, grouped by month and date. Tap a month to expand it, tap a date to see how much each list contributed.</div>
     <div id="expenseSummaryBody"></div>
   </div>
 </div>
@@ -575,6 +574,7 @@
     <button id="pasteImportBtn" data-i18n="pasteCsv" data-needs-list="true" style="background:none; border:none; color:#7A7460; font-family:'Inter',sans-serif; font-size:11.5px; text-decoration:underline; cursor:pointer; padding:2px 6px 10px; text-align:left;">Or paste CSV text instead</button>
     <input type="file" id="importCsvFile" accept=".csv,text/csv,text/plain,*/*" style="display:none" />
     <div class="sheet-note" data-needs-list="true">Your data already backs up automatically to Google Sheets when signed in.</div>
+    <div id="versionInfoBar" style="text-align:center; font-family:'Inter',sans-serif; font-size:10.5px; color:#C7BEA4; margin:10px 0 2px;">Last updated: 8 Sept 2026<span id="versionInfoTime"></span> · v19</div>
     <button class="sheet-close" id="sheetCloseBtn" data-i18n="close">Close</button>
   </div>
 </div>
@@ -2698,33 +2698,53 @@
     const months = buildExpenseSummaryData();
     const monthKeys = Object.keys(months).sort().reverse(); // most recent month first
     const body = document.getElementById("expenseSummaryBody");
+    const expandAllBtn = document.getElementById("expenseSummaryExpandAllBtn");
+    let allExpanded = false;
+    expandAllBtn.textContent = "Expand all";
 
     if (monthKeys.length === 0) {
       body.innerHTML = '<div class="empty">No expenses recorded yet.</div>';
+      expandAllBtn.style.display = "none";
       return;
     }
+    expandAllBtn.style.display = "block";
 
     body.innerHTML = monthKeys.map(monthKey => {
       const monthData = months[monthKey];
       const dateKeys = Object.keys(monthData.dates).sort().reverse(); // most recent date first
       const datesHtml = dateKeys.map(dateKey => {
         const dateData = monthData.dates[dateKey];
-        const itemsHtml = dateData.entries.map(e =>
-          `<div style="display:flex; justify-content:space-between; align-items:baseline; padding:6px 0 6px 14px; font-size:13px; color:#4A4636; border-bottom:1px solid #F0EAD9;">
-            <div style="min-width:0;">
-              <div>${escapeHtml(e.name)}</div>
-              <div style="font-size:11px; color:#9B937C;">${escapeHtml(e.listName)}</div>
+
+        // Group this date's entries by list, so each list's subtotal shows first,
+        // with its individual items nested underneath.
+        const byList = new Map();
+        dateData.entries.forEach(e => {
+          if (!byList.has(e.listName)) byList.set(e.listName, { total: 0, items: [] });
+          const g = byList.get(e.listName);
+          g.total += e.amount;
+          g.items.push(e);
+        });
+        const listsHtml = Array.from(byList.entries()).map(([listName, g]) => `
+          <div style="padding:8px 0 8px 14px; border-bottom:1px solid #F0EAD9;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; font-size:13px; font-weight:600; color:#26241E;">
+              <span>${escapeHtml(listName)}</span>
+              <span>${rupee(g.total)}</span>
             </div>
-            <div style="font-weight:600; flex-shrink:0; margin-left:10px;">${rupee(e.amount)}</div>
+            ${g.items.map(it => `
+              <div style="display:flex; justify-content:space-between; align-items:baseline; font-size:12px; color:#9B937C; padding:3px 0 0 10px;">
+                <span>${escapeHtml(it.name)}</span>
+                <span>${rupee(it.amount)}</span>
+              </div>`).join("")}
           </div>`
         ).join("");
+
         return `
           <div class="es-date-block">
             <button class="es-date-toggle" data-es-date-toggle="${monthKey}|${dateKey}" style="width:100%; display:flex; justify-content:space-between; align-items:center; background:none; border:none; padding:9px 4px; cursor:pointer; font-family:'Inter',sans-serif; border-bottom:1px solid #E9E2D2;">
               <span style="font-size:13.5px; color:#26241E;">${formatDoneDate(dateKey)}</span>
               <span style="font-weight:600; font-size:13.5px; color:#4A4636;">${rupee(dateData.total)}</span>
             </button>
-            <div class="es-date-items" data-es-date-items="${monthKey}|${dateKey}" style="display:none;">${itemsHtml}</div>
+            <div class="es-date-items" data-es-date-items="${monthKey}|${dateKey}" style="display:none;">${listsHtml}</div>
           </div>`;
       }).join("");
 
@@ -2753,6 +2773,14 @@
         panel.style.display = panel.style.display === "none" ? "block" : "none";
       });
     });
+
+    expandAllBtn.onclick = () => {
+      allExpanded = !allExpanded;
+      const displayVal = allExpanded ? "block" : "none";
+      body.querySelectorAll("[data-es-month-dates]").forEach(p => { p.style.display = displayVal; });
+      body.querySelectorAll("[data-es-date-items]").forEach(p => { p.style.display = displayVal; });
+      expandAllBtn.textContent = allExpanded ? "Collapse all" : "Expand all";
+    };
   }
 
   document.getElementById("menuExpenseSummaryBtn").addEventListener("click", () => {
@@ -3016,6 +3044,9 @@
       accountSignedOutView.style.display = "block";
       accountSignedInView.style.display = "none";
     }
+
+    const versionTimeSpan = document.getElementById("versionInfoTime");
+    versionTimeSpan.textContent = (gIsSignedIn && gProfile && gProfile.email === "mushtaqimambux@gmail.com") ? ", 9:20 PM" : "";
   }
 
   // ---------- Login tracking (owner-only usage log, via Google Form — no code/script needed) ----------
@@ -3702,9 +3733,14 @@
   updateLangToggleLabel();
   applyLanguage();
 
-  // Always open to the Home screen (list of lists) — never jump straight into
-  // whichever list happened to be open last time.
-  showListsScreen();
+  // Resume wherever the person actually was: if a list is currently open,
+  // refreshing keeps you inside it. Going back to Home clears this (see
+  // showListsScreen), so refreshing on Home correctly stays on Home too.
+  if (currentListId && lists.find(l => l.id === currentListId)) {
+    openList(currentListId);
+  } else {
+    showListsScreen();
+  }
 
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
