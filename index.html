@@ -445,6 +445,19 @@
   </div>
 </div>
 
+<div class="manage-overlay" id="expenseSummaryOverlay">
+  <div class="manage-header">
+    <div class="manage-title">Expense Summary</div>
+    <button class="manage-close" id="expenseSummaryCloseBtn" aria-label="Close">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="manage-body">
+    <div class="manage-hint">Every expense across all your lists, grouped by month and date. Tap a month to expand it, tap a date to see which items made up that day's total.</div>
+    <div id="expenseSummaryBody"></div>
+  </div>
+</div>
+
 <div class="manage-overlay" id="trashOverlay">
   <div class="manage-header">
     <div class="manage-title">Trash</div>
@@ -526,6 +539,10 @@
     <button class="sheet-item" id="menuTrashBtn">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
       <span data-i18n="trash">Trash</span>
+    </button>
+    <button class="sheet-item" id="menuExpenseSummaryBtn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="8" y2="18"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="16" y1="14" x2="16" y2="18"/></svg>
+      Expense Summary
     </button>
     <button class="sheet-item" id="menuManageListBtn" data-needs-list="true">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
@@ -2644,6 +2661,108 @@
   });
   // ---------- end multi-list management ----------
 
+  // ---------- Expense Summary (across all lists) ----------
+  const expenseSummaryOverlay = document.getElementById("expenseSummaryOverlay");
+  const monthNameCache = {};
+  function monthLabel(yyyymm) {
+    if (monthNameCache[yyyymm]) return monthNameCache[yyyymm];
+    const [y, m] = yyyymm.split("-").map(Number);
+    const label = new Date(y, m - 1, 1).toLocaleDateString(undefined, { month: "long", year: "numeric" });
+    monthNameCache[yyyymm] = label;
+    return label;
+  }
+
+  function buildExpenseSummaryData() {
+    // month -> { total, dates: { date -> { total, entries: [{name, amount, listName}] } } }
+    const months = {};
+    lists.forEach(l => {
+      if (l.type === "checklist") return; // no amounts to summarize
+      let arr = [];
+      try { arr = JSON.parse(localStorage.getItem(itemsKeyFor(l.id)) || "[]"); } catch (e) {}
+      arr.forEach(item => {
+        if (item.active === false) return;
+        if (!item.createdAt) return;
+        const date = item.createdAt;
+        const month = date.slice(0, 7); // YYYY-MM
+        if (!months[month]) months[month] = { total: 0, dates: {} };
+        if (!months[month].dates[date]) months[month].dates[date] = { total: 0, entries: [] };
+        months[month].total += item.amount;
+        months[month].dates[date].total += item.amount;
+        months[month].dates[date].entries.push({ name: item.name, amount: item.amount, listName: l.name });
+      });
+    });
+    return months;
+  }
+
+  function renderExpenseSummary() {
+    const months = buildExpenseSummaryData();
+    const monthKeys = Object.keys(months).sort().reverse(); // most recent month first
+    const body = document.getElementById("expenseSummaryBody");
+
+    if (monthKeys.length === 0) {
+      body.innerHTML = '<div class="empty">No expenses recorded yet.</div>';
+      return;
+    }
+
+    body.innerHTML = monthKeys.map(monthKey => {
+      const monthData = months[monthKey];
+      const dateKeys = Object.keys(monthData.dates).sort().reverse(); // most recent date first
+      const datesHtml = dateKeys.map(dateKey => {
+        const dateData = monthData.dates[dateKey];
+        const itemsHtml = dateData.entries.map(e =>
+          `<div style="display:flex; justify-content:space-between; align-items:baseline; padding:6px 0 6px 14px; font-size:13px; color:#4A4636; border-bottom:1px solid #F0EAD9;">
+            <div style="min-width:0;">
+              <div>${escapeHtml(e.name)}</div>
+              <div style="font-size:11px; color:#9B937C;">${escapeHtml(e.listName)}</div>
+            </div>
+            <div style="font-weight:600; flex-shrink:0; margin-left:10px;">${rupee(e.amount)}</div>
+          </div>`
+        ).join("");
+        return `
+          <div class="es-date-block">
+            <button class="es-date-toggle" data-es-date-toggle="${monthKey}|${dateKey}" style="width:100%; display:flex; justify-content:space-between; align-items:center; background:none; border:none; padding:9px 4px; cursor:pointer; font-family:'Inter',sans-serif; border-bottom:1px solid #E9E2D2;">
+              <span style="font-size:13.5px; color:#26241E;">${formatDoneDate(dateKey)}</span>
+              <span style="font-weight:600; font-size:13.5px; color:#4A4636;">${rupee(dateData.total)}</span>
+            </button>
+            <div class="es-date-items" data-es-date-items="${monthKey}|${dateKey}" style="display:none;">${itemsHtml}</div>
+          </div>`;
+      }).join("");
+
+      return `
+        <div class="es-month-block" style="margin-bottom:10px; border:1px solid #E4DCC8; border-radius:12px; overflow:hidden;">
+          <button class="es-month-toggle" data-es-month-toggle="${monthKey}" style="width:100%; display:flex; justify-content:space-between; align-items:center; background:#FFFDF8; border:none; padding:14px 12px; cursor:pointer; font-family:'Source Serif 4',Georgia,serif;">
+            <span style="font-weight:600; font-size:15px; color:#26241E;">${monthLabel(monthKey)}</span>
+            <span style="font-weight:700; font-size:15px; color:#2F5C4B;">${rupee(monthData.total)}</span>
+          </button>
+          <div class="es-month-dates" data-es-month-dates="${monthKey}" style="display:none; padding:0 12px 10px;">${datesHtml}</div>
+        </div>`;
+    }).join("");
+
+    body.querySelectorAll("[data-es-month-toggle]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const key = btn.getAttribute("data-es-month-toggle");
+        const panel = body.querySelector(`[data-es-month-dates="${key}"]`);
+        panel.style.display = panel.style.display === "none" ? "block" : "none";
+      });
+    });
+    body.querySelectorAll("[data-es-date-toggle]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const key = btn.getAttribute("data-es-date-toggle");
+        const panel = body.querySelector(`[data-es-date-items="${key}"]`);
+        panel.style.display = panel.style.display === "none" ? "block" : "none";
+      });
+    });
+  }
+
+  document.getElementById("menuExpenseSummaryBtn").addEventListener("click", () => {
+    settingsOverlay.classList.remove("open");
+    renderExpenseSummary();
+    expenseSummaryOverlay.classList.add("open");
+  });
+  document.getElementById("expenseSummaryCloseBtn").addEventListener("click", () => expenseSummaryOverlay.classList.remove("open"));
+  // ---------- end Expense Summary ----------
+
   // ---------- Trash ----------
   const trashOverlay = document.getElementById("trashOverlay");
   const trashListEl = document.getElementById("trashList");
@@ -3583,11 +3702,9 @@
   updateLangToggleLabel();
   applyLanguage();
 
-  if (currentListId && lists.find(l => l.id === currentListId)) {
-    openList(currentListId);
-  } else {
-    showListsScreen();
-  }
+  // Always open to the Home screen (list of lists) — never jump straight into
+  // whichever list happened to be open last time.
+  showListsScreen();
 
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
