@@ -277,7 +277,7 @@
   }
 
   .lists-wrap { max-width: 480px; margin: 0 auto; padding: 16px 16px 40px; }
-  .lists-header { display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+  .lists-header { display:flex; align-items:center; justify-content:flex-end; gap:10px; margin-bottom:18px; }
   .list-card {
     display:flex; align-items:center; gap:12px; background:#FFFDF8; border:1px solid #E4DCC8;
     border-radius:14px; padding:14px; margin-bottom:10px; cursor:pointer; position:relative;
@@ -3060,7 +3060,7 @@
       <button class="sheet-item" data-search-go="${m.listId}" style="text-align:left;">
         <div style="flex:1; min-width:0;">
           <div style="font-weight:600; color:#26241E;">${escapeHtml(m.item.name)}</div>
-          <div style="font-size:12px; color:#9B937C; margin-top:2px;">in "${escapeHtml(m.listName)}"</div>
+          <div style="font-size:12px; color:#9B937C; margin-top:2px;">in "${escapeHtml(m.listName)}"${m.item.createdAt ? " on " + formatDoneDate(m.item.createdAt) : ""}</div>
         </div>
         ${m.listType === "checklist" ? "" : `<div style="font-weight:600; color:#4A4636; flex-shrink:0; margin-left:10px;">${rupee(m.item.amount)}</div>`}
       </button>`
