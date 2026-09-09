@@ -96,15 +96,19 @@
   .backup-note { font-size:12px; color:#9B937C; font-family:'Inter',sans-serif; text-align:center; margin:-6px 0 18px; }
 
   .add-row { display:flex; gap:8px; margin-bottom:12px; font-family:'Inter',sans-serif; }
-  .add-row input {
+  .add-row input, .add-row textarea {
     padding:10px 12px; border-radius:10px; border:1px solid #E4DCC8;
     background:#FFFDF8; font-size:14px; outline:none; font-family:'Inter',sans-serif;
   }
-  #nameInput { flex:1; min-width:0; }
+  #nameInput { flex:1; min-width:0; line-height:1.3; max-height:110px; overflow-y:auto; }
   #amountInput { width:90px; }
   #addBtn {
-    width:40px; border-radius:10px; border:none; background:#26241E; color:#F6F1E7;
-    display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; font-size:20px;
+    width:32px; border-radius:10px; border:none; background:#26241E; color:#F6F1E7;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; font-size:18px;
+  }
+  #calcOpenBtn {
+    width:32px; border-radius:10px; border:1px solid #E4DCC8; background:#FFFDF8; color:#4A4636;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;
   }
 
   .list { display:flex; flex-direction:column; gap:6px; touch-action:pan-y; }
@@ -230,6 +234,11 @@
   }
   .edit-save { background:#26241E; color:#F6F1E7; }
   .edit-cancel { background:#EFE8D8; color:#4A4636; }
+  .calc-btn {
+    padding:14px 0; border-radius:10px; border:1px solid #E4DCC8; background:#FFFDF8; color:#26241E;
+    font-family:'Inter',sans-serif; font-size:17px; font-weight:600; cursor:pointer;
+  }
+  .calc-btn.calc-op { background:#F6F1E7; color:#4A4636; }
   .toggle-chip {
     flex-shrink:0; border:none; border-radius:8px; padding:7px 10px; font-size:12.5px;
     font-weight:600; cursor:pointer; font-family:'Inter',sans-serif;
@@ -341,6 +350,65 @@
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     <span data-i18n="newList">New list</span>
   </button>
+</div>
+
+<div class="edit-overlay" id="bulkEditOverlay">
+  <div class="edit-card">
+    <div class="edit-card-title" id="bulkEditTitle">Edit selected items</div>
+    <div class="manage-hint" style="margin-bottom:10px;">Leave a field as "Don't change" to skip it — only the fields you set will be applied to every selected item.</div>
+    <div class="edit-field" id="bulkCategoryField">
+      <label class="edit-label">Category</label>
+      <select class="edit-input" id="bulkCategorySelect"></select>
+    </div>
+    <div class="edit-field">
+      <label class="edit-label">Created date</label>
+      <input class="edit-input" id="bulkDateInput" type="date" />
+    </div>
+    <div class="edit-field" id="bulkMoveField">
+      <label class="edit-label">Move to another list</label>
+      <select class="edit-input" id="bulkMoveListSelect"></select>
+    </div>
+    <div class="edit-actions">
+      <button class="edit-cancel" id="bulkEditCancelBtn">Cancel</button>
+      <button class="edit-save" id="bulkEditApplyBtn">Apply</button>
+    </div>
+  </div>
+</div>
+
+<div class="edit-overlay" id="calcOverlay" style="z-index:250;">
+  <div class="edit-card" style="max-width:320px; padding:16px;">
+    <div class="edit-card-title" style="margin-bottom:10px;">Calculator</div>
+    <div id="calcDisplay" style="background:#26241E; color:#F6F1E7; border-radius:10px; padding:16px 14px; text-align:right; font-family:'Inter',sans-serif; font-size:26px; font-weight:600; margin-bottom:12px; min-height:38px; overflow-x:auto; white-space:nowrap;">0</div>
+    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px;">
+      <button class="calc-btn calc-op" data-calc="C">C</button>
+      <button class="calc-btn calc-op" data-calc="⌫">⌫</button>
+      <button class="calc-btn calc-op" data-calc="%">%</button>
+      <button class="calc-btn calc-op" data-calc="÷">÷</button>
+
+      <button class="calc-btn" data-calc="7">7</button>
+      <button class="calc-btn" data-calc="8">8</button>
+      <button class="calc-btn" data-calc="9">9</button>
+      <button class="calc-btn calc-op" data-calc="×">×</button>
+
+      <button class="calc-btn" data-calc="4">4</button>
+      <button class="calc-btn" data-calc="5">5</button>
+      <button class="calc-btn" data-calc="6">6</button>
+      <button class="calc-btn calc-op" data-calc="-">−</button>
+
+      <button class="calc-btn" data-calc="1">1</button>
+      <button class="calc-btn" data-calc="2">2</button>
+      <button class="calc-btn" data-calc="3">3</button>
+      <button class="calc-btn calc-op" data-calc="+">+</button>
+
+      <button class="calc-btn" data-calc="0" style="grid-column:span 2;">0</button>
+      <button class="calc-btn" data-calc=".">.</button>
+      <button class="calc-btn calc-op" data-calc="=" style="background:#2F5C4B; color:#F6F1E7;">=</button>
+    </div>
+    <div class="edit-actions">
+      <button class="edit-cancel" id="calcCancelBtn">Cancel</button>
+      <button class="edit-save" id="calcAddToAmountBtn">Add to amount</button>
+    </div>
+  </div>
 </div>
 
 <div class="edit-overlay" id="confirmOverlay" style="z-index:300;">
@@ -677,6 +745,7 @@
       </div>
       <div class="multiselect-bar" id="multiSelectBarManage">
         <div class="ms-info"><span id="msCountManage">0</span> selected <span id="msTotalWrapManage"></span></div>
+        <button class="ms-edit-btn" id="msEditBtnManage" style="background:#4A4636; color:#F6F1E7; border:none; border-radius:8px; padding:8px 12px; font-size:13px; cursor:pointer; font-family:'Inter',sans-serif;">Edit</button>
         <button class="ms-delete-btn" id="msDeleteBtnManage">Delete</button>
         <button class="ms-cancel-btn" id="msCancelBtnManage">Cancel</button>
       </div>
@@ -771,13 +840,17 @@
   </div>
 
   <div class="add-row">
-    <input id="nameInput" type="text" placeholder="Item name" data-i18n-placeholder="itemNamePlaceholder" enterkeyhint="next" />
+    <textarea id="nameInput" rows="1" placeholder="Item name" data-i18n-placeholder="itemNamePlaceholder" enterkeyhint="next" style="resize:none; overflow:hidden;"></textarea>
     <input id="amountInput" type="number" inputmode="decimal" placeholder="Amount" data-i18n-placeholder="amountPlaceholder" enterkeyhint="done" />
+    <button id="calcOpenBtn" aria-label="Calculator">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="11" x2="8" y2="11.01"/><line x1="12" y1="11" x2="12" y2="11.01"/><line x1="16" y1="11" x2="16" y2="11.01"/><line x1="8" y1="15" x2="8" y2="15.01"/><line x1="12" y1="15" x2="12" y2="15.01"/><line x1="16" y1="15" x2="16" y2="15.01"/><line x1="8" y1="19" x2="8" y2="19.01"/><line x1="12" y1="19" x2="12" y2="19.01"/></svg>
+    </button>
     <button id="addBtn">+</button>
   </div>
 
   <div class="multiselect-bar" id="multiSelectBarHome">
     <div class="ms-info"><span id="msCountHome">0</span> selected <span id="msTotalWrapHome"></span></div>
+    <button class="ms-edit-btn" id="msEditBtnHome" style="background:#4A4636; color:#F6F1E7; border:none; border-radius:8px; padding:8px 12px; font-size:13px; cursor:pointer; font-family:'Inter',sans-serif;">Edit</button>
     <button class="ms-delete-btn" id="msDeleteBtnHome">Delete</button>
     <button class="ms-cancel-btn" id="msCancelBtnHome">Cancel</button>
   </div>
@@ -1470,6 +1543,7 @@
     items.unshift({ id: uid(), name, amount, done: false, active: true, category: null, createdAt: todayStr(), doneDate: null });
     saveItems();
     nameInput.value = "";
+    nameInput.style.height = "auto";
     amountInput.value = "";
     render();
     nameInput.focus();
@@ -1643,9 +1717,73 @@
     exitMultiSelect();
   }
 
+  const NOCHANGE = "__nochange__";
+  const bulkEditOverlay = document.getElementById("bulkEditOverlay");
+
+  function openBulkEditOverlay() {
+    const count = selectedItemIds.size;
+    document.getElementById("bulkEditTitle").textContent = "Edit " + count + " selected item" + (count > 1 ? "s" : "");
+
+    const checklist = isChecklistType();
+    document.getElementById("bulkCategoryField").style.display = checklist ? "none" : "block";
+    const catSelect = document.getElementById("bulkCategorySelect");
+    catSelect.innerHTML = `<option value="${NOCHANGE}">Don't change</option><option value="">No category</option>` +
+      categories.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join("");
+
+    const otherLists = lists.filter(l => l.id !== currentListId);
+    const moveField = document.getElementById("bulkMoveField");
+    const moveSelect = document.getElementById("bulkMoveListSelect");
+    if (otherLists.length === 0) {
+      moveField.style.display = "none";
+    } else {
+      moveField.style.display = "block";
+      moveSelect.innerHTML = '<option value="">Keep in this list</option>' +
+        otherLists.map(l => `<option value="${l.id}">${escapeHtml(l.name)}</option>`).join("");
+    }
+
+    document.getElementById("bulkDateInput").value = "";
+    bulkEditOverlay.classList.add("open");
+  }
+
+  function applyBulkEdit() {
+    const categoryVal = document.getElementById("bulkCategorySelect").value;
+    const dateVal = document.getElementById("bulkDateInput").value;
+    const moveListId = document.getElementById("bulkMoveListSelect").value;
+    const ids = Array.from(selectedItemIds);
+    let movedCount = 0;
+
+    const overrides = {};
+    if (categoryVal && categoryVal !== NOCHANGE) overrides.category = categoryVal;
+    else if (categoryVal === "") overrides.category = null;
+    if (dateVal) overrides.createdAt = dateVal;
+
+    ids.forEach(id => {
+      const item = items.find(i => i.id === id);
+      if (!item) return;
+      if (moveListId) {
+        performMove(id, moveListId, overrides);
+        movedCount++;
+      } else if (Object.keys(overrides).length > 0) {
+        items = items.map(i => i.id === id ? { ...i, ...overrides } : i);
+      }
+    });
+    saveItems();
+    bulkEditOverlay.classList.remove("open");
+    exitMultiSelect();
+    render();
+    const targetList = lists.find(l => l.id === moveListId);
+    alert(movedCount > 0
+      ? `Updated and moved ${movedCount} item${movedCount > 1 ? "s" : ""} to "${targetList.name}".`
+      : `Updated ${ids.length} item${ids.length > 1 ? "s" : ""}.`);
+  }
+
+  document.getElementById("bulkEditCancelBtn").addEventListener("click", () => bulkEditOverlay.classList.remove("open"));
+  document.getElementById("bulkEditApplyBtn").addEventListener("click", applyBulkEdit);
+
   ["Home", "Manage"].forEach(suffix => {
     document.getElementById("msDeleteBtn" + suffix).addEventListener("click", deleteSelectedItems);
     document.getElementById("msCancelBtn" + suffix).addEventListener("click", exitMultiSelect);
+    document.getElementById("msEditBtn" + suffix).addEventListener("click", openBulkEditOverlay);
   });
 
   // Attach a long-press-to-select gesture to any element carrying data-longpress-select="<id>"
@@ -1882,15 +2020,15 @@
     editContext = null;
   }
 
-  function moveItemToList(itemId, targetListId, overrides) {
+  function performMove(itemId, targetListId, overrides) {
     const item = items.find(i => i.id === itemId);
-    if (!item) return;
+    if (!item) return false;
     const targetList = lists.find(l => l.id === targetListId);
-    if (!targetList) return;
+    if (!targetList) return false;
 
-    // Apply any edited fields (name/amount) but keep createdAt/doneDate exactly as they
-    // were on the original item — moving lists should never change its dates.
-    const movedItem = { ...item, ...(overrides || {}), id: uid(), category: null };
+    // Category defaults to cleared (categories are per-list) unless the caller
+    // explicitly provides one via overrides. Dates stay untouched unless overridden.
+    const movedItem = { ...item, category: null, ...(overrides || {}), id: uid() };
     try {
       const targetItems = JSON.parse(localStorage.getItem(itemsKeyFor(targetListId)) || "[]");
       targetItems.unshift(movedItem);
@@ -1900,7 +2038,12 @@
 
     // Remove it from the current list (goes through the normal delete/trash/sync path)
     removeItemDirect(itemId);
+    return true;
+  }
 
+  function moveItemToList(itemId, targetListId, overrides) {
+    const targetList = lists.find(l => l.id === targetListId);
+    if (!performMove(itemId, targetListId, overrides)) return;
     closeEditModal();
     alert(`Moved to "${targetList.name}".`);
   }
@@ -2263,6 +2406,66 @@
 
   document.getElementById("addBtn").addEventListener("click", addItem);
 
+  // ---------- Calculator ----------
+  let calcExpr = "";
+  const calcOverlay = document.getElementById("calcOverlay");
+  const calcDisplay = document.getElementById("calcDisplay");
+
+  function calcRound(n) {
+    return Math.round(n * 100) / 100;
+  }
+  function calcSafeEval(expr) {
+    if (!expr) return null;
+    try {
+      const result = Function('"use strict"; return (' + expr + ")")();
+      if (typeof result !== "number" || !isFinite(result)) return null;
+      return result;
+    } catch (e) {
+      return null;
+    }
+  }
+  function calcUpdateDisplay() {
+    calcDisplay.textContent = calcExpr === "" ? "0" : calcExpr.replace(/\*/g, "×").replace(/\//g, "÷");
+  }
+
+  document.querySelectorAll("[data-calc]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const key = btn.getAttribute("data-calc");
+      if (key === "C") {
+        calcExpr = "";
+      } else if (key === "⌫") {
+        calcExpr = calcExpr.slice(0, -1);
+      } else if (key === "=") {
+        const result = calcSafeEval(calcExpr);
+        calcExpr = result === null ? "" : String(calcRound(result));
+      } else if (key === "%") {
+        const result = calcSafeEval(calcExpr);
+        calcExpr = result === null ? "" : String(calcRound(result / 100));
+      } else if (key === "×") {
+        calcExpr += "*";
+      } else if (key === "÷") {
+        calcExpr += "/";
+      } else {
+        calcExpr += key; // digit, ".", or "+"/"-"
+      }
+      calcUpdateDisplay();
+    });
+  });
+
+  document.getElementById("calcOpenBtn").addEventListener("click", () => {
+    calcExpr = amountInput.value ? String(amountInput.value) : "";
+    calcUpdateDisplay();
+    calcOverlay.classList.add("open");
+  });
+  document.getElementById("calcCancelBtn").addEventListener("click", () => calcOverlay.classList.remove("open"));
+  calcOverlay.addEventListener("click", (e) => { if (e.target === calcOverlay) calcOverlay.classList.remove("open"); });
+  document.getElementById("calcAddToAmountBtn").addEventListener("click", () => {
+    const result = calcSafeEval(calcExpr || "0");
+    if (result !== null) amountInput.value = calcRound(result);
+    calcOverlay.classList.remove("open");
+  });
+  // ---------- end Calculator ----------
+
 
   // ---------- Paste-to-import fallback ----------
   const pasteOverlay = document.getElementById("pasteOverlay");
@@ -2404,6 +2607,10 @@
     };
     reader.readAsText(file);
     importCsvFile.value = "";
+  });
+  nameInput.addEventListener("input", () => {
+    nameInput.style.height = "auto";
+    nameInput.style.height = Math.min(nameInput.scrollHeight, 110) + "px";
   });
   nameInput.addEventListener("keydown", e => {
     if (e.key !== "Enter") return;
