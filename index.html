@@ -307,7 +307,7 @@
 <body>
 
 <div id="listsScreen" class="lists-wrap">
-  <div class="lists-header">
+  <div class="lists-header-top" style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
     <div class="logo" style="position:relative;">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="#F6F1E7">
         <rect x="6.5" y="3.5" width="11" height="16" rx="1.5"/>
@@ -325,6 +325,13 @@
       <div class="title" data-i18n="appName">Muhasib محاسب</div>
       <div class="subtitle" data-i18n="pickListSubtitle">Pick a list, or create a new one</div>
     </div>
+  </div>
+
+  <div class="lists-header" style="margin-bottom:14px;">
+    <button class="settings-btn" id="listsSearchBtn" aria-label="Search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </button>
+    <div style="flex:1;"></div>
     <button class="settings-btn" id="listsAvatarBtn" style="display:none; padding:0; overflow:hidden;" aria-label="Account">
       <img id="listsAvatarImg" src="" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" />
     </button>
@@ -511,6 +518,19 @@
   </div>
 </div>
 
+<div class="manage-overlay" id="searchOverlay">
+  <div class="manage-header">
+    <div class="manage-title">Search</div>
+    <button class="manage-close" id="searchCloseBtn" aria-label="Close">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="manage-body">
+    <input id="searchInput" type="text" placeholder="Search item names across all lists..." style="width:100%; padding:12px 14px; border-radius:10px; border:1px solid #E4DCC8; background:#FFFDF8; font-size:14px; outline:none; font-family:'Inter',sans-serif; margin-bottom:14px;" />
+    <div id="searchResults"></div>
+  </div>
+</div>
+
 <div class="manage-overlay" id="expenseSummaryOverlay">
   <div class="manage-header">
     <div class="manage-title">Expense Summary</div>
@@ -662,6 +682,9 @@
     </button>
     <button class="settings-btn" id="appAvatarBtn" style="display:none; padding:0; overflow:hidden;" aria-label="Account">
       <img id="appAvatarImg" src="" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" />
+    </button>
+    <button class="settings-btn" id="appSearchBtn" aria-label="Search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     </button>
     <button class="settings-btn" id="langToggleBtn2" aria-label="Language" style="font-family:'Inter',sans-serif; font-size:11px; font-weight:700;">EN</button>
     <button class="settings-btn" id="userGuideQuickBtn" aria-label="User Guide">
@@ -2997,6 +3020,64 @@
   });
   document.getElementById("expenseSummaryCloseBtn").addEventListener("click", () => expenseSummaryOverlay.classList.remove("open"));
   // ---------- end Expense Summary ----------
+
+  // ---------- Search (across all lists) ----------
+  const searchOverlay = document.getElementById("searchOverlay");
+  const searchInput = document.getElementById("searchInput");
+  const searchResults = document.getElementById("searchResults");
+
+  function renderSearchResults(query) {
+    const q = query.trim().toLowerCase();
+    if (!q) {
+      searchResults.innerHTML = '<div class="manage-hint">Type at least one letter to search.</div>';
+      return;
+    }
+    const matches = [];
+    lists.forEach(l => {
+      let arr = [];
+      try { arr = JSON.parse(localStorage.getItem(itemsKeyFor(l.id)) || "[]"); } catch (e) {}
+      arr.forEach(item => {
+        if (item.name && item.name.toLowerCase().includes(q)) {
+          matches.push({ item, listId: l.id, listName: l.name, listType: l.type });
+        }
+      });
+    });
+
+    if (matches.length === 0) {
+      searchResults.innerHTML = '<div class="empty">No items found.</div>';
+      return;
+    }
+
+    searchResults.innerHTML = matches.map(m => `
+      <button class="sheet-item" data-search-go="${m.listId}" style="text-align:left;">
+        <div style="flex:1; min-width:0;">
+          <div style="font-weight:600; color:#26241E;">${escapeHtml(m.item.name)}</div>
+          <div style="font-size:12px; color:#9B937C; margin-top:2px;">in "${escapeHtml(m.listName)}"</div>
+        </div>
+        ${m.listType === "checklist" ? "" : `<div style="font-weight:600; color:#4A4636; flex-shrink:0; margin-left:10px;">${rupee(m.item.amount)}</div>`}
+      </button>`
+    ).join("");
+
+    searchResults.querySelectorAll("[data-search-go]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const targetListId = btn.getAttribute("data-search-go");
+        searchOverlay.classList.remove("open");
+        openList(targetListId);
+      });
+    });
+  }
+
+  function openSearchOverlay() {
+    searchInput.value = "";
+    renderSearchResults("");
+    searchOverlay.classList.add("open");
+    setTimeout(() => searchInput.focus(), 100);
+  }
+  document.getElementById("listsSearchBtn").addEventListener("click", openSearchOverlay);
+  document.getElementById("appSearchBtn").addEventListener("click", openSearchOverlay);
+  document.getElementById("searchCloseBtn").addEventListener("click", () => searchOverlay.classList.remove("open"));
+  searchInput.addEventListener("input", () => renderSearchResults(searchInput.value));
+  // ---------- end Search ----------
 
   // ---------- Trash ----------
   const trashOverlay = document.getElementById("trashOverlay");
