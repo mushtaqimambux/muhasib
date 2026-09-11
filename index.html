@@ -1573,6 +1573,22 @@
     render();
   }
 
+  // Used when an item is moved to another list — not a real delete, so it must
+  // never show up in Trash or be restorable (that would duplicate it). It still
+  // gets recorded in the trash array (marked movedAway) purely so the existing
+  // sync mechanism can detect the removal and correctly push it to Google Sheets.
+  function removeItemForMove(id) {
+    const removedItem = items.find(i => i.id === id);
+    items = items.filter(i => i.id !== id);
+    if (removedItem) {
+      const trash = loadTrash(currentListId);
+      trash.unshift({ ...removedItem, deletedAt: new Date().toISOString(), movedAway: true });
+      saveTrash(currentListId, trash);
+    }
+    saveItems();
+    render();
+  }
+
   let selectedAddDate = null;
 
   function addItem() {
@@ -2079,8 +2095,9 @@
     } catch (e) {}
     if (gIsSignedIn) pushItemNow(targetListId, movedItem, false, false);
 
-    // Remove it from the current list (goes through the normal delete/trash/sync path)
-    removeItemDirect(itemId);
+    // Remove it from the source list — marked as a move, not a delete, so it
+    // won't show up in Trash (avoiding confusion or duplicate-on-restore).
+    removeItemForMove(itemId);
     return true;
   }
 
@@ -3153,11 +3170,12 @@
   function renderTrash() {
     let html = "";
 
-    // Deleted items, grouped across all current lists
+    // Deleted items, grouped across all current lists (moved-away items are excluded —
+    // they're not deletions, and showing/restoring them would create duplicates)
     const itemRows = [];
     lists.forEach(l => {
       const trash = loadTrash(l.id);
-      trash.forEach(t => itemRows.push({ ...t, listId: l.id, listName: l.name }));
+      trash.filter(t => !t.movedAway).forEach(t => itemRows.push({ ...t, listId: l.id, listName: l.name }));
     });
     itemRows.sort((a, b) => new Date(b.deletedAt) - new Date(a.deletedAt));
 
