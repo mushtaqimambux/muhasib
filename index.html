@@ -106,9 +106,9 @@
     width:32px; border-radius:10px; border:none; background:#26241E; color:#F6F1E7;
     display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; font-size:18px;
   }
-  #calcOpenBtn {
-    width:32px; border-radius:10px; border:1px solid #E4DCC8; background:#FFFDF8; color:#4A4636;
-    display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;
+  #calendarOpenBtn, #calcOpenBtn {
+    width:28px; height:28px; border-radius:9px; border:1px solid #E4DCC8; background:#FFFDF8; color:#4A4636;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; padding:0;
   }
 
   .list { display:flex; flex-direction:column; gap:6px; touch-action:pan-y; }
@@ -861,13 +861,30 @@
     </div>
   </div>
 
-  <div class="add-row">
-    <textarea id="nameInput" rows="1" placeholder="Item name" data-i18n-placeholder="itemNamePlaceholder" enterkeyhint="next" style="resize:none; overflow:hidden;"></textarea>
-    <input id="amountInput" type="number" inputmode="decimal" placeholder="Amount" data-i18n-placeholder="amountPlaceholder" enterkeyhint="done" />
-    <button id="calcOpenBtn" aria-label="Calculator">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="11" x2="8" y2="11.01"/><line x1="12" y1="11" x2="12" y2="11.01"/><line x1="16" y1="11" x2="16" y2="11.01"/><line x1="8" y1="15" x2="8" y2="15.01"/><line x1="12" y1="15" x2="12" y2="15.01"/><line x1="16" y1="15" x2="16" y2="15.01"/><line x1="8" y1="19" x2="8" y2="19.01"/><line x1="12" y1="19" x2="12" y2="19.01"/></svg>
-    </button>
-    <button id="addBtn">+</button>
+  <div class="add-item-card" style="background:#FFFDF8; border:1px solid #E4DCC8; border-radius:12px; padding:12px 14px; margin-bottom:12px;">
+    <div class="add-row" style="margin-bottom:10px;">
+      <textarea id="nameInput" rows="1" placeholder="Item name" data-i18n-placeholder="itemNamePlaceholder" enterkeyhint="next" style="resize:none; overflow:hidden;"></textarea>
+      <input id="amountInput" type="number" inputmode="decimal" placeholder="Amount" data-i18n-placeholder="amountPlaceholder" enterkeyhint="done" />
+      <button id="addBtn">+</button>
+    </div>
+
+    <div class="add-row-2" style="display:flex; align-items:stretch; gap:8px;">
+      <button id="calcOpenBtn" aria-label="Calculator" style="flex:1; box-sizing:border-box; height:44px; border-radius:9px; padding:9px 12px; font-family:'Inter',sans-serif; display:flex; align-items:center; justify-content:center; gap:8px; background:#EEF4EF; border:none; color:#2F5C4B; cursor:pointer;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="11" x2="8" y2="11.01"/><line x1="12" y1="11" x2="12" y2="11.01"/><line x1="16" y1="11" x2="16" y2="11.01"/><line x1="8" y1="15" x2="8" y2="15.01"/><line x1="12" y1="15" x2="12" y2="15.01"/><line x1="16" y1="15" x2="16" y2="15.01"/><line x1="8" y1="19" x2="8" y2="19.01"/><line x1="12" y1="19" x2="12" y2="19.01"/></svg>
+        <span style="font-size:13px; font-weight:600;">Calculator</span>
+      </button>
+      <div id="calendarCard" style="flex:1; box-sizing:border-box; height:44px; border-radius:9px; padding:9px 12px; font-family:'Inter',sans-serif; display:flex; align-items:center; gap:8px; background:#FBEDE7; cursor:pointer;">
+        <button id="calendarOpenBtn" aria-label="Pick date for new item" style="background:none; border:none; padding:0; color:#B5482A; display:flex; flex-shrink:0; cursor:pointer;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </button>
+        <input type="checkbox" id="calendarStickyCheckbox" style="width:15px; height:15px; max-width:16px; max-height:16px; accent-color:#B5482A; flex-shrink:0; margin:0;" />
+        <span style="min-width:0; white-space:nowrap;">
+          <span style="font-size:12.5px; font-weight:700; color:#B5482A;">Repeat</span>
+          <span style="font-size:11px; color:#A0512F; margin-left:4px;" id="calendarDateLabel">today</span>
+        </span>
+      </div>
+      <input type="date" id="calendarHiddenInput" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" />
+    </div>
   </div>
 
   <div class="multiselect-bar" id="multiSelectBarHome">
@@ -1245,7 +1262,9 @@
     let html = "";
     if (noDate.length) html += noDate.map(item => rowHtml(item)).join("");
 
-    dateGroups.forEach((groupItems, dateStr) => {
+    const sortedDateKeys = Array.from(dateGroups.keys()).sort().reverse(); // most recent date first, always
+    sortedDateKeys.forEach(dateStr => {
+      const groupItems = dateGroups.get(dateStr);
       const dayTotal = checklist ? "" : `<span style="font-weight:600;">${rupee(groupItems.reduce((s, i) => s + i.amount, 0))}</span>`;
       html += `<div class="date-heading" style="display:flex; justify-content:space-between; align-items:center; font-family:'Inter',sans-serif; font-size:12.5px; font-weight:600; color:#7A7460; margin:14px 2px 6px; padding-top:6px; border-top:1px solid #E9E2D2;">
         <span>${formatDoneDate(dateStr)}</span>${dayTotal}
@@ -1554,6 +1573,8 @@
     render();
   }
 
+  let selectedAddDate = null;
+
   function addItem() {
     const name = nameInput.value.trim();
     if (!name) return;
@@ -1562,7 +1583,7 @@
       amount = parseFloat(amountInput.value);
       if (isNaN(amount) || amount <= 0) return;
     }
-    items.unshift({ id: uid(), name, amount, done: false, active: true, category: null, createdAt: todayStr(), doneDate: null });
+    items.unshift({ id: uid(), name, amount, done: false, active: true, category: null, createdAt: (calendarStickyCheckbox.checked && selectedAddDate) ? selectedAddDate : todayStr(), doneDate: null });
     saveItems();
     nameInput.value = "";
     nameInput.style.height = "auto";
@@ -2428,6 +2449,32 @@
 
   document.getElementById("addBtn").addEventListener("click", addItem);
 
+  // ---------- Calendar (pick a custom date for new items) ----------
+  const calendarHiddenInput = document.getElementById("calendarHiddenInput");
+  const calendarDateLabel = document.getElementById("calendarDateLabel");
+  const calendarStickyCheckbox = document.getElementById("calendarStickyCheckbox");
+
+  document.getElementById("calendarOpenBtn").addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    calendarHiddenInput.value = selectedAddDate || todayStr();
+    if (calendarHiddenInput.showPicker) {
+      try { calendarHiddenInput.showPicker(); return; } catch (e2) {}
+    }
+    calendarHiddenInput.focus();
+    calendarHiddenInput.click();
+  });
+  document.getElementById("calendarCard").addEventListener("click", (e) => {
+    if (e.target.id === "calendarOpenBtn" || e.target.id === "calendarStickyCheckbox") return;
+    calendarStickyCheckbox.checked = !calendarStickyCheckbox.checked;
+  });
+  calendarHiddenInput.addEventListener("change", () => {
+    if (!calendarHiddenInput.value) return;
+    selectedAddDate = calendarHiddenInput.value;
+    calendarDateLabel.textContent = formatDoneDate(selectedAddDate);
+  });
+  // ---------- end Calendar ----------
+
   // ---------- Calculator ----------
   let calcExpr = "";
   const calcOverlay = document.getElementById("calcOverlay");
@@ -2727,6 +2774,11 @@
   function openList(id) {
     multiSelectMode = false;
     selectedItemIds.clear();
+    selectedAddDate = null;
+    const dLabel = document.getElementById("calendarDateLabel");
+    const dCheckbox = document.getElementById("calendarStickyCheckbox");
+    if (dLabel) dLabel.textContent = "today";
+    if (dCheckbox) dCheckbox.checked = false;
     currentListId = id;
     try { localStorage.setItem(CURRENT_LIST_KEY, id); } catch (e) {}
     items = loadItems();
