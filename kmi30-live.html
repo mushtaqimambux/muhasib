@@ -25,15 +25,8 @@
     position: sticky; top: 0; z-index: 10;
     background: var(--bg); padding: 16px 16px 12px; border-bottom: 1px solid var(--card-border);
   }
-  .title-row { display: flex; align-items: baseline; justify-content: space-between; }
   h1 { font-size: 19px; margin: 0; font-weight: 700; letter-spacing: 0.2px; }
   .sub { color: var(--dim); font-size: 12.5px; margin-top: 3px; }
-  #refreshBtn {
-    background: var(--card); border: 1px solid var(--card-border); color: var(--text);
-    border-radius: 9px; padding: 8px 12px; font-size: 13px; cursor: pointer;
-  }
-  #refreshBtn:active { opacity: 0.7; }
-  #refreshBtn.spinning { color: var(--accent); }
   main { padding: 12px 12px 40px; max-width: 640px; margin: 0 auto; }
   .stock {
     background: var(--card); border: 1px solid var(--card-border); border-radius: 12px;
@@ -41,17 +34,28 @@
   }
   .stock-head {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 14px; cursor: pointer;
+    padding: 12px 14px; gap: 10px;
   }
-  .sym-block { display: flex; flex-direction: column; gap: 1px; }
+  .sym-block { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; cursor: pointer; }
   .sym { font-weight: 700; font-size: 14.5px; letter-spacing: 0.3px; }
   .range { font-family: var(--mono); font-size: 11px; color: var(--dim); }
-  .price-block { text-align: right; }
+  .placeholder-text { font-size: 11.5px; color: var(--dim); }
+  .price-block { text-align: right; cursor: pointer; }
   .now-price { font-family: var(--mono); font-weight: 700; font-size: 16px; }
   .change { font-family: var(--mono); font-size: 12px; }
   .change.up { color: var(--accent); }
   .change.down { color: var(--down); }
   .change.flat { color: var(--dim); }
+  .load-btn {
+    flex-shrink: 0; background: #232935; border: 1px solid var(--card-border); color: var(--text);
+    border-radius: 9px; padding: 8px 14px; font-size: 13px; cursor: pointer;
+  }
+  .load-btn:active { opacity: 0.7; }
+  .load-btn.reload {
+    width: 34px; height: 34px; padding: 0; display: flex; align-items: center; justify-content: center;
+    color: var(--dim);
+  }
+  .load-btn.loading { color: var(--accent); }
   .stock-detail {
     display: none; padding: 0 14px 14px; font-family: var(--mono); font-size: 12px;
     color: var(--dim); line-height: 1.65; border-top: 1px solid var(--card-border);
@@ -59,26 +63,18 @@
   .stock-detail.open { display: block; }
   .detail-section { margin-top: 10px; }
   .detail-label { color: var(--text); font-weight: 700; font-family: -apple-system, sans-serif; font-size: 11.5px; margin-bottom: 3px; }
-  .status { text-align: center; color: var(--dim); font-size: 13px; padding: 30px 0; }
-  .err { color: var(--down); }
-  .updated-note { text-align: center; color: var(--dim); font-size: 11px; margin-top: 14px; }
+  .err-text { color: var(--down); font-size: 11.5px; }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="title-row">
-    <div>
-      <h1>KMI-30</h1>
-      <div class="sub" id="subLine">Loading live prices…</div>
-    </div>
-    <button id="refreshBtn">Refresh</button>
-  </div>
+  <h1>KMI-30</h1>
+  <div class="sub" id="subLine">Kisi bhi stock ke saamne "Load" dabayein — sab ek saath load nahi hote.</div>
 </header>
 
 <main>
   <div id="list"></div>
-  <div class="updated-note" id="updatedNote"></div>
 </main>
 
 <script>
@@ -89,9 +85,6 @@
   ];
 
   const listEl = document.getElementById("list");
-  const subLine = document.getElementById("subLine");
-  const updatedNote = document.getElementById("updatedNote");
-  const refreshBtn = document.getElementById("refreshBtn");
 
   function fmtTime(ts) {
     return new Date(ts * 1000).toLocaleTimeString("en-PK", {
@@ -102,9 +95,6 @@
     return "Rs" + entry[1].toFixed(2) + " - " + fmtTime(entry[0]) + " - V-" + String(entry[2]).padStart(4, "0");
   }
 
-  // dps.psx.com.pk mostly likely won't allow direct cross-origin browser requests
-  // (its CORS policy isn't published). We try direct first, then fall back to a
-  // public CORS relay if that fails, so the app still works from a browser.
   async function fetchViaProxy(target, attempt) {
     const res = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(target));
     if (!res.ok) {
@@ -161,48 +151,93 @@
     return { symbol, low, high, current, openEntry, closeEntry, change, pctChange, minEntry, maxEntry, minVolEntry, maxVolEntry, recentTicks };
   }
 
-  function stockCardHtml(s) {
-    if (!s) return "";
+  // ---------- Render the static list immediately, no data yet ----------
+  function emptyCardHtml(symbol) {
+    return `
+      <div class="stock" data-symbol="${symbol}">
+        <div class="stock-head">
+          <div class="sym-block">
+            <div class="sym">${symbol}</div>
+            <div class="placeholder-text">Not loaded yet</div>
+          </div>
+          <button class="load-btn" data-load="${symbol}">Load</button>
+        </div>
+        <div class="stock-detail" id="detail-${symbol}"></div>
+      </div>`;
+  }
+
+  function loadedCardInner(s) {
     const dir = s.change > 0.001 ? "up" : s.change < -0.001 ? "down" : "flat";
     const arrow = dir === "up" ? "▲" : dir === "down" ? "▼" : "•";
     return `
-      <div class="stock" data-symbol="${s.symbol}">
-        <div class="stock-head" data-toggle="${s.symbol}">
-          <div class="sym-block">
-            <div class="sym">${s.symbol}</div>
-            <div class="range">${s.low.toFixed(2)} - ${s.high.toFixed(2)}</div>
-          </div>
-          <div class="price-block">
-            <div class="now-price">Rs${s.current[1].toFixed(2)}</div>
-            <div class="change ${dir}">${arrow} ${Math.abs(s.change).toFixed(2)} (${s.pctChange.toFixed(2)}%)</div>
-          </div>
+      <div class="stock-head">
+        <div class="sym-block" data-toggle="${s.symbol}">
+          <div class="sym">${s.symbol}</div>
+          <div class="range">${s.low.toFixed(2)} - ${s.high.toFixed(2)}</div>
         </div>
-        <div class="stock-detail" id="detail-${s.symbol}">
-          <div class="detail-section">
-            <div class="detail-label">Recent ticks</div>
-            ${s.recentTicks.map(t => fmtEntry(t)).join("<br>")}
-          </div>
-          <div class="detail-section">
-            <div class="detail-label">Price</div>
-            Now: ${fmtEntry(s.current)}<br>
-            Min: ${fmtEntry(s.minEntry)}<br>
-            Max: ${fmtEntry(s.maxEntry)}
-          </div>
-          <div class="detail-section">
-            O: ${fmtEntry(s.openEntry)}<br>
-            C: ${fmtEntry(s.closeEntry)}
-          </div>
-          <div class="detail-section">
-            <div class="detail-label">Volume</div>
-            Min-V ${String(s.minVolEntry[2]).padStart(4, "0")} - Rs${s.minVolEntry[1].toFixed(2)} - ${fmtTime(s.minVolEntry[0])}<br>
-            Max-V ${String(s.maxVolEntry[2]).padStart(4, "0")} - Rs${s.maxVolEntry[1].toFixed(2)} - ${fmtTime(s.maxVolEntry[0])}
-          </div>
+        <div class="price-block" data-toggle="${s.symbol}">
+          <div class="now-price">Rs${s.current[1].toFixed(2)}</div>
+          <div class="change ${dir}">${arrow} ${Math.abs(s.change).toFixed(2)} (${s.pctChange.toFixed(2)}%)</div>
+        </div>
+        <button class="load-btn reload" data-load="${s.symbol}" aria-label="Reload ${s.symbol}" title="Reload">↻</button>
+      </div>
+      <div class="stock-detail" id="detail-${s.symbol}">
+        <div class="detail-section">
+          <div class="detail-label">Recent ticks</div>
+          ${s.recentTicks.map(t => fmtEntry(t)).join("<br>")}
+        </div>
+        <div class="detail-section">
+          <div class="detail-label">Price</div>
+          Now: ${fmtEntry(s.current)}<br>
+          Min: ${fmtEntry(s.minEntry)}<br>
+          Max: ${fmtEntry(s.maxEntry)}
+        </div>
+        <div class="detail-section">
+          O: ${fmtEntry(s.openEntry)}<br>
+          C: ${fmtEntry(s.closeEntry)}
+        </div>
+        <div class="detail-section">
+          <div class="detail-label">Volume</div>
+          Min-V ${String(s.minVolEntry[2]).padStart(4, "0")} - Rs${s.minVolEntry[1].toFixed(2)} - ${fmtTime(s.minVolEntry[0])}<br>
+          Max-V ${String(s.maxVolEntry[2]).padStart(4, "0")} - Rs${s.maxVolEntry[1].toFixed(2)} - ${fmtTime(s.maxVolEntry[0])}
         </div>
       </div>`;
   }
 
-  function attachToggles() {
-    listEl.querySelectorAll("[data-toggle]").forEach(el => {
+  function errorCardInner(symbol) {
+    return `
+      <div class="stock-head">
+        <div class="sym-block">
+          <div class="sym">${symbol}</div>
+          <div class="err-text">Load nahi hua — dobara try karein</div>
+        </div>
+        <button class="load-btn" data-load="${symbol}">Retry</button>
+      </div>`;
+  }
+
+  async function loadOne(symbol) {
+    const card = document.querySelector(`.stock[data-symbol="${symbol}"]`);
+    const btn = card.querySelector("[data-load]");
+    btn.classList.add("loading");
+    btn.textContent = btn.classList.contains("reload") ? "…" : "Loading…";
+    btn.disabled = true;
+
+    try {
+      const data = await fetchSymbol(symbol);
+      const s = processStock(symbol, data);
+      if (!s) throw new Error("no data");
+      card.innerHTML = loadedCardInner(s);
+      attachCardListeners(card);
+    } catch (e) {
+      card.innerHTML = errorCardInner(symbol);
+      attachCardListeners(card);
+    }
+  }
+
+  function attachCardListeners(card) {
+    const loadBtn = card.querySelector("[data-load]");
+    if (loadBtn) loadBtn.addEventListener("click", () => loadOne(loadBtn.getAttribute("data-load")));
+    card.querySelectorAll("[data-toggle]").forEach(el => {
       el.addEventListener("click", () => {
         const sym = el.getAttribute("data-toggle");
         document.getElementById("detail-" + sym).classList.toggle("open");
@@ -210,62 +245,12 @@
     });
   }
 
-  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-  let loading = false;
-  async function loadAll() {
-    if (loading) return;
-    loading = true;
-    refreshBtn.classList.add("spinning");
-    refreshBtn.textContent = "Loading…";
-    listEl.innerHTML = "";
-
-    const BATCH_SIZE = 4;
-    const DELAY_BETWEEN_BATCHES = 900; // ms — gentle on the free CORS relay / PSX server
-    let okCount = 0;
-    let failCount = 0;
-    const cardsBySymbol = {};
-
-    for (let i = 0; i < SYMBOLS.length; i += BATCH_SIZE) {
-      const batch = SYMBOLS.slice(i, i + BATCH_SIZE);
-      subLine.textContent = "Fetching " + Math.min(i + BATCH_SIZE, SYMBOLS.length) + " / " + SYMBOLS.length + "…";
-
-      const batchResults = await Promise.all(batch.map(async (symbol) => {
-        try {
-          const data = await fetchSymbol(symbol);
-          const s = processStock(symbol, data);
-          return s ? s : { symbol, error: true };
-        } catch (e) {
-          return { symbol, error: true };
-        }
-      }));
-
-      batchResults.forEach(r => {
-        if (r.error) { failCount++; return; }
-        okCount++;
-        cardsBySymbol[r.symbol] = stockCardHtml(r);
-      });
-
-      // Render in the original KMI-30 order, filling in whatever has loaded so far.
-      listEl.innerHTML = SYMBOLS.map(sym => cardsBySymbol[sym] || "").join("");
-      attachToggles();
-      subLine.textContent = okCount + " / " + SYMBOLS.length + " stocks loaded" + (failCount ? " (" + failCount + " failed)" : "");
-
-      if (i + BATCH_SIZE < SYMBOLS.length) await sleep(DELAY_BETWEEN_BATCHES);
-    }
-
-    if (okCount === 0) {
-      listEl.innerHTML = '<div class="status err">Koi data nahi mil saka — internet check karein ya thodi der baad try karein.</div>';
-    }
-
-    updatedNote.textContent = "Last updated: " + new Date().toLocaleTimeString("en-PK", { timeZone: "Asia/Karachi" });
-    refreshBtn.classList.remove("spinning");
-    refreshBtn.textContent = "Refresh";
-    loading = false;
+  function init() {
+    listEl.innerHTML = SYMBOLS.map(emptyCardHtml).join("");
+    document.querySelectorAll(".stock").forEach(attachCardListeners);
   }
 
-  refreshBtn.addEventListener("click", loadAll);
-  loadAll();
+  init();
 </script>
 </body>
 </html>
