@@ -95,27 +95,54 @@
     return "Rs" + entry[1].toFixed(2) + " - " + fmtTime(entry[0]) + " - V-" + String(entry[2]).padStart(4, "0");
   }
 
+  function isValidPayload(json) {
+    return !!(json && json.data && Array.isArray(json.data) && json.data.length > 0);
+  }
+
+  async function fetchWithTimeout(url, ms) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), ms);
+    try {
+      return await fetch(url, { signal: controller.signal });
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
   async function fetchViaProxy(target, attempt) {
-    const res = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(target));
+    // MEBL and other high-volume stocks return a much larger payload, so the
+    // free proxy needs more time — give it up to 20 seconds.
+    const res = await fetchWithTimeout("https://api.allorigins.win/raw?url=" + encodeURIComponent(target), 20000);
     if (!res.ok) {
       if (attempt < 2) {
-        await new Promise(r => setTimeout(r, 500));
+        await new Promise(r => setTimeout(r, 700));
         return fetchViaProxy(target, attempt + 1);
       }
       throw new Error("proxy failed after retry");
     }
-    return await res.json();
+    const json = await res.json();
+    if (!isValidPayload(json)) {
+      if (attempt < 2) {
+        await new Promise(r => setTimeout(r, 700));
+        return fetchViaProxy(target, attempt + 1);
+      }
+      throw new Error("proxy returned incomplete data after retry");
+    }
+    return json;
   }
 
   async function fetchSymbol(symbol) {
     const target = "https://dps.psx.com.pk/timeseries/int/" + symbol;
     try {
-      const res = await fetch(target);
-      if (!res.ok) throw new Error("bad status");
-      return await res.json();
+      const res = await fetchWithTimeout(target, 8000);
+      if (res.ok) {
+        const json = await res.json();
+        if (isValidPayload(json)) return json;
+      }
     } catch (e) {
-      return await fetchViaProxy(target, 1);
+      // fall through to proxy below, regardless of why the direct attempt failed
     }
+    return await fetchViaProxy(target, 1);
   }
 
   function processStock(symbol, data) {
