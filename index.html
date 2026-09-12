@@ -307,39 +307,21 @@
 <body>
 
 <div id="listsScreen" class="lists-wrap">
-  <div class="lists-header-top" style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-    <div class="logo" style="position:relative;">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="#F6F1E7">
-        <rect x="6.5" y="3.5" width="11" height="16" rx="1.5"/>
-      </svg>
-      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#2F5C4B" stroke-width="1.5" style="position:absolute; left:6px; top:6px;">
-        <line x1="4" y1="7" x2="20" y2="7"/>
-        <line x1="4" y1="12" x2="20" y2="12"/>
-        <line x1="4" y1="17" x2="14" y2="17"/>
-      </svg>
-      <div style="position:absolute; right:-4px; bottom:-4px; width:14px; height:14px; border-radius:50%; background:#B5482A; display:flex; align-items:center; justify-content:center; border:1.5px solid #2F5C4B;">
-        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#F6F1E7" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-      </div>
-    </div>
+  <div class="lists-header-top" style="display:flex; align-items:center; gap:8px; margin-bottom:14px;">
+    <button class="settings-btn" id="listsAvatarBtn" style="padding:0; overflow:hidden; width:38px; height:38px; border-radius:50%; flex-shrink:0;" aria-label="Account">
+      <img id="listsAvatarImg" src="" style="width:100%; height:100%; object-fit:cover; border-radius:50%; display:none;" />
+      <svg id="listsAvatarPlaceholder" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </button>
     <div class="header-text">
       <div class="title" data-i18n="appName">Muhasib محاسب</div>
       <div class="subtitle" data-i18n="pickListSubtitle">Pick a list, or create a new one</div>
     </div>
-  </div>
-
-  <div class="lists-header" style="margin-bottom:14px;">
     <button class="settings-btn" id="listsSearchBtn" aria-label="Search">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     </button>
-    <button class="settings-btn" id="listsAvatarBtn" style="display:none; padding:0; overflow:hidden;" aria-label="Account">
-      <img id="listsAvatarImg" src="" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" />
-    </button>
     <button class="settings-btn" id="langToggleBtn" aria-label="Language" style="font-family:'Inter',sans-serif; font-size:11px; font-weight:700;">EN</button>
-    <button class="settings-btn" id="userGuideQuickBtn2" aria-label="User Guide">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-    </button>
     <button class="settings-btn" id="listsMenuBtn" aria-label="Menu">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
     </button>
   </div>
 
@@ -547,6 +529,7 @@
 <div class="manage-overlay" id="trashOverlay">
   <div class="manage-header">
     <div class="manage-title">Trash</div>
+    <button class="manage-close" id="emptyTrashBtn" style="font-size:11px; font-weight:600; width:auto; padding:0 10px; margin-right:8px; color:#B5482A;">Empty trash</button>
     <button class="manage-close" id="trashCloseBtn" aria-label="Close">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
@@ -618,6 +601,10 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
       <span data-i18n="language">Language</span>: <span id="menuLangValue" style="font-weight:600; margin-left:2px;">English</span>
     </button>
+    <button class="sheet-item" id="menuGuideBtn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      User Guide
+    </button>
     <button class="sheet-item" id="settingsAccountBtn">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       <span data-i18n="account">Google Account &amp; sync</span>
@@ -670,27 +657,25 @@
 <div class="wrap">
   <div class="header">
     <button class="settings-btn" id="backToListsBtn" aria-label="Back to lists">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg>
+    </button>
+    <button class="settings-btn" id="appAvatarBtn" style="padding:0; overflow:hidden; border-radius:50%;" aria-label="Account">
+      <img id="appAvatarImg" src="" style="width:100%; height:100%; object-fit:cover; border-radius:50%; display:none;" />
+      <svg id="appAvatarPlaceholder" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
     </button>
     <div class="header-text">
       <div class="title" id="appTitle">Muhasib محاسب</div>
       <div class="subtitle" id="appSubtitle">Check an item off once you've paid it</div>
     </div>
-    <button class="settings-btn" id="manageListQuickBtn" aria-label="Manage list">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-    </button>
-    <button class="settings-btn" id="appAvatarBtn" style="display:none; padding:0; overflow:hidden;" aria-label="Account">
-      <img id="appAvatarImg" src="" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" />
-    </button>
     <button class="settings-btn" id="appSearchBtn" aria-label="Search">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     </button>
-    <button class="settings-btn" id="langToggleBtn2" aria-label="Language" style="font-family:'Inter',sans-serif; font-size:11px; font-weight:700;">EN</button>
-    <button class="settings-btn" id="userGuideQuickBtn" aria-label="User Guide">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+    <button class="settings-btn" id="manageListQuickBtn" aria-label="Manage list">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
     </button>
+    <button class="settings-btn" id="langToggleBtn2" aria-label="Language" style="font-family:'Inter',sans-serif; font-size:11px; font-weight:700;">EN</button>
     <button class="settings-btn" id="settingsBtn" aria-label="Menu">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
     </button>
   </div>
 
@@ -764,12 +749,6 @@
       <div style="display:flex; gap:8px; margin-bottom:14px;">
         <button class="backup-btn" id="includeAllBtn" style="flex:1;">Include all</button>
         <button class="backup-btn" id="excludeAllBtn" style="flex:1;">Exclude all</button>
-      </div>
-      <div class="multiselect-bar" id="multiSelectBarManage">
-        <div class="ms-info"><span id="msCountManage">0</span> selected <span id="msTotalWrapManage"></span></div>
-        <button class="ms-edit-btn" id="msEditBtnManage" style="background:#4A4636; color:#F6F1E7; border:none; border-radius:8px; padding:8px 12px; font-size:13px; cursor:pointer; font-family:'Inter',sans-serif;">Edit</button>
-        <button class="ms-delete-btn" id="msDeleteBtnManage">Delete</button>
-        <button class="ms-cancel-btn" id="msCancelBtnManage">Cancel</button>
       </div>
       <div class="manage-list" id="manageList"></div>
     </div>
@@ -885,13 +864,6 @@
       </div>
       <input type="date" id="calendarHiddenInput" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" />
     </div>
-  </div>
-
-  <div class="multiselect-bar" id="multiSelectBarHome">
-    <div class="ms-info"><span id="msCountHome">0</span> selected <span id="msTotalWrapHome"></span></div>
-    <button class="ms-edit-btn" id="msEditBtnHome" style="background:#4A4636; color:#F6F1E7; border:none; border-radius:8px; padding:8px 12px; font-size:13px; cursor:pointer; font-family:'Inter',sans-serif;">Edit</button>
-    <button class="ms-delete-btn" id="msDeleteBtnHome">Delete</button>
-    <button class="ms-cancel-btn" id="msCancelBtnHome">Cancel</button>
   </div>
 
   <div class="list" id="pendingList"></div>
@@ -1248,7 +1220,7 @@
   const nameInput = document.getElementById("nameInput");
   const amountInput = document.getElementById("amountInput");
 
-  function groupedPendingHtml(pending, checklist) {
+  function groupedPendingHtml(pending, checklist, showBarHere) {
     if (!pending.length) return "";
     const noDate = [];
     const dateGroups = new Map(); // preserves first-seen order
@@ -1260,7 +1232,16 @@
     });
 
     let html = "";
-    if (noDate.length) html += noDate.map(item => rowHtml(item)).join("");
+    let barInjected = false;
+    const maybeBar = (item) => {
+      if (showBarHere && !barInjected && selectedItemIds.has(item.id)) {
+        barInjected = true;
+        return multiSelectBarHtml();
+      }
+      return "";
+    };
+
+    noDate.forEach(item => { html += maybeBar(item) + rowHtml(item); });
 
     const sortedDateKeys = Array.from(dateGroups.keys()).sort().reverse(); // most recent date first, always
     sortedDateKeys.forEach(dateStr => {
@@ -1269,7 +1250,7 @@
       html += `<div class="date-heading" style="display:flex; justify-content:space-between; align-items:center; font-family:'Inter',sans-serif; font-size:12.5px; font-weight:600; color:#7A7460; margin:14px 2px 6px; padding-top:6px; border-top:1px solid #E9E2D2;">
         <span>${formatDoneDate(dateStr)}</span>${dayTotal}
       </div>`;
-      html += groupItems.map(item => rowHtml(item, true)).join("");
+      groupItems.forEach(item => { html += maybeBar(item) + rowHtml(item, true); });
     });
 
     return html;
@@ -1308,13 +1289,27 @@
     const pending = record ? activeItems : activeItems.filter(i => !i.done);
     const done = record ? [] : activeItems.filter(i => i.done);
 
+    const showBarInPending = multiSelectMode && selectedItemIds.size > 0 && pending.some(i => selectedItemIds.has(i.id));
+    const showBarInDone = multiSelectMode && selectedItemIds.size > 0 && !showBarInPending && done.some(i => selectedItemIds.has(i.id));
+
     pendingList.innerHTML = pending.length
-      ? groupedPendingHtml(pending, checklist)
+      ? groupedPendingHtml(pending, checklist, showBarInPending)
       : `<div class="empty">${checklist ? t("nothingLeftChecklist") : t("nothingLeftExpense")}</div>`;
 
-    doneSection.innerHTML = done.length
-      ? `<div class="done-heading">${checklist ? t("doneItems") : t("paidItems")} (${done.length})</div><div class="list">${done.map(item => rowHtml(item)).join("")}</div>`
-      : "";
+    if (done.length) {
+      let doneRowsHtml = "";
+      let doneBarInjected = false;
+      done.forEach(item => {
+        if (showBarInDone && !doneBarInjected && selectedItemIds.has(item.id)) {
+          doneRowsHtml += multiSelectBarHtml();
+          doneBarInjected = true;
+        }
+        doneRowsHtml += rowHtml(item);
+      });
+      doneSection.innerHTML = `<div class="done-heading">${checklist ? t("doneItems") : t("paidItems")} (${done.length})</div><div class="list">${doneRowsHtml}</div>`;
+    } else {
+      doneSection.innerHTML = "";
+    }
 
     document.querySelectorAll("[data-toggle]").forEach(el =>
       el.addEventListener("click", () => toggle(el.getAttribute("data-toggle")))
@@ -1612,8 +1607,17 @@
   const manageList = document.getElementById("manageList");
 
   function renderManageList() {
+    const showBar = multiSelectMode && selectedItemIds.size > 0;
+    let barInjected = false;
     manageList.innerHTML = items.length
-      ? items.map((item) => manageRowHtml(item)).join("")
+      ? items.map((item) => {
+          let rowH = manageRowHtml(item);
+          if (showBar && !barInjected && selectedItemIds.has(item.id)) {
+            barInjected = true;
+            rowH = multiSelectBarHtml() + rowH;
+          }
+          return rowH;
+        }).join("")
       : '<div class="empty">No items yet. Add one from the main screen.</div>';
 
     const totalsCard = document.getElementById("manageTotalsCards");
@@ -1747,26 +1751,37 @@
     return true;
   }
 
-  function renderMultiSelectBars() {
+  function multiSelectBarHtml() {
     const checklist = isChecklistType();
     const count = selectedItemIds.size;
     const selectedItems = items.filter(i => selectedItemIds.has(i.id));
     const total = selectedItems.reduce((s, i) => s + i.amount, 0);
     const totalHtml = checklist ? "" : `· <span class="ms-total">${rupee(total)}</span>`;
+    return `
+      <div class="multiselect-bar" style="display:flex;">
+        <div class="ms-info">${count} selected ${totalHtml}</div>
+        <button class="ms-edit-btn" data-ms-edit style="background:#4A4636; color:#F6F1E7; border:none; border-radius:8px; padding:8px 12px; font-size:13px; cursor:pointer; font-family:'Inter',sans-serif;">Edit</button>
+        <button class="ms-delete-btn" data-ms-delete>Delete</button>
+        <button class="ms-cancel-btn" data-ms-cancel>Cancel</button>
+      </div>`;
+  }
 
-    const barHome = document.getElementById("multiSelectBarHome");
-    const barManage = document.getElementById("multiSelectBarManage");
-    if (multiSelectMode && count > 0) {
-      barHome.style.display = "flex";
-      barManage.style.display = "flex";
-      document.getElementById("msCountHome").textContent = count;
-      document.getElementById("msTotalWrapHome").innerHTML = totalHtml;
-      document.getElementById("msCountManage").textContent = count;
-      document.getElementById("msTotalWrapManage").innerHTML = totalHtml;
-    } else {
-      barHome.style.display = "none";
-      barManage.style.display = "none";
-    }
+  // One-time delegated listeners — work no matter how many times the bar gets
+  // re-rendered inside these containers, since the listener lives on the parent.
+  ["pendingList", "doneSection", "manageList"].forEach(id => {
+    const container = document.getElementById(id);
+    if (!container) return;
+    container.addEventListener("click", (e) => {
+      if (e.target.closest("[data-ms-edit]")) openBulkEditOverlay();
+      else if (e.target.closest("[data-ms-delete]")) deleteSelectedItems();
+      else if (e.target.closest("[data-ms-cancel]")) exitMultiSelect();
+    });
+  });
+
+  function renderMultiSelectBars() {
+    // Bar HTML is now injected directly above the first selected item by
+    // groupedPendingHtml()/renderManageList() during their own render — nothing
+    // to do here anymore, kept only so existing call sites don't need changes.
   }
 
   async function deleteSelectedItems() {
@@ -1838,12 +1853,6 @@
 
   document.getElementById("bulkEditCancelBtn").addEventListener("click", () => bulkEditOverlay.classList.remove("open"));
   document.getElementById("bulkEditApplyBtn").addEventListener("click", applyBulkEdit);
-
-  ["Home", "Manage"].forEach(suffix => {
-    document.getElementById("msDeleteBtn" + suffix).addEventListener("click", deleteSelectedItems);
-    document.getElementById("msCancelBtn" + suffix).addEventListener("click", exitMultiSelect);
-    document.getElementById("msEditBtn" + suffix).addEventListener("click", openBulkEditOverlay);
-  });
 
   // Attach a long-press-to-select gesture to any element carrying data-longpress-select="<id>"
   function attachLongPressTimer(el, onLongPress) {
@@ -2454,11 +2463,6 @@
   }
   document.getElementById("settingsBtn").addEventListener("click", openMenu);
   document.getElementById("listsMenuBtn").addEventListener("click", openMenu);
-  document.getElementById("userGuideQuickBtn2").addEventListener("click", () => {
-    guideLang = currentLang;
-    renderUserGuide();
-    userGuideOverlay.classList.add("open");
-  });
   document.getElementById("sheetCloseBtn").addEventListener("click", () => settingsOverlay.classList.remove("open"));
   settingsOverlay.addEventListener("click", (e) => {
     if (e.target === settingsOverlay) settingsOverlay.classList.remove("open");
@@ -3306,6 +3310,47 @@
     renderTrash();
   });
   document.getElementById("trashCloseBtn").addEventListener("click", () => trashOverlay.classList.remove("open"));
+
+  document.getElementById("emptyTrashBtn").addEventListener("click", async () => {
+    const itemCount = lists.reduce((sum, l) => sum + loadTrash(l.id).filter(t => !t.movedAway).length, 0);
+    const deletedLists = loadDeletedLists();
+    const listCount = deletedLists.length;
+    if (itemCount === 0 && listCount === 0) return;
+
+    const parts = [];
+    if (itemCount > 0) parts.push(itemCount + " item" + (itemCount > 1 ? "s" : ""));
+    if (listCount > 0) parts.push(listCount + " list" + (listCount > 1 ? "s" : ""));
+    if (!await customConfirm("Permanently delete " + parts.join(" and ") + " from Trash? This can't be undone.")) return;
+
+    // Purge deleted items across every list
+    lists.forEach(l => {
+      const trash = loadTrash(l.id);
+      if (gIsSignedIn) {
+        trash.filter(t => !t.movedAway).forEach(t => pushItemNow(l.id, t, true, true)); // mark Purged=yes
+      }
+      saveTrash(l.id, []);
+    });
+
+    // Purge deleted lists
+    if (gIsSignedIn) {
+      deletedLists.forEach(entry => {
+        if (!entry.list) return;
+        (async () => {
+          try {
+            await ensureSpreadsheet();
+            const rowNum = await findRowNumber("Lists", "A", entry.list.id);
+            if (rowNum) await sheetsUpdateRange("Lists!G" + rowNum + ":G" + rowNum, [["yes"]]);
+            for (const it of (entry.items || [])) await pushOneItem(entry.list.id, it, true, true);
+            gSyncIconState = "synced";
+          } catch (e) { gSyncIconState = "error"; }
+          refreshSyncBadges();
+        })();
+      });
+    }
+    saveDeletedLists([]);
+
+    renderTrash();
+  });
   // ---------- end Trash ----------
 
   // ---------- Google Sign-In + Sheets sync (per-item, not per-list) ----------
@@ -3379,10 +3424,10 @@
   }
 
   function updateSignInUI() {
-    const listsAvatarBtn = document.getElementById("listsAvatarBtn");
     const listsAvatarImg = document.getElementById("listsAvatarImg");
-    const appAvatarBtn = document.getElementById("appAvatarBtn");
+    const listsAvatarPlaceholder = document.getElementById("listsAvatarPlaceholder");
     const appAvatarImg = document.getElementById("appAvatarImg");
+    const appAvatarPlaceholder = document.getElementById("appAvatarPlaceholder");
 
     if (gIsSignedIn) {
       googleSignInBtn.style.display = "none";
@@ -3390,11 +3435,15 @@
       if (pic) {
         listsAvatarImg.src = pic;
         appAvatarImg.src = pic;
-        listsAvatarBtn.style.display = "flex";
-        appAvatarBtn.style.display = "flex";
+        listsAvatarImg.style.display = "block";
+        appAvatarImg.style.display = "block";
+        listsAvatarPlaceholder.style.display = "none";
+        appAvatarPlaceholder.style.display = "none";
       } else {
-        listsAvatarBtn.style.display = "none";
-        appAvatarBtn.style.display = "none";
+        listsAvatarImg.style.display = "none";
+        appAvatarImg.style.display = "none";
+        listsAvatarPlaceholder.style.display = "block";
+        appAvatarPlaceholder.style.display = "block";
       }
       accountSignedOutView.style.display = "none";
       accountSignedInView.style.display = "block";
@@ -3405,8 +3454,10 @@
       }
     } else {
       googleSignInBtn.style.display = "flex";
-      listsAvatarBtn.style.display = "none";
-      appAvatarBtn.style.display = "none";
+      listsAvatarImg.style.display = "none";
+      appAvatarImg.style.display = "none";
+      listsAvatarPlaceholder.style.display = "block";
+      appAvatarPlaceholder.style.display = "block";
       accountSignedOutView.style.display = "block";
       accountSignedInView.style.display = "none";
     }
@@ -3617,7 +3668,8 @@
 
   const userGuideOverlay = document.getElementById("userGuideOverlay");
   const guideLangToggleBtn = document.getElementById("guideLangToggleBtn");
-  document.getElementById("userGuideQuickBtn").addEventListener("click", () => {
+  document.getElementById("menuGuideBtn").addEventListener("click", () => {
+    settingsOverlay.classList.remove("open");
     guideLang = currentLang;
     renderUserGuide();
     userGuideOverlay.classList.add("open");
