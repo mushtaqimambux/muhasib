@@ -105,6 +105,18 @@
   // dps.psx.com.pk mostly likely won't allow direct cross-origin browser requests
   // (its CORS policy isn't published). We try direct first, then fall back to a
   // public CORS relay if that fails, so the app still works from a browser.
+  async function fetchViaProxy(target, attempt) {
+    const res = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(target));
+    if (!res.ok) {
+      if (attempt < 2) {
+        await new Promise(r => setTimeout(r, 500));
+        return fetchViaProxy(target, attempt + 1);
+      }
+      throw new Error("proxy failed after retry");
+    }
+    return await res.json();
+  }
+
   async function fetchSymbol(symbol) {
     const target = "https://dps.psx.com.pk/timeseries/int/" + symbol;
     try {
@@ -112,9 +124,7 @@
       if (!res.ok) throw new Error("bad status");
       return await res.json();
     } catch (e) {
-      const res2 = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(target));
-      if (!res2.ok) throw new Error("proxy failed too");
-      return await res2.json();
+      return await fetchViaProxy(target, 1);
     }
   }
 
@@ -200,35 +210,54 @@
     });
   }
 
+  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
   let loading = false;
   async function loadAll() {
     if (loading) return;
     loading = true;
     refreshBtn.classList.add("spinning");
     refreshBtn.textContent = "Loading…";
-    subLine.textContent = "Fetching " + SYMBOLS.length + " stocks…";
-    listEl.innerHTML = '<div class="status">Fetching KMI-30 prices…</div>';
+    listEl.innerHTML = "";
 
-    const results = await Promise.all(SYMBOLS.map(async (symbol) => {
-      try {
-        const data = await fetchSymbol(symbol);
-        return processStock(symbol, data);
-      } catch (e) {
-        return { symbol, error: true };
-      }
-    }));
+    const BATCH_SIZE = 4;
+    const DELAY_BETWEEN_BATCHES = 900; // ms — gentle on the free CORS relay / PSX server
+    let okCount = 0;
+    let failCount = 0;
+    const cardsBySymbol = {};
 
-    const okResults = results.filter(r => r && !r.error);
-    const failed = results.filter(r => r && r.error);
+    for (let i = 0; i < SYMBOLS.length; i += BATCH_SIZE) {
+      const batch = SYMBOLS.slice(i, i + BATCH_SIZE);
+      subLine.textContent = "Fetching " + Math.min(i + BATCH_SIZE, SYMBOLS.length) + " / " + SYMBOLS.length + "…";
 
-    if (okResults.length === 0) {
-      listEl.innerHTML = '<div class="status err">Koi data nahi mil saka — internet check karein ya thodi der baad try karein.</div>';
-    } else {
-      listEl.innerHTML = okResults.map(stockCardHtml).join("");
+      const batchResults = await Promise.all(batch.map(async (symbol) => {
+        try {
+          const data = await fetchSymbol(symbol);
+          const s = processStock(symbol, data);
+          return s ? s : { symbol, error: true };
+        } catch (e) {
+          return { symbol, error: true };
+        }
+      }));
+
+      batchResults.forEach(r => {
+        if (r.error) { failCount++; return; }
+        okCount++;
+        cardsBySymbol[r.symbol] = stockCardHtml(r);
+      });
+
+      // Render in the original KMI-30 order, filling in whatever has loaded so far.
+      listEl.innerHTML = SYMBOLS.map(sym => cardsBySymbol[sym] || "").join("");
       attachToggles();
+      subLine.textContent = okCount + " / " + SYMBOLS.length + " stocks loaded" + (failCount ? " (" + failCount + " failed)" : "");
+
+      if (i + BATCH_SIZE < SYMBOLS.length) await sleep(DELAY_BETWEEN_BATCHES);
     }
 
-    subLine.textContent = okResults.length + " / " + SYMBOLS.length + " stocks loaded" + (failed.length ? " (" + failed.length + " failed)" : "");
+    if (okCount === 0) {
+      listEl.innerHTML = '<div class="status err">Koi data nahi mil saka — internet check karein ya thodi der baad try karein.</div>';
+    }
+
     updatedNote.textContent = "Last updated: " + new Date().toLocaleTimeString("en-PK", { timeZone: "Asia/Karachi" });
     refreshBtn.classList.remove("spinning");
     refreshBtn.textContent = "Refresh";
