@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>KMI-30 Live</title>
+<style>
+  :root {
+    --bg: #12151a;
+    --card: #1a1f27;
+    --card-border: #262c37;
+    --text: #e7ebf1;
+    --dim: #7c8697;
+    --accent: #3ecf8e;
+    --down: #e5484d;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+  header {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--bg); padding: 16px 16px 12px; border-bottom: 1px solid var(--card-border);
+  }
+  .title-row { display: flex; align-items: baseline; justify-content: space-between; }
+  h1 { font-size: 19px; margin: 0; font-weight: 700; letter-spacing: 0.2px; }
+  .sub { color: var(--dim); font-size: 12.5px; margin-top: 3px; }
+  #refreshBtn {
+    background: var(--card); border: 1px solid var(--card-border); color: var(--text);
+    border-radius: 9px; padding: 8px 12px; font-size: 13px; cursor: pointer;
+  }
+  #refreshBtn:active { opacity: 0.7; }
+  #refreshBtn.spinning { color: var(--accent); }
+  main { padding: 12px 12px 40px; max-width: 640px; margin: 0 auto; }
+  .stock {
+    background: var(--card); border: 1px solid var(--card-border); border-radius: 12px;
+    margin-bottom: 8px; overflow: hidden;
+  }
+  .stock-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 14px; cursor: pointer;
+  }
+  .sym-block { display: flex; flex-direction: column; gap: 1px; }
+  .sym { font-weight: 700; font-size: 14.5px; letter-spacing: 0.3px; }
+  .range { font-family: var(--mono); font-size: 11px; color: var(--dim); }
+  .price-block { text-align: right; }
+  .now-price { font-family: var(--mono); font-weight: 700; font-size: 16px; }
+  .change { font-family: var(--mono); font-size: 12px; }
+  .change.up { color: var(--accent); }
+  .change.down { color: var(--down); }
+  .change.flat { color: var(--dim); }
+  .stock-detail {
+    display: none; padding: 0 14px 14px; font-family: var(--mono); font-size: 12px;
+    color: var(--dim); line-height: 1.65; border-top: 1px solid var(--card-border);
+  }
+  .stock-detail.open { display: block; }
+  .detail-section { margin-top: 10px; }
+  .detail-label { color: var(--text); font-weight: 700; font-family: -apple-system, sans-serif; font-size: 11.5px; margin-bottom: 3px; }
+  .status { text-align: center; color: var(--dim); font-size: 13px; padding: 30px 0; }
+  .err { color: var(--down); }
+  .updated-note { text-align: center; color: var(--dim); font-size: 11px; margin-top: 14px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-row">
+    <div>
+      <h1>KMI-30</h1>
+      <div class="sub" id="subLine">Loading live prices…</div>
+    </div>
+    <button id="refreshBtn">Refresh</button>
+  </div>
+</header>
+
+<main>
+  <div id="list"></div>
+  <div class="updated-note" id="updatedNote"></div>
+</main>
+
+<script>
+  const SYMBOLS = [
+    "AIRLINK", "ATRL", "CPHL", "DGKC", "EFERT", "ENGROH", "FCCL", "FFC", "FFL",
+    "GAL", "GHNI", "HCAR", "HUBC", "LUCK", "MARI", "MEBL", "MLCF", "NML", "NRL",
+    "OGDC", "PAEL", "PPL", "PRL", "PSO", "SAZEW", "SEARL", "SNGP", "SSGC", "SYS", "TREET"
+  ];
+
+  const listEl = document.getElementById("list");
+  const subLine = document.getElementById("subLine");
+  const updatedNote = document.getElementById("updatedNote");
+  const refreshBtn = document.getElementById("refreshBtn");
+
+  function fmtTime(ts) {
+    return new Date(ts * 1000).toLocaleTimeString("en-PK", {
+      hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: "Asia/Karachi"
+    });
+  }
+  function fmtEntry(entry) {
+    return "Rs" + entry[1].toFixed(2) + " - " + fmtTime(entry[0]) + " - V-" + String(entry[2]).padStart(4, "0");
+  }
+
+  // dps.psx.com.pk mostly likely won't allow direct cross-origin browser requests
+  // (its CORS policy isn't published). We try direct first, then fall back to a
+  // public CORS relay if that fails, so the app still works from a browser.
+  async function fetchSymbol(symbol) {
+    const target = "https://dps.psx.com.pk/timeseries/int/" + symbol;
+    try {
+      const res = await fetch(target);
+      if (!res.ok) throw new Error("bad status");
+      return await res.json();
+    } catch (e) {
+      const res2 = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(target));
+      if (!res2.ok) throw new Error("proxy failed too");
+      return await res2.json();
+    }
+  }
+
+  function processStock(symbol, data) {
+    if (!data || !data.data || data.data.length === 0) return null;
+    const ticks = data.data;
+    const allPrices = ticks.map(t => t[1]);
+    const low = Math.min(...allPrices);
+    const high = Math.max(...allPrices);
+    const current = ticks[0];
+    const openEntry = ticks[ticks.length - 1];
+    const closeEntry = ticks[0];
+    const change = current[1] - openEntry[1];
+    const pctChange = openEntry[1] !== 0 ? (change / openEntry[1]) * 100 : 0;
+
+    let minEntry = ticks[0], maxEntry = ticks[0];
+    for (let i = 1; i < ticks.length; i++) {
+      if (ticks[i][1] < minEntry[1]) minEntry = ticks[i];
+      if (ticks[i][1] > maxEntry[1]) maxEntry = ticks[i];
+    }
+    const nonZeroVol = ticks.filter(t => t[2] > 0);
+    let minVolEntry = nonZeroVol.length ? nonZeroVol[0] : ticks[0];
+    let maxVolEntry = ticks[0];
+    for (const t of nonZeroVol) if (t[2] < minVolEntry[2]) minVolEntry = t;
+    for (const t of ticks) if (t[2] > maxVolEntry[2]) maxVolEntry = t;
+
+    let filtered = [];
+    for (let i = 0; i < ticks.length; i++) {
+      const nextPrice = ticks[i + 1] ? ticks[i + 1][1] : null;
+      if (nextPrice === null || ticks[i][1] !== nextPrice) filtered.push(ticks[i]);
+    }
+    const recentTicks = filtered.slice(0, 6);
+
+    return { symbol, low, high, current, openEntry, closeEntry, change, pctChange, minEntry, maxEntry, minVolEntry, maxVolEntry, recentTicks };
+  }
+
+  function stockCardHtml(s) {
+    if (!s) return "";
+    const dir = s.change > 0.001 ? "up" : s.change < -0.001 ? "down" : "flat";
+    const arrow = dir === "up" ? "▲" : dir === "down" ? "▼" : "•";
+    return `
+      <div class="stock" data-symbol="${s.symbol}">
+        <div class="stock-head" data-toggle="${s.symbol}">
+          <div class="sym-block">
+            <div class="sym">${s.symbol}</div>
+            <div class="range">${s.low.toFixed(2)} - ${s.high.toFixed(2)}</div>
+          </div>
+          <div class="price-block">
+            <div class="now-price">Rs${s.current[1].toFixed(2)}</div>
+            <div class="change ${dir}">${arrow} ${Math.abs(s.change).toFixed(2)} (${s.pctChange.toFixed(2)}%)</div>
+          </div>
+        </div>
+        <div class="stock-detail" id="detail-${s.symbol}">
+          <div class="detail-section">
+            <div class="detail-label">Recent ticks</div>
+            ${s.recentTicks.map(t => fmtEntry(t)).join("<br>")}
+          </div>
+          <div class="detail-section">
+            <div class="detail-label">Price</div>
+            Now: ${fmtEntry(s.current)}<br>
+            Min: ${fmtEntry(s.minEntry)}<br>
+            Max: ${fmtEntry(s.maxEntry)}
+          </div>
+          <div class="detail-section">
+            O: ${fmtEntry(s.openEntry)}<br>
+            C: ${fmtEntry(s.closeEntry)}
+          </div>
+          <div class="detail-section">
+            <div class="detail-label">Volume</div>
+            Min-V ${String(s.minVolEntry[2]).padStart(4, "0")} - Rs${s.minVolEntry[1].toFixed(2)} - ${fmtTime(s.minVolEntry[0])}<br>
+            Max-V ${String(s.maxVolEntry[2]).padStart(4, "0")} - Rs${s.maxVolEntry[1].toFixed(2)} - ${fmtTime(s.maxVolEntry[0])}
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function attachToggles() {
+    listEl.querySelectorAll("[data-toggle]").forEach(el => {
+      el.addEventListener("click", () => {
+        const sym = el.getAttribute("data-toggle");
+        document.getElementById("detail-" + sym).classList.toggle("open");
+      });
+    });
+  }
+
+  let loading = false;
+  async function loadAll() {
+    if (loading) return;
+    loading = true;
+    refreshBtn.classList.add("spinning");
+    refreshBtn.textContent = "Loading…";
+    subLine.textContent = "Fetching " + SYMBOLS.length + " stocks…";
+    listEl.innerHTML = '<div class="status">Fetching KMI-30 prices…</div>';
+
+    const results = await Promise.all(SYMBOLS.map(async (symbol) => {
+      try {
+        const data = await fetchSymbol(symbol);
+        return processStock(symbol, data);
+      } catch (e) {
+        return { symbol, error: true };
+      }
+    }));
+
+    const okResults = results.filter(r => r && !r.error);
+    const failed = results.filter(r => r && r.error);
+
+    if (okResults.length === 0) {
+      listEl.innerHTML = '<div class="status err">Koi data nahi mil saka — internet check karein ya thodi der baad try karein.</div>';
+    } else {
+      listEl.innerHTML = okResults.map(stockCardHtml).join("");
+      attachToggles();
+    }
+
+    subLine.textContent = okResults.length + " / " + SYMBOLS.length + " stocks loaded" + (failed.length ? " (" + failed.length + " failed)" : "");
+    updatedNote.textContent = "Last updated: " + new Date().toLocaleTimeString("en-PK", { timeZone: "Asia/Karachi" });
+    refreshBtn.classList.remove("spinning");
+    refreshBtn.textContent = "Refresh";
+    loading = false;
+  }
+
+  refreshBtn.addEventListener("click", loadAll);
+  loadAll();
+</script>
+</body>
+</html>
