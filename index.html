@@ -617,10 +617,10 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="8" y2="18"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="16" y1="14" x2="16" y2="18"/></svg>
       Expense Summary
     </button>
-    <a class="sheet-item" href="kmi30-live.html" target="_blank" rel="noopener" style="text-decoration:none;">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-      KMI-30 Stocks
-    </a>
+    <button class="sheet-item" id="menuShareAppBtn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      Share this app
+    </button>
     <a class="sheet-item" href="https://github.com/mushtaqimambux/kmi30-android/releases/download/release/kmi30-live.apk" target="_blank" rel="noopener" style="text-decoration:none;">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       Download Stock Analyser APK
@@ -3101,6 +3101,23 @@
   document.getElementById("expenseSummaryCloseBtn").addEventListener("click", () => expenseSummaryOverlay.classList.remove("open"));
   // ---------- end Expense Summary ----------
 
+  document.getElementById("menuShareAppBtn").addEventListener("click", async () => {
+    const shareUrl = "https://mushtaqimambux.github.io/muhasib/";
+    const shareData = { title: "Muhasib محاسب", text: "Muhasib — a simple expense ledger app.", url: shareUrl };
+    if (navigator.share) {
+      try { await navigator.share(shareData); } catch (e) {}
+    } else if (navigator.clipboard) {
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        alert("Link copied: " + shareUrl);
+      } catch (e) {
+        alert(shareUrl);
+      }
+    } else {
+      alert(shareUrl);
+    }
+  });
+
   // ---------- Search (across all lists) ----------
   const searchOverlay = document.getElementById("searchOverlay");
   const searchInput = document.getElementById("searchInput");
@@ -3554,14 +3571,20 @@
     updateSignInUI();
     scheduleTokenRefresh(cached.expires_at);
     logSignInEvent();
-    // Quietly catch up with anything changed on other devices since last visit.
-    pullAllFromSheets().then(() => {
-      gSyncIconState = "synced";
+    // Quietly catch up with anything changed on other devices since last visit —
+    // but first push up anything added locally while offline, so this pull
+    // never overwrites and loses it.
+    (async () => {
+      try {
+        await ensureSpreadsheet();
+        await pushLocalOnlyDataUp();
+        await pullAllFromSheets();
+        gSyncIconState = "synced";
+      } catch (e) {
+        gSyncIconState = "error";
+      }
       refreshSyncBadges();
-    }).catch(() => {
-      gSyncIconState = "error";
-      refreshSyncBadges();
-    });
+    })();
   }
 
   window.onGsiLoaded = function () {
@@ -4104,29 +4127,52 @@
     activeLists.forEach(l => { gLastSyncedLists[l.id] = fieldHashList(l); });
   }
 
+  // Push up anything that exists locally but isn't in the Sheet yet — covers a
+  // first-ever sync AND items/lists added while offline or signed out (or while
+  // "signed in" locally but with no internet), so that pulling right after this
+  // never overwrites and loses data that hasn't made it to the Sheet yet.
+  async function pushLocalOnlyDataUp() {
+    const listRows = await sheetsGetRange("Lists!A2:A");
+    const itemIdRows = await sheetsGetRange("Items!B2:B");
+    const catIdRows = await sheetsGetRange("Categories!B2:B");
+    const histIdRows = await sheetsGetRange("History!B2:B");
+    const knownListIds = new Set(listRows.map(r => r[0]).filter(Boolean));
+    const knownItemIds = new Set(itemIdRows.map(r => r[0]).filter(Boolean));
+    const knownCatIds = new Set(catIdRows.map(r => r[0]).filter(Boolean));
+    const knownHistIds = new Set(histIdRows.map(r => r[0]).filter(Boolean));
+    const isFreshSpreadsheet = listRows.length === 0 && lists.length > 0;
+
+    for (const l of lists) {
+      if (!knownListIds.has(l.id)) {
+        await upsertRow("Lists", "A", l.id, [l.id, l.name, l.type, l.createdAt || "", "no", "", "no"], colLetter(LIST_COLS.length));
+      }
+      let itemsArr = []; try { itemsArr = JSON.parse(localStorage.getItem(itemsKeyFor(l.id)) || "[]"); } catch (e) {}
+      for (const it of itemsArr) {
+        if (!knownItemIds.has(it.id)) await upsertRow("Items", "B", it.id, itemRow(l.id, it, false), colLetter(ITEM_COLS.length));
+      }
+      let trashArr = []; try { trashArr = JSON.parse(localStorage.getItem(trashKeyFor(l.id)) || "[]"); } catch (e) {}
+      for (const it of trashArr) {
+        if (!knownItemIds.has(it.id)) await upsertRow("Items", "B", it.id, itemRow(l.id, it, true), colLetter(ITEM_COLS.length));
+      }
+      let catsArr = []; try { catsArr = JSON.parse(localStorage.getItem(categoryKeyFor(l.id)) || "[]"); } catch (e) {}
+      for (const c of catsArr) {
+        if (!knownCatIds.has(c.id)) await upsertRow("Categories", "B", c.id, [l.id, c.id, c.name, c.color], colLetter(CATEGORY_COLS.length));
+      }
+      let histArr = []; try { histArr = JSON.parse(localStorage.getItem(historyKeyFor(l.id)) || "[]"); } catch (e) {}
+      for (const h of histArr) {
+        if (!knownHistIds.has(h.id)) await upsertRow("History", "B", h.id, [l.id, h.id, h.label, h.total, h.spent, h.remaining, h.archivedAt, JSON.stringify(h.items || [])], colLetter(HISTORY_COLS.length));
+      }
+    }
+    return isFreshSpreadsheet;
+  }
+
   async function initialSyncOnSignIn() {
     try {
       await ensureSpreadsheet();
-      const listRows = await sheetsGetRange("Lists!A2:A");
-      if (listRows.length === 0 && lists.length > 0) {
-        // fresh spreadsheet, this device has local data -> push everything once
-        for (const l of lists) {
-          await upsertRow("Lists", "A", l.id, [l.id, l.name, l.type, l.createdAt || "", "no", "", "no"], colLetter(LIST_COLS.length));
-          let itemsArr = []; try { itemsArr = JSON.parse(localStorage.getItem(itemsKeyFor(l.id)) || "[]"); } catch (e) {}
-          for (const it of itemsArr) await upsertRow("Items", "B", it.id, itemRow(l.id, it, false), colLetter(ITEM_COLS.length));
-          let trashArr = []; try { trashArr = JSON.parse(localStorage.getItem(trashKeyFor(l.id)) || "[]"); } catch (e) {}
-          for (const it of trashArr) await upsertRow("Items", "B", it.id, itemRow(l.id, it, true), colLetter(ITEM_COLS.length));
-          let catsArr = []; try { catsArr = JSON.parse(localStorage.getItem(categoryKeyFor(l.id)) || "[]"); } catch (e) {}
-          for (const c of catsArr) await upsertRow("Categories", "B", c.id, [l.id, c.id, c.name, c.color], colLetter(CATEGORY_COLS.length));
-          let histArr = []; try { histArr = JSON.parse(localStorage.getItem(historyKeyFor(l.id)) || "[]"); } catch (e) {}
-          for (const h of histArr) await upsertRow("History", "B", h.id, [l.id, h.id, h.label, h.total, h.spent, h.remaining, h.archivedAt, JSON.stringify(h.items || [])], colLetter(HISTORY_COLS.length));
-        }
-        setSyncNote("✓ Backup created in Google Sheets.");
-        await pullAllFromSheets();
-      } else {
-        await pullAllFromSheets();
-        setSyncNote("✓ Synced with Google Sheets.");
-      }
+      const isFreshSpreadsheet = await pushLocalOnlyDataUp();
+
+      await pullAllFromSheets();
+      setSyncNote(isFreshSpreadsheet ? "✓ Backup created in Google Sheets." : "✓ Synced with Google Sheets.");
       gSyncIconState = "synced";
       refreshSyncBadges();
       renderListsScreen();
