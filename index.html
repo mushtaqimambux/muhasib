@@ -565,7 +565,18 @@
           <div class="tt-title">Simple checklist</div>
           <div class="tt-sub">Just items, no amounts</div>
         </button>
+        <button class="type-toggle-btn" id="typeSharedBtn" data-list-type="shared">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4A6FA5" stroke-width="1.8"><circle cx="8" cy="8" r="3.2"/><circle cx="16" cy="8" r="3.2"/><path d="M2 20c0-3 2.7-5 6-5s6 2 6 5"/><path d="M10 20c0-3 2.7-5 6-5s6 2 6 5"/></svg>
+          <div class="tt-title">Shared with someone</div>
+          <div class="tt-sub">Track who owes who</div>
+        </button>
       </div>
+    </div>
+    <div class="edit-field" id="sharedNamesField" style="display:none;">
+      <label class="edit-label">Your name</label>
+      <input class="edit-input" id="sharedYourNameInput" type="text" placeholder="e.g. Osama" style="margin-bottom:8px;" />
+      <label class="edit-label">Other person's name</label>
+      <input class="edit-input" id="sharedPartnerNameInput" type="text" placeholder="e.g. Aatif" />
     </div>
     <div class="edit-actions">
       <button class="edit-cancel" id="newListCancelBtn">Cancel</button>
@@ -621,7 +632,7 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
       Share this app
     </button>
-    <a class="sheet-item" href="https://github.com/mushtaqimambux/kmi30-android/releases/download/release/kmi30-live.apk" target="_blank" rel="noopener" style="text-decoration:none;">
+    <a class="sheet-item" href="https://github.com/mushtaqimambux/KMI-Screener-live/releases/download/release/kmi-allshares-live.apk" target="_blank" rel="noopener" style="text-decoration:none;">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       Download Stock Analyser APK
     </a>
@@ -871,6 +882,23 @@
         </span>
       </div>
       <input type="date" id="calendarHiddenInput" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" />
+    </div>
+
+    <div class="add-row-3" id="sharedAddRow" style="display:none; align-items:stretch; gap:8px; margin-top:8px;">
+      <button id="paidByToggleBtn" style="flex:1; box-sizing:border-box; height:44px; border-radius:9px; padding:9px 12px; font-family:'Inter',sans-serif; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#EEF2FB; border:none; color:#2E4E82; cursor:pointer;">
+        <span style="font-size:10px; color:#5A76A8;">Paid by</span>
+        <span id="paidByToggleLabel" style="font-size:13px; font-weight:700;">—</span>
+      </button>
+      <button id="kindToggleBtn" style="flex:1; box-sizing:border-box; height:44px; border-radius:9px; padding:9px 12px; font-family:'Inter',sans-serif; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#EEF4EF; border:none; color:#2F5C4B; cursor:pointer;">
+        <span style="font-size:10px; color:#5C8A72;">Type</span>
+        <span id="kindToggleLabel" style="font-size:13px; font-weight:700;">Credit</span>
+      </button>
+    </div>
+  </div>
+  <div id="sharedBalanceCard" style="display:none; background:#FFFDF8; border:1px solid #E4DCC8; border-radius:12px; padding:12px 14px; margin-bottom:12px; font-family:'Inter',sans-serif;">
+    <div style="display:flex; justify-content:space-between; align-items:baseline;">
+      <span style="font-size:12px; color:#7A7460;" id="sharedNamesLabel">A · B</span>
+      <span style="font-size:15px; font-weight:700;" id="sharedNetBalanceLabel">Settled up</span>
     </div>
   </div>
 
@@ -1142,8 +1170,12 @@
     const l = currentList();
     return l && l.type === "expense_record";
   }
+  function isSharedType() {
+    const l = currentList();
+    return l && l.type === "shared";
+  }
   function hasCheckbox() {
-    return !isRecordType(); // both "expense" and "checklist" use a checkbox; "expense_record" does not
+    return !isRecordType() && !isSharedType(); // "expense" and "checklist" use a checkbox; "expense_record"/"shared" don't
   }
 
   function loadItems() {
@@ -1254,7 +1286,7 @@
     const sortedDateKeys = Array.from(dateGroups.keys()).sort().reverse(); // most recent date first, always
     sortedDateKeys.forEach(dateStr => {
       const groupItems = dateGroups.get(dateStr);
-      const dayTotal = checklist ? "" : `<span style="font-weight:600;">${rupee(groupItems.reduce((s, i) => s + i.amount, 0))}</span>`;
+      const dayTotal = (checklist || isSharedType()) ? "" : `<span style="font-weight:600;">${rupee(groupItems.reduce((s, i) => s + i.amount, 0))}</span>`;
       html += `<div class="date-heading" style="display:flex; justify-content:space-between; align-items:center; font-family:'Inter',sans-serif; font-size:12.5px; font-weight:600; color:#7A7460; margin:14px 2px 6px; padding-top:6px; border-top:1px solid #E9E2D2;">
         <span>${formatDoneDate(dateStr)}</span>${dayTotal}
       </div>`;
@@ -1267,6 +1299,7 @@
   function renderMain() {
     const checklist = isChecklistType();
     const record = isRecordType();
+    const shared = isSharedType();
     const activeItems = items.filter(i => i.active !== false);
     const total = activeItems.reduce((s, i) => s + i.amount, 0);
     const spent = activeItems.filter(i => i.done).reduce((s, i) => s + i.amount, 0);
@@ -1277,6 +1310,14 @@
     spentVal.textContent = rupee(spent);
     remainingVal.textContent = rupee(remaining);
     barFill.style.width = pct + "%";
+
+    if (shared) {
+      const l = currentList();
+      const participants = (l && l.participants) || ["A", "B"];
+      const result = computeSharedBalances(items, participants);
+      gSharedBalanceMap = result.map;
+      document.getElementById("sharedNetBalanceLabel").textContent = formatNetBalance(result.net, participants);
+    }
 
     // Record-type lists (already-paid expenses) show just a running Total — no
     // paid/unpaid split, since there's nothing left to "pay".
@@ -1294,8 +1335,8 @@
     document.getElementById("checklistRemainingVal").textContent = remainingCount;
     document.getElementById("checklistBarFill").style.width = checklistPct + "%";
 
-    const pending = record ? activeItems : activeItems.filter(i => !i.done);
-    const done = record ? [] : activeItems.filter(i => i.done);
+    const pending = (record || shared) ? activeItems : activeItems.filter(i => !i.done);
+    const done = (record || shared) ? [] : activeItems.filter(i => i.done);
 
     const showBarInPending = multiSelectMode && selectedItemIds.size > 0 && pending.some(i => selectedItemIds.has(i.id));
     const showBarInDone = multiSelectMode && selectedItemIds.size > 0 && !showBarInPending && done.some(i => selectedItemIds.has(i.id));
@@ -1490,8 +1531,34 @@
     render();
   }
 
+  let gSharedBalanceMap = {};
+
+  function computeSharedBalances(itemsArr, participants) {
+    const map = {};
+    // Items are stored newest-first (new ones are unshifted to the front), so
+    // reversing gives true chronological (oldest-first) order — far more
+    // reliable than sorting by createdAt (day-only precision) + id, which
+    // breaks for multiple same-day entries.
+    const chron = itemsArr.filter(i => i.active !== false).slice().reverse();
+    let net = 0; // positive = participants[1] owes participants[0]
+    chron.forEach(item => {
+      const sign = item.paidBy === participants[0] ? 1 : -1;
+      const kindSign = item.kind === "debit" ? -1 : 1;
+      net += sign * kindSign * item.amount;
+      map[item.id] = net;
+    });
+    return { map, net };
+  }
+
+  function formatNetBalance(net, participants) {
+    if (Math.abs(net) < 0.01) return "Settled up";
+    if (net > 0) return participants[1] + " owes " + participants[0] + " " + rupee(net);
+    return participants[0] + " owes " + participants[1] + " " + rupee(-net);
+  }
+
   function rowHtml(item, skipCreatedDate) {
     const checklist = isChecklistType();
+    const shared = isSharedType();
     const showCheckbox = hasCheckbox();
     const selected = selectedItemIds.has(item.id);
     const dateBits = [];
@@ -1500,6 +1567,19 @@
     const dateLine = dateBits.length
       ? `<div style="font-size:11px; color:#9B937C; font-weight:400; margin-top:1px;">${dateBits.join(" · ")}</div>`
       : "";
+    let sharedLine = "";
+    if (shared) {
+      const kindColor = item.kind === "debit" ? "#B5482A" : "#2F5C4B";
+      const bal = gSharedBalanceMap[item.id];
+      const l = currentList();
+      const participants = (l && l.participants) || ["A", "B"];
+      const balText = bal !== undefined ? formatNetBalance(bal, participants) : "";
+      sharedLine = `<div style="font-size:11px; margin-top:1px;">
+        <span style="color:${kindColor}; font-weight:600;">${item.paidBy || "?"} · ${item.kind === "debit" ? "Debit" : "Credit"}</span>
+        <span style="color:#9B937C;"> · by ${escapeHtml(item.enteredBy || "?")}</span>
+        <div style="color:#9B937C; margin-top:1px;">${balText}</div>
+      </div>`;
+    }
     return `
       <div class="row ${item.done ? "done" : ""} ${selected ? "ms-selected" : ""}" data-id="${item.id}">
         ${showCheckbox ? `<button class="check" data-toggle="${item.id}" data-longpress-select="${item.id}">
@@ -1508,6 +1588,7 @@
         <div class="row-name" data-longpress-select="${item.id}" style="${showCheckbox ? "" : "padding-left:4px;"}">
           ${escapeHtml(item.name)}
           ${dateLine}
+          ${sharedLine}
         </div>
         ${checklist ? "" : `<div class="row-amount">${rupee(item.amount)}</div>`}
         ${syncBadgeHtml()}
@@ -1593,6 +1674,8 @@
   }
 
   let selectedAddDate = null;
+  let selectedPaidBy = null;
+  let selectedKind = "credit";
 
   function addItem() {
     const name = nameInput.value.trim();
@@ -1602,7 +1685,13 @@
       amount = parseFloat(amountInput.value);
       if (isNaN(amount) || amount <= 0) return;
     }
-    items.unshift({ id: uid(), name, amount, done: false, active: true, category: null, createdAt: (calendarStickyCheckbox.checked && selectedAddDate) ? selectedAddDate : todayStr(), doneDate: null });
+    const newItem = { id: uid(), name, amount, done: false, active: true, category: null, createdAt: (calendarStickyCheckbox.checked && selectedAddDate) ? selectedAddDate : todayStr(), doneDate: null };
+    if (isSharedType()) {
+      newItem.paidBy = selectedPaidBy;
+      newItem.kind = selectedKind;
+      newItem.enteredBy = (gIsSignedIn && gProfile && gProfile.name) ? gProfile.name : "You";
+    }
+    items.unshift(newItem);
     saveItems();
     nameInput.value = "";
     nameInput.style.height = "auto";
@@ -2504,6 +2593,29 @@
   });
   // ---------- end Calendar ----------
 
+  // ---------- Shared list: Paid-by / Credit-Debit toggles ----------
+  document.getElementById("paidByToggleBtn").addEventListener("click", () => {
+    const l = currentList();
+    if (!l || !l.participants) return;
+    selectedPaidBy = selectedPaidBy === l.participants[0] ? l.participants[1] : l.participants[0];
+    document.getElementById("paidByToggleLabel").textContent = selectedPaidBy;
+  });
+  document.getElementById("kindToggleBtn").addEventListener("click", () => {
+    selectedKind = selectedKind === "credit" ? "debit" : "credit";
+    const btn = document.getElementById("kindToggleBtn");
+    const label = document.getElementById("kindToggleLabel");
+    if (selectedKind === "credit") {
+      label.textContent = "Credit";
+      btn.style.background = "#EEF4EF";
+      btn.style.color = "#2F5C4B";
+    } else {
+      label.textContent = "Debit";
+      btn.style.background = "#FBEDE7";
+      btn.style.color = "#B5482A";
+    }
+  });
+  // ---------- end Shared toggles ----------
+
   // ---------- Calculator ----------
   let calcExpr = "";
   const calcOverlay = document.getElementById("calcOverlay");
@@ -2737,6 +2849,9 @@
     if (type === "checklist") {
       return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="3"/><polyline points="8 12 11 15 16 9"/></svg>';
     }
+    if (type === "shared") {
+      return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M2 20c0-3 2.7-5 6-5s6 2 6 5"/><path d="M10 20c0-3 2.7-5 6-5s6 2 6 5"/></svg>';
+    }
     return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 4h12v16l-2-1.3-2 1.3-2-1.3-2 1.3-2-1.3-2 1.3-1.5-1.5z"/><line x1="8.5" y1="9" x2="15.5" y2="9"/><line x1="8.5" y1="12.5" x2="15.5" y2="12.5"/></svg>';
   }
 
@@ -2750,18 +2865,23 @@
             if (raw) {
               const arr = JSON.parse(raw);
               itemCount = arr.length;
-              if (l.type !== "checklist") {
+              if (l.type === "shared" && l.participants) {
+                const { net } = computeSharedBalances(arr, l.participants);
+                const netText = Math.abs(net) < 0.01 ? "Settled" : rupee(Math.abs(net));
+                totalHtml = `<span style="font-weight:600; color:#4A4636; margin-left:6px;">${netText}</span>`;
+              } else if (l.type !== "checklist") {
                 const total = arr.filter(i => i.active !== false).reduce((s, i) => s + i.amount, 0);
                 totalHtml = `<span style="font-weight:600; color:#4A4636; margin-left:6px;">${rupee(total)}</span>`;
               }
             }
           } catch (e) {}
+          const typeLabel = l.type === "checklist" ? "Checklist" : l.type === "expense_record" ? "Expense record" : l.type === "shared" ? "Shared" : "Expense list";
           return `
             <div class="list-card" data-open-list="${l.id}">
               <div class="list-card-icon ${l.type}">${typeIconSvg(l.type)}</div>
               <div class="list-card-info">
                 <div class="list-card-name">${escapeHtml(l.name)}${totalHtml}</div>
-                <div class="list-card-meta">${l.type === "checklist" ? "Checklist" : l.type === "expense_record" ? "Expense record" : "Expense list"} · ${itemCount} item${itemCount === 1 ? "" : "s"}</div>
+                <div class="list-card-meta">${typeLabel} · ${itemCount} item${itemCount === 1 ? "" : "s"}</div>
               </div>
               <button class="list-card-edit" data-list-settings="${l.id}" aria-label="List settings">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
@@ -2791,13 +2911,25 @@
 
   function applyListTypeUI() {
     const checklist = isChecklistType();
+    const shared = isSharedType();
     amountInputWrap.style.display = checklist ? "none" : "";
-    summaryCard.style.display = checklist ? "none" : "block";
+    summaryCard.style.display = (checklist || shared) ? "none" : "block";
     document.getElementById("checklistProgressCard").style.display = checklist ? "block" : "none";
-    document.getElementById("categoriesBtn").style.display = checklist ? "none" : "flex";
-    document.getElementById("historyBtn").style.display = checklist ? "none" : "flex";
-    document.getElementById("restartBtn").style.display = checklist ? "none" : "flex";
+    document.getElementById("categoriesBtn").style.display = (checklist || shared) ? "none" : "flex";
+    document.getElementById("historyBtn").style.display = (checklist || shared) ? "none" : "flex";
+    document.getElementById("restartBtn").style.display = (checklist || shared) ? "none" : "flex";
+    document.getElementById("sharedAddRow").style.display = shared ? "flex" : "none";
+    document.getElementById("sharedBalanceCard").style.display = shared ? "block" : "none";
     nameInput.setAttribute("enterkeyhint", checklist ? "done" : "next");
+    if (shared) {
+      const l = currentList();
+      const participants = (l && l.participants) || ["A", "B"];
+      selectedPaidBy = participants[0];
+      selectedKind = "credit";
+      document.getElementById("paidByToggleLabel").textContent = selectedPaidBy;
+      document.getElementById("kindToggleLabel").textContent = "Credit";
+      document.getElementById("sharedNamesLabel").textContent = participants.join(" · ");
+    }
   }
 
   function openList(id) {
@@ -2847,6 +2979,7 @@
     document.querySelectorAll(".type-toggle-btn").forEach(btn => {
       btn.classList.toggle("selected", btn.getAttribute("data-list-type") === type);
     });
+    document.getElementById("sharedNamesField").style.display = type === "shared" ? "block" : "none";
   }
   document.querySelectorAll(".type-toggle-btn").forEach(btn => {
     btn.addEventListener("click", () => selectNewListType(btn.getAttribute("data-list-type")));
@@ -2859,7 +2992,17 @@
       return;
     }
     const newId = uid();
-    lists.push({ id: newId, name, type: selectedNewListType, createdAt: new Date().toISOString() });
+    const newList = { id: newId, name, type: selectedNewListType, createdAt: new Date().toISOString() };
+    if (selectedNewListType === "shared") {
+      const yourName = document.getElementById("sharedYourNameInput").value.trim();
+      const partnerName = document.getElementById("sharedPartnerNameInput").value.trim();
+      if (!yourName || !partnerName) {
+        alert("Please enter both names.");
+        return;
+      }
+      newList.participants = [yourName, partnerName];
+    }
+    lists.push(newList);
     saveLists();
     try {
       localStorage.setItem(itemsKeyFor(newId), JSON.stringify([]));
@@ -3292,7 +3435,7 @@
           (async () => {
             try {
               await ensureSpreadsheet();
-              await upsertRow("Lists", "A", entry.list.id, [entry.list.id, entry.list.name, entry.list.type, entry.list.createdAt || "", "no", "", "no"], colLetter(LIST_COLS.length));
+              await upsertRow("Lists", "A", entry.list.id, [entry.list.id, entry.list.name, entry.list.type, entry.list.createdAt || "", "no", "", "no", JSON.stringify(entry.list.participants || [])], colLetter(LIST_COLS.length));
               for (const it of (entry.items || [])) await upsertRow("Items", "B", it.id, itemRow(entry.list.id, it, false, false), colLetter(ITEM_COLS.length));
               for (const c of (entry.categories || [])) await upsertRow("Categories", "B", c.id, [entry.list.id, c.id, c.name, c.color], colLetter(CATEGORY_COLS.length));
               gSyncIconState = "synced";
@@ -3386,8 +3529,8 @@
   const PROFILE_CACHE_KEY = "expense_ledger_google_profile";
   const SPREADSHEET_ID_KEY = "expense_ledger_spreadsheet_id";
 
-  const ITEM_COLS = ["ListId","ItemId","Name","Amount","Done","Active","CategoryId","DoneDate","Trashed","DeletedAt","UpdatedAt","Purged","CreatedAt"];
-  const LIST_COLS = ["ListId","Name","Type","CreatedAt","Trashed","DeletedAt","Purged"];
+  const ITEM_COLS = ["ListId","ItemId","Name","Amount","Done","Active","CategoryId","DoneDate","Trashed","DeletedAt","UpdatedAt","Purged","CreatedAt","PaidBy","Kind","EnteredBy"];
+  const LIST_COLS = ["ListId","Name","Type","CreatedAt","Trashed","DeletedAt","Purged","Participants"];
   const CATEGORY_COLS = ["ListId","CategoryId","Name","Color"];
   const HISTORY_COLS = ["ListId","HistoryId","Label","Total","Spent","Remaining","ArchivedAt","ItemsJson"];
 
@@ -3849,7 +3992,8 @@
       trashed ? "yes" : "no", item.deletedAt || "",
       new Date().toISOString(),
       purged ? "yes" : "no",
-      item.createdAt || ""
+      item.createdAt || "",
+      item.paidBy || "", item.kind || "", item.enteredBy || ""
     ];
   }
 
@@ -3976,7 +4120,7 @@
           delete gPendingListPush[key];
           try {
             await ensureSpreadsheet();
-            await upsertRow("Lists", "A", l.id, [l.id, l.name, l.type, l.createdAt || "", "no", "", "no"], colLetter(LIST_COLS.length));
+            await upsertRow("Lists", "A", l.id, [l.id, l.name, l.type, l.createdAt || "", "no", "", "no", JSON.stringify(l.participants || [])], colLetter(LIST_COLS.length));
             gSyncIconState = "synced";
           } catch (err) {
             gSyncIconState = "error"; setSyncNote("Sync failed: " + (err.message || "unknown"));
@@ -4062,18 +4206,23 @@
     const itemsByList = {}, categoriesByList = {}, historyByList = {}, trashByList = {};
 
     listRows.forEach(r => {
-      const [id, name, type, createdAt, trashed, deletedAt, purged] = r;
+      const [id, name, type, createdAt, trashed, deletedAt, purged, participantsJson] = r;
       if (!id || purged === "yes") return;
       itemsByList[id] = []; categoriesByList[id] = []; historyByList[id] = []; trashByList[id] = [];
-      if (trashed === "yes") deletedLists.push({ id, name, type, createdAt });
-      else activeLists.push({ id, name, type, createdAt: createdAt || new Date().toISOString() });
+      let participants = null;
+      if (participantsJson) { try { participants = JSON.parse(participantsJson); } catch (e) {} }
+      if (trashed === "yes") deletedLists.push({ id, name, type, createdAt, participants });
+      else activeLists.push({ id, name, type, createdAt: createdAt || new Date().toISOString(), participants });
     });
 
     itemRows.forEach(r => {
-      const [listId, itemId, name, amount, done, active, categoryId, doneDate, trashed, deletedAt, updatedAt, purged, createdAt] = r;
+      const [listId, itemId, name, amount, done, active, categoryId, doneDate, trashed, deletedAt, updatedAt, purged, createdAt, paidBy, kind, enteredBy] = r;
       if (!listId || !itemId || purged === "yes") return;
       if (!(listId in itemsByList)) return; // list itself was purged — skip its items too
       const obj = { id: itemId, name: name || "", amount: parseFloat(amount) || 0, done: done === "yes", active: active !== "no", category: categoryId || null, doneDate: doneDate || null, createdAt: createdAt || null };
+      if (paidBy) obj.paidBy = paidBy;
+      if (kind) obj.kind = kind;
+      if (enteredBy) obj.enteredBy = enteredBy;
       if (trashed === "yes") {
         obj.deletedAt = deletedAt || "";
         (trashByList[listId] = trashByList[listId] || []).push(obj);
@@ -4144,7 +4293,7 @@
 
     for (const l of lists) {
       if (!knownListIds.has(l.id)) {
-        await upsertRow("Lists", "A", l.id, [l.id, l.name, l.type, l.createdAt || "", "no", "", "no"], colLetter(LIST_COLS.length));
+        await upsertRow("Lists", "A", l.id, [l.id, l.name, l.type, l.createdAt || "", "no", "", "no", JSON.stringify(l.participants || [])], colLetter(LIST_COLS.length));
       }
       let itemsArr = []; try { itemsArr = JSON.parse(localStorage.getItem(itemsKeyFor(l.id)) || "[]"); } catch (e) {}
       for (const it of itemsArr) {
