@@ -363,6 +363,21 @@
   </div>
 </div>
 
+<div class="edit-overlay" id="shareListOverlay" style="z-index:260;">
+  <div class="edit-card" style="max-width:400px;">
+    <div class="edit-card-title" style="margin-bottom:6px;">Share this list</div>
+    <div class="manage-hint" style="margin-bottom:10px;">Enter the Google email address(es) of the people you want to share with — one per line, or separated by commas. They'll see this list automatically the next time they sign in to Muhasib with that account.</div>
+    <div class="edit-field">
+      <textarea class="edit-input" id="shareEmailsInput" rows="3" placeholder="e.g. aatif@gmail.com" style="resize:vertical; font-family:'Inter',sans-serif;"></textarea>
+    </div>
+    <div id="shareStatusMsg" style="font-family:'Inter',sans-serif; font-size:12.5px; color:#7A7460; margin-bottom:6px; display:none;"></div>
+    <div class="edit-actions">
+      <button class="edit-cancel" id="shareCancelBtn">Cancel</button>
+      <button class="edit-save" id="shareSendBtn">Share</button>
+    </div>
+  </div>
+</div>
+
 <div class="edit-overlay" id="calcOverlay" style="z-index:250;">
   <div class="edit-card" style="max-width:320px; padding:16px;">
     <div class="edit-card-title" style="margin-bottom:10px;">Calculator</div>
@@ -691,6 +706,9 @@
     </button>
     <button class="settings-btn" id="manageListQuickBtn" aria-label="Manage list">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+    </button>
+    <button class="settings-btn" id="shareListBtn" aria-label="Share list" style="display:none;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
     </button>
     <button class="settings-btn" id="langToggleBtn2" aria-label="Language" style="font-family:'Inter',sans-serif; font-size:11px; font-weight:700;">EN</button>
     <button class="settings-btn" id="settingsBtn" aria-label="Menu">
@@ -1535,11 +1553,17 @@
 
   function computeSharedBalances(itemsArr, participants) {
     const map = {};
-    // Items are stored newest-first (new ones are unshifted to the front), so
-    // reversing gives true chronological (oldest-first) order — far more
-    // reliable than sorting by createdAt (day-only precision) + id, which
-    // breaks for multiple same-day entries.
-    const chron = itemsArr.filter(i => i.active !== false).slice().reverse();
+    // Prefer the exact creation instant (seq) for chronological order — this
+    // stays correct even after a pull from Sheets re-orders the array (rows
+    // come back oldest-appended-first, not the app's newest-first convention).
+    // Items without a seq (older data) fall back to reversed array order.
+    const active = itemsArr.filter(i => i.active !== false);
+    const reversedArr = active.slice().reverse();
+    const chron = active.slice().sort((a, b) => {
+      if (a.seq && b.seq) return a.seq - b.seq;
+      // fall back to relative position in the reversed (oldest-first) array
+      return reversedArr.indexOf(a) - reversedArr.indexOf(b);
+    });
     let net = 0; // positive = participants[1] owes participants[0]
     chron.forEach(item => {
       const sign = item.paidBy === participants[0] ? 1 : -1;
@@ -1690,6 +1714,9 @@
       newItem.paidBy = selectedPaidBy;
       newItem.kind = selectedKind;
       newItem.enteredBy = (gIsSignedIn && gProfile && gProfile.name) ? gProfile.name : "You";
+      newItem.seq = Date.now(); // exact creation instant — used for chronological balance ordering,
+      // since array order alone isn't reliable once items have been pulled from Sheets
+      // (Sheets rows come back oldest-appended-first, not the app's newest-first convention).
     }
     items.unshift(newItem);
     saveItems();
@@ -2616,6 +2643,50 @@
   });
   // ---------- end Shared toggles ----------
 
+  // ---------- Share list with others ----------
+  const shareListOverlay = document.getElementById("shareListOverlay");
+  document.getElementById("shareListBtn").addEventListener("click", () => {
+    if (!gIsSignedIn) {
+      alert("Please sign in with Google first (Menu → Google Account) so this list can be shared.");
+      return;
+    }
+    document.getElementById("shareEmailsInput").value = "";
+    document.getElementById("shareStatusMsg").style.display = "none";
+    shareListOverlay.classList.add("open");
+  });
+  document.getElementById("shareCancelBtn").addEventListener("click", () => shareListOverlay.classList.remove("open"));
+  document.getElementById("shareSendBtn").addEventListener("click", async () => {
+    const raw = document.getElementById("shareEmailsInput").value;
+    const emails = raw.split(/[\n,]/).map(e => e.trim()).filter(Boolean);
+    if (emails.length === 0) {
+      alert("Please enter at least one email address.");
+      return;
+    }
+    const l = currentList();
+    if (!l) return;
+    const statusMsg = document.getElementById("shareStatusMsg");
+    statusMsg.style.display = "block";
+    statusMsg.textContent = "Sharing…";
+    const sendBtn = document.getElementById("shareSendBtn");
+    sendBtn.disabled = true;
+    try {
+      const results = await shareListWithEmails(l, emails);
+      const okList = results.filter(r => r.ok).map(r => r.email);
+      const failList = results.filter(r => !r.ok).map(r => r.email);
+      let msg = "";
+      if (okList.length) msg += "Shared with: " + okList.join(", ") + ". ";
+      if (failList.length) msg += "Failed: " + failList.join(", ") + ".";
+      statusMsg.textContent = msg;
+      if (failList.length === 0) {
+        setTimeout(() => shareListOverlay.classList.remove("open"), 1200);
+      }
+    } catch (e) {
+      statusMsg.textContent = "Couldn't share: " + (e.message || "unknown error");
+    }
+    sendBtn.disabled = false;
+  });
+  // ---------- end Share list ----------
+
   // ---------- Calculator ----------
   let calcExpr = "";
   const calcOverlay = document.getElementById("calcOverlay");
@@ -2919,6 +2990,7 @@
     document.getElementById("historyBtn").style.display = (checklist || shared) ? "none" : "flex";
     document.getElementById("restartBtn").style.display = (checklist || shared) ? "none" : "flex";
     document.getElementById("sharedAddRow").style.display = shared ? "flex" : "none";
+    document.getElementById("shareListBtn").style.display = shared ? "flex" : "none";
     document.getElementById("sharedBalanceCard").style.display = shared ? "block" : "none";
     nameInput.setAttribute("enterkeyhint", checklist ? "done" : "next");
     if (shared) {
@@ -3435,7 +3507,7 @@
           (async () => {
             try {
               await ensureSpreadsheet();
-              await upsertRow("Lists", "A", entry.list.id, [entry.list.id, entry.list.name, entry.list.type, entry.list.createdAt || "", "no", "", "no", JSON.stringify(entry.list.participants || [])], colLetter(LIST_COLS.length));
+              await upsertRow("Lists", "A", entry.list.id, [entry.list.id, entry.list.name, entry.list.type, entry.list.createdAt || "", "no", "", "no", JSON.stringify(entry.list.participants || []), entry.list.sharedSheetId || ""], colLetter(LIST_COLS.length));
               for (const it of (entry.items || [])) await upsertRow("Items", "B", it.id, itemRow(entry.list.id, it, false, false), colLetter(ITEM_COLS.length));
               for (const c of (entry.categories || [])) await upsertRow("Categories", "B", c.id, [entry.list.id, c.id, c.name, c.color], colLetter(CATEGORY_COLS.length));
               gSyncIconState = "synced";
@@ -3529,8 +3601,8 @@
   const PROFILE_CACHE_KEY = "expense_ledger_google_profile";
   const SPREADSHEET_ID_KEY = "expense_ledger_spreadsheet_id";
 
-  const ITEM_COLS = ["ListId","ItemId","Name","Amount","Done","Active","CategoryId","DoneDate","Trashed","DeletedAt","UpdatedAt","Purged","CreatedAt","PaidBy","Kind","EnteredBy"];
-  const LIST_COLS = ["ListId","Name","Type","CreatedAt","Trashed","DeletedAt","Purged","Participants"];
+  const ITEM_COLS = ["ListId","ItemId","Name","Amount","Done","Active","CategoryId","DoneDate","Trashed","DeletedAt","UpdatedAt","Purged","CreatedAt","PaidBy","Kind","EnteredBy","Seq"];
+  const LIST_COLS = ["ListId","Name","Type","CreatedAt","Trashed","DeletedAt","Purged","Participants","SharedSheetId"];
   const CATEGORY_COLS = ["ListId","CategoryId","Name","Color"];
   const HISTORY_COLS = ["ListId","HistoryId","Label","Total","Spent","Remaining","ArchivedAt","ItemsJson"];
 
@@ -3721,6 +3793,7 @@
       try {
         await ensureSpreadsheet();
         await pushLocalOnlyDataUp();
+        await discoverSharedLists();
         await pullAllFromSheets();
         gSyncIconState = "synced";
       } catch (e) {
@@ -3944,42 +4017,145 @@
     return s;
   }
 
-  async function sheetsGetRange(range) {
-    const res = await gFetch("https://sheets.googleapis.com/v4/spreadsheets/" + gSpreadsheetId + "/values/" + encodeURIComponent(range));
+  const SHARED_META_COLS = ["Name", "Participants", "OwnerEmail", "CreatedAt"];
+
+  // Each shared list gets its OWN dedicated spreadsheet (never the personal
+  // "Muhasib Data" one) so sharing it with someone else never exposes any of
+  // the creator's other, private lists. Tagged with an appProperty so every
+  // participant's own sign-in can discover it later via Drive's "sharedWithMe".
+  async function ensureSharedSpreadsheet(list) {
+    if (list.sharedSheetId) {
+      try {
+        await gFetch("https://sheets.googleapis.com/v4/spreadsheets/" + list.sharedSheetId + "?fields=spreadsheetId");
+        return list.sharedSheetId;
+      } catch (e) {
+        // fall through and create a fresh one if the old id is no longer reachable
+      }
+    }
+    const createRes = await gFetch("https://sheets.googleapis.com/v4/spreadsheets", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        properties: { title: "Muhasib Shared - " + list.name },
+        sheets: [{ properties: { title: "Items" } }, { properties: { title: "Meta" } }]
+      })
+    });
+    const data = await createRes.json();
+    const newId = data.spreadsheetId;
+
+    await sheetsUpdateRange("Items!A1:" + colLetter(ITEM_COLS.length) + "1", [ITEM_COLS], newId);
+    await sheetsUpdateRange("Meta!A1:" + colLetter(SHARED_META_COLS.length) + "1", [SHARED_META_COLS], newId);
+    await sheetsUpdateRange("Meta!A2:" + colLetter(SHARED_META_COLS.length) + "2", [[
+      list.name, JSON.stringify(list.participants || []), (gProfile && gProfile.email) || "", list.createdAt || new Date().toISOString()
+    ]], newId);
+
+    // Tag the file so it can be found later via Drive's "sharedWithMe" query.
+    try {
+      await gFetch("https://www.googleapis.com/drive/v3/files/" + newId, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ appProperties: { muhasibShared: "true" } })
+      });
+    } catch (e) {}
+
+    list.sharedSheetId = newId;
+    lists = lists.map(l => l.id === list.id ? { ...l, sharedSheetId: newId } : l);
+    saveLists();
+    if (gIsSignedIn) {
+      try {
+        await ensureSpreadsheet();
+        await upsertRow("Lists", "A", list.id, [list.id, list.name, list.type, list.createdAt || "", "no", "", "no", JSON.stringify(list.participants || []), newId], colLetter(LIST_COLS.length));
+      } catch (e) {}
+    }
+    return newId;
+  }
+
+  // Share a list's dedicated spreadsheet with one or more email addresses.
+  async function shareListWithEmails(list, emails) {
+    const sheetId = await ensureSharedSpreadsheet(list);
+    const results = [];
+    for (const email of emails) {
+      try {
+        await gFetch("https://www.googleapis.com/drive/v3/files/" + sheetId + "/permissions?sendNotificationEmail=false", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ role: "writer", type: "user", emailAddress: email })
+        });
+        results.push({ email, ok: true });
+      } catch (e) {
+        results.push({ email, ok: false, error: e.message });
+      }
+    }
+    return results;
+  }
+
+  // On sign-in, look for shared lists other people have shared with this
+  // account, and add any not already known locally.
+  async function discoverSharedLists() {
+    try {
+      const q = encodeURIComponent("sharedWithMe and appProperties has { key='muhasibShared' and value='true' } and trashed=false");
+      const res = await gFetch("https://www.googleapis.com/drive/v3/files?q=" + q + "&spaces=drive&fields=files(id,name)");
+      const data = await res.json();
+      const found = (data.files || []);
+      const knownIds = new Set(lists.map(l => l.sharedSheetId).filter(Boolean));
+      let addedAny = false;
+      for (const f of found) {
+        if (knownIds.has(f.id)) continue;
+        let name = f.name.replace(/^Muhasib Shared - /, "");
+        let participants = [];
+        try {
+          const metaRows = await sheetsGetRange("Meta!A2:" + colLetter(SHARED_META_COLS.length), f.id);
+          if (metaRows[0]) {
+            name = metaRows[0][0] || name;
+            try { participants = JSON.parse(metaRows[0][1] || "[]"); } catch (e2) {}
+          }
+        } catch (e) {}
+        lists.push({ id: uid(), name, type: "shared", createdAt: new Date().toISOString(), participants, sharedSheetId: f.id });
+        addedAny = true;
+      }
+      if (addedAny) saveLists();
+    } catch (e) {}
+  }
+
+  async function sheetsGetRange(range, spreadsheetId) {
+    const sid = spreadsheetId || gSpreadsheetId;
+    const res = await gFetch("https://sheets.googleapis.com/v4/spreadsheets/" + sid + "/values/" + encodeURIComponent(range));
     const data = await res.json();
     return data.values || [];
   }
 
-  async function sheetsUpdateRange(range, values) {
-    return gFetch("https://sheets.googleapis.com/v4/spreadsheets/" + gSpreadsheetId + "/values/" + encodeURIComponent(range) + "?valueInputOption=RAW", {
+  async function sheetsUpdateRange(range, values, spreadsheetId) {
+    const sid = spreadsheetId || gSpreadsheetId;
+    return gFetch("https://sheets.googleapis.com/v4/spreadsheets/" + sid + "/values/" + encodeURIComponent(range) + "?valueInputOption=RAW", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ values })
     });
   }
 
-  async function sheetsAppendRow(sheetName, rowValues) {
-    return gFetch("https://sheets.googleapis.com/v4/spreadsheets/" + gSpreadsheetId + "/values/" + encodeURIComponent(sheetName + "!A1") + ":append?valueInputOption=RAW&insertDataOption=INSERT_ROWS", {
+  async function sheetsAppendRow(sheetName, rowValues, spreadsheetId) {
+    const sid = spreadsheetId || gSpreadsheetId;
+    return gFetch("https://sheets.googleapis.com/v4/spreadsheets/" + sid + "/values/" + encodeURIComponent(sheetName + "!A1") + ":append?valueInputOption=RAW&insertDataOption=INSERT_ROWS", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ values: [rowValues] })
     });
   }
 
-  async function findRowNumber(sheetName, idColLetter, idValue) {
-    const col = await sheetsGetRange(sheetName + "!" + idColLetter + ":" + idColLetter);
+  async function findRowNumber(sheetName, idColLetter, idValue, spreadsheetId) {
+    const col = await sheetsGetRange(sheetName + "!" + idColLetter + ":" + idColLetter, spreadsheetId);
     for (let i = 0; i < col.length; i++) {
       if (col[i][0] === idValue) return i + 1;
     }
     return null;
   }
 
-  async function upsertRow(sheetName, idColLetter, idValue, rowValues, lastColLetter) {
-    const rowNum = await findRowNumber(sheetName, idColLetter, idValue);
+  async function upsertRow(sheetName, idColLetter, idValue, rowValues, lastColLetter, spreadsheetId) {
+    const rowNum = await findRowNumber(sheetName, idColLetter, idValue, spreadsheetId);
     if (rowNum) {
-      await sheetsUpdateRange(sheetName + "!A" + rowNum + ":" + lastColLetter + rowNum, [rowValues]);
+      await sheetsUpdateRange(sheetName + "!A" + rowNum + ":" + lastColLetter + rowNum, [rowValues], spreadsheetId);
     } else {
-      await sheetsAppendRow(sheetName, rowValues);
+      await sheetsAppendRow(sheetName, rowValues, spreadsheetId);
     }
   }
 
@@ -3993,11 +4169,17 @@
       new Date().toISOString(),
       purged ? "yes" : "no",
       item.createdAt || "",
-      item.paidBy || "", item.kind || "", item.enteredBy || ""
+      item.paidBy || "", item.kind || "", item.enteredBy || "", item.seq || ""
     ];
   }
 
   async function pushOneItem(listId, item, trashed, purged) {
+    const l = lists.find(x => x.id === listId);
+    if (l && l.type === "shared") {
+      const sharedId = await ensureSharedSpreadsheet(l);
+      await upsertRow("Items", "B", item.id, itemRow(listId, item, trashed, purged), colLetter(ITEM_COLS.length), sharedId);
+      return;
+    }
     await ensureSpreadsheet();
     await upsertRow("Items", "B", item.id, itemRow(listId, item, trashed, purged), colLetter(ITEM_COLS.length));
   }
@@ -4043,7 +4225,7 @@
   }
 
   function fieldHashItem(item) {
-    return JSON.stringify([item.name, item.amount, item.done, item.active !== false, item.category || null, item.doneDate || null, item.createdAt || null]);
+    return JSON.stringify([item.name, item.amount, item.done, item.active !== false, item.category || null, item.doneDate || null, item.createdAt || null, item.paidBy || null, item.kind || null, item.enteredBy || null]);
   }
 
   // Called from saveItems(): diff old vs new, only push what actually changed
@@ -4120,7 +4302,7 @@
           delete gPendingListPush[key];
           try {
             await ensureSpreadsheet();
-            await upsertRow("Lists", "A", l.id, [l.id, l.name, l.type, l.createdAt || "", "no", "", "no", JSON.stringify(l.participants || [])], colLetter(LIST_COLS.length));
+            await upsertRow("Lists", "A", l.id, [l.id, l.name, l.type, l.createdAt || "", "no", "", "no", JSON.stringify(l.participants || []), l.sharedSheetId || ""], colLetter(LIST_COLS.length));
             gSyncIconState = "synced";
           } catch (err) {
             gSyncIconState = "error"; setSyncNote("Sync failed: " + (err.message || "unknown"));
@@ -4206,23 +4388,37 @@
     const itemsByList = {}, categoriesByList = {}, historyByList = {}, trashByList = {};
 
     listRows.forEach(r => {
-      const [id, name, type, createdAt, trashed, deletedAt, purged, participantsJson] = r;
+      const [id, name, type, createdAt, trashed, deletedAt, purged, participantsJson, sharedSheetId] = r;
       if (!id || purged === "yes") return;
       itemsByList[id] = []; categoriesByList[id] = []; historyByList[id] = []; trashByList[id] = [];
       let participants = null;
       if (participantsJson) { try { participants = JSON.parse(participantsJson); } catch (e) {} }
-      if (trashed === "yes") deletedLists.push({ id, name, type, createdAt, participants });
-      else activeLists.push({ id, name, type, createdAt: createdAt || new Date().toISOString(), participants });
+      if (trashed === "yes") deletedLists.push({ id, name, type, createdAt, participants, sharedSheetId: sharedSheetId || null });
+      else activeLists.push({ id, name, type, createdAt: createdAt || new Date().toISOString(), participants, sharedSheetId: sharedSheetId || null });
+    });
+
+    // Shared lists someone ELSE created and shared with this account live only
+    // in the creator's own personal spreadsheet — they'll never appear in the
+    // rows above (this is this account's OWN personal spreadsheet). Carry
+    // forward any already known locally (added by discoverSharedLists) so this
+    // pull doesn't wipe them out.
+    const activeIds = new Set(activeLists.map(l => l.id));
+    lists.forEach(l => {
+      if (l.type === "shared" && l.sharedSheetId && !activeIds.has(l.id)) {
+        activeLists.push(l);
+        itemsByList[l.id] = []; categoriesByList[l.id] = []; historyByList[l.id] = []; trashByList[l.id] = [];
+      }
     });
 
     itemRows.forEach(r => {
-      const [listId, itemId, name, amount, done, active, categoryId, doneDate, trashed, deletedAt, updatedAt, purged, createdAt, paidBy, kind, enteredBy] = r;
+      const [listId, itemId, name, amount, done, active, categoryId, doneDate, trashed, deletedAt, updatedAt, purged, createdAt, paidBy, kind, enteredBy, seq] = r;
       if (!listId || !itemId || purged === "yes") return;
       if (!(listId in itemsByList)) return; // list itself was purged — skip its items too
       const obj = { id: itemId, name: name || "", amount: parseFloat(amount) || 0, done: done === "yes", active: active !== "no", category: categoryId || null, doneDate: doneDate || null, createdAt: createdAt || null };
       if (paidBy) obj.paidBy = paidBy;
       if (kind) obj.kind = kind;
       if (enteredBy) obj.enteredBy = enteredBy;
+      if (seq) obj.seq = parseInt(seq, 10);
       if (trashed === "yes") {
         obj.deletedAt = deletedAt || "";
         (trashByList[listId] = trashByList[listId] || []).push(obj);
@@ -4230,6 +4426,30 @@
         (itemsByList[listId] = itemsByList[listId] || []).push(obj);
       }
     });
+
+    // Shared lists' items live in THEIR OWN dedicated spreadsheet, not this
+    // account's personal one — pull each separately.
+    for (const l of activeLists) {
+      if (l.type !== "shared" || !l.sharedSheetId) continue;
+      try {
+        const sharedItemRows = await sheetsGetRange("Items!A2:" + colLetter(ITEM_COLS.length), l.sharedSheetId);
+        sharedItemRows.forEach(r => {
+          const [listId, itemId, name, amount, done, active, categoryId, doneDate, trashed, deletedAt, updatedAt, purged, createdAt, paidBy, kind, enteredBy, seq] = r;
+          if (!itemId || purged === "yes") return;
+          const obj = { id: itemId, name: name || "", amount: parseFloat(amount) || 0, done: done === "yes", active: active !== "no", category: categoryId || null, doneDate: doneDate || null, createdAt: createdAt || null };
+          if (paidBy) obj.paidBy = paidBy;
+          if (kind) obj.kind = kind;
+          if (enteredBy) obj.enteredBy = enteredBy;
+          if (seq) obj.seq = parseInt(seq, 10);
+          if (trashed === "yes") {
+            obj.deletedAt = deletedAt || "";
+            (trashByList[l.id] = trashByList[l.id] || []).push(obj);
+          } else {
+            (itemsByList[l.id] = itemsByList[l.id] || []).push(obj);
+          }
+        });
+      } catch (e) {}
+    }
 
     catRows.forEach(r => {
       const [listId, catId, name, color] = r;
@@ -4293,7 +4513,7 @@
 
     for (const l of lists) {
       if (!knownListIds.has(l.id)) {
-        await upsertRow("Lists", "A", l.id, [l.id, l.name, l.type, l.createdAt || "", "no", "", "no", JSON.stringify(l.participants || [])], colLetter(LIST_COLS.length));
+        await upsertRow("Lists", "A", l.id, [l.id, l.name, l.type, l.createdAt || "", "no", "", "no", JSON.stringify(l.participants || []), l.sharedSheetId || ""], colLetter(LIST_COLS.length));
       }
       let itemsArr = []; try { itemsArr = JSON.parse(localStorage.getItem(itemsKeyFor(l.id)) || "[]"); } catch (e) {}
       for (const it of itemsArr) {
@@ -4319,6 +4539,7 @@
     try {
       await ensureSpreadsheet();
       const isFreshSpreadsheet = await pushLocalOnlyDataUp();
+      await discoverSharedLists();
 
       await pullAllFromSheets();
       setSyncNote(isFreshSpreadsheet ? "✓ Backup created in Google Sheets." : "✓ Synced with Google Sheets.");
